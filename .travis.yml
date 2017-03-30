@@ -1,0 +1,14 @@
+language: ruby
+sudo: false
+dist: trusty
+cache: bundler
+rvm:
+  - 2.2.6
+  - 2.3.3
+  - 2.4.0
+  - jruby-head
+  - ruby-head
+matrix:
+  allow_failures:
+    - rvm: ruby-head
+    - rvm: jruby-head
