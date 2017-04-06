@@ -19,28 +19,63 @@
 # THE SOFTWARE.
 
 RSpec.describe Async::Reactor do
-	include_context "reactor"
-	
-	let(:port) {6778}
-	
-	# These may block:
-	let(:server) {TCPServer.new("localhost", port)}
-	let(:client) {TCPSocket.new("localhost", port)}
-	
-	let(:data) {"The quick brown fox jumped over the lazy dog."}
-	
-	it "should start server and send data" do
-		subject.async(server) do |server, context|
-			context.with(server.accept) do |peer|
-				peer << data
-				peer.shutdown
+	describe 'basic tcp server' do
+		include_context "reactor"
+		
+		let(:port) {6778}
+		
+		# These may block:
+		let(:server) {TCPServer.new("localhost", port)}
+		let(:client) {TCPSocket.new("localhost", port)}
+		
+		let(:data) {"The quick brown fox jumped over the lazy dog."}
+		
+		it "should start server and send data" do
+			subject.async(server) do |server, context|
+				context.with(server.accept) do |peer|
+					peer << peer.recv(1024)
+				end
 			end
+			
+			subject.async(client) do |client|
+				client << data
+				
+				expect(client.recv(1024)).to be == data
+			end
+			
+			subject.run
 		end
+	end
+	
+	describe 'basic udp server' do
+		include_context "reactor"
 		
-		subject.async(client) do |client|
-			expect(client.recv(1024)).to be == data
+		let(:port) {6778}
+		
+		# These may block:
+		let(:server) {UDPSocket.new.tap{|socket| socket.bind("localhost", port)}}
+		let(:client) {UDPSocket.new}
+		
+		let(:data) {"The quick brown fox jumped over the lazy dog."}
+		
+		it "should echo data back to peer" do
+			subject.async(server) do |server, context|
+				packet, (_, remote_port, remote_host) = server.recvfrom(512)
+
+				reactor.async do
+					server.send(packet, 0, remote_host, remote_port)
+				end
+			end
+			
+			subject.async(client) do |client|
+				client.send(data, 0, "localhost", port)
+				
+				response, _ = client.recvfrom(512)
+				
+				expect(response).to be == data
+			end
+			
+			subject.run
 		end
-		
-		subject.run
 	end
 end
