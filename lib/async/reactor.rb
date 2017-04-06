@@ -23,6 +23,7 @@ require_relative 'context'
 
 require 'nio'
 require 'timers'
+require 'forwardable'
 
 module Async
 	class TimeoutError < RuntimeError

@@ -24,8 +24,6 @@ module Async
 	module Wrap
 		# Represents an asynchronous IO within a reactor.
 		class IO
-			extend Forwardable
-			
 			def initialize(io, context)
 				@io = io
 				@context = context

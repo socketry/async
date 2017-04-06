@@ -21,6 +21,7 @@
 require_relative 'wrap'
 
 require 'fiber'
+require 'forwardable'
 
 module Async
 	class Interrupt < Exception
