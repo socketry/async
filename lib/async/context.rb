@@ -18,8 +18,6 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-require_relative 'wrap'
-
 require 'fiber'
 require 'forwardable'
 
@@ -31,7 +29,7 @@ module Async
 		extend Forwardable
 		
 		def initialize(ios, reactor, &block)
-			@ios = ios.collect{|io| Async::Wrap[io, self]}
+			@ios = ios.collect{|io| reactor.wrap(io, self)}
 			@reactor = reactor
 			
 			@fiber = Fiber.new do
@@ -66,7 +64,7 @@ module Async
 		attr :reactor
 		
 		def with(io)
-			wrapper = Async::Wrap[io, self]
+			wrapper = @reactor.wrap(io, self)
 			
 			yield wrapper
 		ensure

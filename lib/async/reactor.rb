@@ -38,7 +38,9 @@ module Async
 			reactor.async(*args, &block)
 		end
 		
-		def initialize
+		def initialize(wrappers: Async::Wrap)
+			@wrappers = wrappers
+			
 			@selector = NIO::Selector.new
 			@timers = Timers::Group.new
 			
@@ -47,9 +49,14 @@ module Async
 			@stopped = true
 		end
 		
+		attr :wrappers
 		attr :stopped
 		
 		def_delegators :@timers, :every, :after
+		
+		def wrap(io, context)
+			@wrappers[io].new(io, context)
+		end
 		
 		def with(io, &block)
 			async do |context|

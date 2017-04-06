@@ -22,12 +22,8 @@ module Async
 	module Wrap
 		WRAPPERS = {}
 		
-		def self.[](instance, *args)
-			if wrapper = WRAPPERS[instance.class]
-				wrapper.new(instance, *args)
-			else
-				raise ArgumentError.new("Don't know how to wrap #{instance.class}!")
-			end
+		def self.[](instance)
+			WRAPPERS[instance.class] or raise ArgumentError.new("Don't know how to wrap #{instance.class}!")
 		end
 		
 		def self.[]= actual_class, wrapper_class
