@@ -9,17 +9,23 @@ server = TCPServer.new("localhost", 6777)
 
 REPEATS = 10
 
-reactor.async(server) do |server|
+timer = reactor.after(1) do
+	puts "Reactor timed out!"
+	reactor.stop
+end
+
+reactor.async(server) do |server, context|
 	REPEATS.times do |i|
 		puts "Accepting peer on server #{server}"
-		peer = server.accept
-		
-		puts "Sending data to peer"
-		peer << "data #{i}"
-		peer.shutdown
+		context.with(server.accept) do |peer|
+			puts "Sending data to peer"
+			peer << "data #{i}"
+			peer.shutdown
+		end
 	end
 	
-	puts "Server finished"
+	puts "Server finished, canceling timer"
+	timer.cancel
 end
 
 REPEATS.times do |i|
@@ -33,9 +39,4 @@ REPEATS.times do |i|
 	end
 end
 
-reactor.timers.after(1) do
-	puts "Reactor timed out!"
-	reactor.stop
-end
-
-reactor.run_forever
+reactor.run
