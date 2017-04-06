@@ -21,4 +21,3 @@
 require_relative "async/version"
 require_relative "async/logger"
 require_relative "async/reactor"
-require_relative "async/wrap"

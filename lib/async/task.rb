@@ -25,7 +25,7 @@ module Async
 	class Interrupt < Exception
 	end
 	
-	class Context
+	class Task
 		extend Forwardable
 		
 		def initialize(ios, reactor, &block)
@@ -38,7 +38,7 @@ module Async
 				begin
 					yield(*@ios, self)
 				rescue Interrupt
-					Async.logger.debug("Context #{self} interrupted: #{$!}")
+					Async.logger.debug("Task #{self} interrupted: #{$!}")
 				ensure
 					close
 				end
@@ -82,8 +82,8 @@ module Async
 			return name
 		end
 		
-		def self.get!
-			Thread.current[:async_context] or raise RuntimeError, "No async context available!"
+		def self.current
+			Thread.current[:async_task] or raise RuntimeError, "No async task available!"
 		end
 		
 		def self.reactor!
@@ -98,7 +98,7 @@ module Async
 		
 		def set!
 			# This is actually fiber-local:
-			Thread.current[:async_context] = self
+			Thread.current[:async_task] = self
 		end
 	end
 end

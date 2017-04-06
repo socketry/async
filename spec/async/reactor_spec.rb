@@ -31,16 +31,16 @@ RSpec.describe Async::Reactor do
 		let(:data) {"The quick brown fox jumped over the lazy dog."}
 		
 		it "should start server and send data" do
-			subject.async(server) do |server, context|
-				context.with(server.accept) do |peer|
-					peer << peer.recv(1024)
+			subject.async(server) do |server, task|
+				task.with(server.accept) do |peer|
+					peer.write(peer.read(512))
 				end
 			end
 			
 			subject.async(client) do |client|
-				client << data
+				client.write(data)
 				
-				expect(client.recv(1024)).to be == data
+				expect(client.read(512)).to be == data
 			end
 			
 			subject.run
@@ -59,9 +59,9 @@ RSpec.describe Async::Reactor do
 		let(:data) {"The quick brown fox jumped over the lazy dog."}
 		
 		it "should echo data back to peer" do
-			subject.async(server) do |server, context|
+			subject.async(server) do |server, task|
 				packet, (_, remote_port, remote_host) = server.recvfrom(512)
-
+				
 				reactor.async do
 					server.send(packet, 0, remote_host, remote_port)
 				end

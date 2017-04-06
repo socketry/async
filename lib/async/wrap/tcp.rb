@@ -26,8 +26,8 @@ module Async
 		class TCPSocket < IPSocket
 			wraps ::TCPSocket
 			
-			def self.connect(remote_address, remote_port, local_address = nil, local_port = nil, context: Context.get!)
-				socket = context.wrap ::Socket.new(AF_INET, SOCK_STREAM, 0)
+			def self.connect(remote_address, remote_port, local_address = nil, local_port = nil, task: Task.current)
+				socket = task.wrap ::Socket.new(AF_INET, SOCK_STREAM, 0)
 				
 				sockaddr = Socket.sockaddr_in(remote_port, remote_address)
 				

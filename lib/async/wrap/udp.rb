@@ -23,7 +23,7 @@ require_relative 'socket'
 module Async::Wrap
 	# Asynchronous UDP socket.
 	class UDPSocket < IPSocket
-		wraps ::UDPSocket, :send
+		wraps ::UDPSocket
 	end
 end
 

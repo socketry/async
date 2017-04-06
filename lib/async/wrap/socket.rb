@@ -24,7 +24,7 @@ require 'socket'
 
 module Async::Wrap
 	class BasicSocket < IO
-		wraps ::BasicSocket
+		wraps ::BasicSocket, :send
 	end
 	
 	class Socket < BasicSocket

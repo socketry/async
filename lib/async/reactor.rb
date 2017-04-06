@@ -19,7 +19,8 @@
 # THE SOFTWARE.
 
 require_relative 'logger'
-require_relative 'context'
+require_relative 'task'
+require_relative 'wrapper'
 
 require 'nio'
 require 'timers'
@@ -38,7 +39,7 @@ module Async
 			reactor.async(*args, &block)
 		end
 		
-		def initialize(wrappers: Async::Wrap)
+		def initialize(wrappers: Async::Wrap::IO)
 			@wrappers = wrappers
 			
 			@selector = NIO::Selector.new
@@ -54,18 +55,18 @@ module Async
 		
 		def_delegators :@timers, :every, :after
 		
-		def wrap(io, context)
-			@wrappers[io].new(io, context)
+		def wrap(io, task)
+			@wrappers[io].new(io, task)
 		end
 		
 		def with(io, &block)
-			async do |context|
-				context.with(io, &block)
+			async do |task|
+				task.with(io, &block)
 			end
 		end
 		
 		def async(*ios, &block)
-			context = Context.new(ios, self, &block)
+			task = Task.new(ios, self, &block)
 			
 			# I want to take a moment to explain the logic of this.
 			# When calling an async block, we deterministically execute it until the
@@ -74,13 +75,13 @@ module Async
 			# - Fail at the point of call where possible.
 			# - Execute determinstically where possible.
 			# - Avoid overhead if no blocking operation is performed.
-			fiber = context.run
+			fiber = task.run
 			
 			# We only start tracking this if the fiber is still alive:
 			@fibers << fiber if fiber.alive?
 			
 			# Async.logger.debug "Initial execution of task #{fiber} complete (#{result} -> #{fiber.alive?})..."
-			return context
+			return task
 		end
 		
 		def register(*args)

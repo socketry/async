@@ -18,100 +18,66 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-require_relative 'klass'
+require_relative '../wrapper'
+
+require 'forwardable'
 
 module Async
 	module Wrap
 		# Represents an asynchronous IO within a reactor.
-		class IO
-			def initialize(io, context)
-				@io = io
-				@context = context
-				@monitor = nil
+		class IO < Wrapper
+			extend Forwardable
+			
+			WRAPPERS = {}
+			
+			def self.[] instance
+				WRAPPERS[instance.class]
 			end
 			
-			def self.wrap_blocking_method(new_name, method_name)
-				# puts "#{self}\##{$1} -> #{method_name}"
-				define_method(new_name) do |*args|
-					while true
-						begin
-							result = @io.__send__(method_name, *args)
-							
-							case result
-							when :wait_readable
-								wait_readable
-							when :wait_writable
-								wait_writable
-							else
-								return result
-							end
-						rescue ::IO::WaitReadable
-							wait_readable
-							retry
-						rescue ::IO::WaitWritable
-							wait_writable
-							retry
+			class << self
+				def wrap_blocking_method(new_name, method_name)
+					# puts "#{self}\##{$1} -> #{method_name}"
+					define_method(new_name) do |*args|
+						async do
+							@io.__send__(method_name, *args)
 						end
 					end
 				end
-			end
-			
-			def self.wraps(klass, *additional_methods)
-				Wrap[klass] = self
 				
-				klass.instance_methods(false).grep(/(.*)_nonblock/) do |method_name|
-					wrap_blocking_method($1, method_name)
-				end
-				
-				additional_methods.each do |method_name|
-					wrap_blocking_method(method_name, method_name)
+				def wraps(klass, *additional_methods)
+					WRAPPERS[klass] = self
+					
+					klass.instance_methods(false).grep(/(.*)_nonblock/) do |method_name|
+						wrap_blocking_method($1, method_name)
+					end
+					
+					def_delegators :@io, *(additional_methods - instance_methods(false))
 				end
 			end
 			
 			wraps ::IO
 			
-			attr :context
+			protected
 			
-			def monitor(interests)
-				unless @monitor
-					@monitor = @context.register(@io, interests)
-				else
-					@monitor.interests = interests
+			def async
+				while true
+					begin
+						result = yield
+						
+						case result
+						when :wait_readable
+							wait_readable
+						when :wait_writable
+							wait_writable
+						else
+							return result
+						end
+					rescue ::IO::WaitReadable
+						wait_readable
+					rescue ::IO::WaitWritable
+						wait_writable
+					end
 				end
-				
-				@monitor.value = Fiber.current
-				
-				yield
-				
-			ensure
-				@monitor.value = nil
-			end
-			
-			def wait_readable
-				wait_any(:r)
-			end
-			
-			def wait_writable
-				wait_any(:w)
-			end
-			
-			def wait_any(interests = :rw)
-				monitor(interests) do
-					# Async.logger.debug "Fiber #{Fiber.current} yielding..."
-					result = Fiber.yield
-					
-					# Async.logger.debug "Fiber #{Fiber.current} resuming with result #{result}..."
-					raise result if result.is_a? Exception
-				end
-			end
-			
-			def method_missing(name, *args, &block)
-				@io.__send__(name, *args, &block)
-			end
-			
-			def close
-				@monitor.close if @monitor
-				@monitor = nil
 			end
 		end
 	end

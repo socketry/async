@@ -14,10 +14,10 @@ timer = reactor.after(1) do
 	reactor.stop
 end
 
-reactor.async(server) do |server, context|
+reactor.async(server) do |server, task|
 	REPEATS.times do |i|
 		puts "Accepting peer on server #{server}"
-		context.with(server.accept) do |peer|
+		task.with(server.accept) do |peer|
 			puts "Sending data to peer"
 			peer << "data #{i}"
 			peer.shutdown

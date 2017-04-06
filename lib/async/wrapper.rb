@@ -18,5 +18,58 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-require_relative 'wrap/tcp'
-require_relative 'wrap/udp'
+module Async
+	# Represents an asynchronous IO within a reactor.
+	class Wrapper
+		def self.[] instance
+			self
+		end
+		
+		def initialize(io, task)
+			@io = io
+			@task = task
+			@monitor = nil
+		end
+		
+		attr :io
+		attr :task
+		
+		def monitor(interests)
+			unless @monitor
+				@monitor = @task.register(@io, interests)
+			else
+				@monitor.interests = interests
+			end
+			
+			@monitor.value = Fiber.current
+			
+			yield
+			
+		ensure
+			@monitor.value = nil
+		end
+		
+		def wait_readable
+			wait_any(:r)
+		end
+		
+		def wait_writable
+			wait_any(:w)
+		end
+		
+		def wait_any(interests = :rw)
+			monitor(interests) do
+				# Async.logger.debug "Fiber #{Fiber.current} yielding..."
+				result = Fiber.yield
+				
+				# Async.logger.debug "Fiber #{Fiber.current} resuming with result #{result}..."
+				raise result if result.is_a? Exception
+			end
+		end
+		
+		def close
+			@monitor.close if @monitor
+			@monitor = nil
+		end
+	end
+end
