@@ -89,6 +89,10 @@ module Async
 			Thread.current[:async_task] or raise RuntimeError, "No async task available!"
 		end
 		
+		def self.current?
+			Thread.current[:async_task]
+		end
+		
 		private
 		
 		def close

@@ -34,15 +34,16 @@ module Async
 		extend Forwardable
 		
 		def self.run(*args, &block)
-			reactor = self.new
-			
-			task = reactor.async(*args, &block)
-			
-			# TODO: Handle fiber returning through reactor.run?
-			reactor.run
-			
-			# TODO: Capture return value?
-			return task
+			if current = Task.current?
+				reactor = current.reactor
+				
+				task = reactor.async(*args, &block)
+				
+				return task
+			else
+				# TODO: What should this return?
+				self.new.run(*args, &block)
+			end
 		end
 		
 		def initialize(wrappers: IO)
@@ -130,6 +131,8 @@ module Async
 					end
 				end
 			end until @stopped
+			
+			return self
 		ensure
 			# Async.logger.debug "[#{self} Ensure] Exiting run-loop (stopped: #{@stopped} exception: #{$!})..."
 			# Async.logger.debug @fibers.collect{|fiber| [fiber, fiber.alive?]}.inspect
