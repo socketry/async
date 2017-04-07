@@ -132,14 +132,10 @@ module Async
 		
 		def sleep(duration)
 			task = Fiber.current
-			# Async.logger.debug "Sleeping task #{task} for #{duration}s"
 			
 			timer = self.after(duration) do
 				if task.alive?
-					# Async.logger.debug "Resuming task #{task} due to sleep completion..."
 					task.resume
-				else
-					Async.logger.warn "Could not resume task #{task} after sleep(#{duration})"
 				end
 			end
 			
@@ -147,7 +143,6 @@ module Async
 			
 			raise result if result.is_a? Exception
 		ensure
-			# Async.logger.warn "Resumed task task #{task} after sleep(#{duration}) #{timer.inspect}"
 			timer.cancel if timer
 		end
 		
