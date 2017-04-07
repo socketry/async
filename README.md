@@ -9,6 +9,17 @@ Asynchronous I/O framework for Ruby based on [nio4r] and [timers].
 [![Code Climate](https://codeclimate.com/github/socketry/async.svg)](https://codeclimate.com/github/socketry/async)
 [![Coverage Status](https://coveralls.io/repos/socketry/async/badge.svg)](https://coveralls.io/r/socketry/async)
 
+## Motivation
+
+Several years ago, I was hosting websites on a server in my garage. Back then, my ADSL modem was very basic, and I wanted to have a DNS server which would resolve to an internal IP address when the domain itself resolved to my public IP. Thus was born [RubyDNS]. This project [was originally built on](https://github.com/ioquatix/rubydns/tree/v0.8.5) top of [EventMachine], but a lack of support for [IPv6 at the time](https://github.com/ioquatix/rubydns/issues/45) and [other problems](https://github.com/ioquatix/rubydns/issues/14), meant that I started looking for other options. Around that time [Celluloid] was picking up steam. I had not encountered actors before and I wanted to learn more about it. So, [I reimplemented RubyDNS on top of Celluloid](https://github.com/ioquatix/rubydns/tree/v0.9.0) and this eventually became the first stable release.
+
+Moving forward, I refactored the internals of RubyDNS into [Celluloid::DNS]. This rewrite helped solidify the design of RubyDNS and to a certain extent it works. However, [unfixed bugs and design problems](https://github.com/celluloid/celluloid/pull/710) in Celluloid meant that RubyDNS 2.0 was delayed by almost 2 years. I wasn't happy releasing things with known bugs and problems. Anyway, a lot of discussion and thinking, I decided to build a small event reactor using [nio4r] and [timers], the core parts of [Celluloid::IO] which made it work so well.
+
+[Celluloid::IO]: https://github.com/celluloid/celluloid-io
+[Celluloid::DNS]: https://github.com/celluloid/celluloid-dns
+[EventMachine]: https://github.com/eventmachine/eventmachine
+[RubyDNS]: https://github.com/ioquatix/rubydns
+
 ## Installation
 
 Add this line to your application's Gemfile:
@@ -57,6 +68,11 @@ dropped.
 3. Commit your changes (`git commit -am 'Add some feature'`)
 4. Push to the branch (`git push origin my-new-feature`)
 5. Create new Pull Request
+
+## See Also
+
+- [async-dns](https://github.com/socketry/async-dns) — Asynchronous DNS resolver and server.
+- [rubydns](https://github.com/socketry/rubydns) — A easy to use Ruby DNS server.
 
 ## License
 
