@@ -29,16 +29,20 @@ module Async
 		extend Forwardable
 		
 		def initialize(ios, reactor, &block)
-			@ios = ios.collect{|io| reactor.wrap(io, self)}
+			@ios = Hash[
+				ios.collect{|io| [io.fileno, reactor.wrap(io, self)]}
+			]
+			
 			@reactor = reactor
 			
 			@fiber = Fiber.new do
 				set!
 				
 				begin
-					yield(*@ios, self)
+					yield(*@ios.values, self)
+					# Async.logger.debug("Task #{self} completed normally.")
 				rescue Interrupt
-					Async.logger.debug("Task #{self} interrupted: #{$!}")
+					# Async.logger.debug("Task #{self} interrupted: #{$!}")
 				ensure
 					close
 				end
@@ -72,14 +76,12 @@ module Async
 			io.close
 		end
 		
-		def register(io, interests)
-			@reactor.register(io, interests)
+		def bind(io)
+			@ios[io.fileno] ||= reactor.wrap(io, self)
 		end
 		
-		def resolve(name)
-			warn "Name resolution is not implemented for #{name}"
-			
-			return name
+		def register(io, interests)
+			@reactor.register(io, interests)
 		end
 		
 		def self.current
@@ -93,7 +95,7 @@ module Async
 		private
 		
 		def close
-			@ios.each(&:close)
+			@ios.each_value(&:close)
 		end
 		
 		def set!

@@ -23,7 +23,8 @@ require_relative 'socket'
 module Async::Wrap
 	# Asynchronous UDP socket.
 	class UDPSocket < IPSocket
-		wraps ::UDPSocket
+		# We pass `send` through directly, but in theory it might block. Internally, it uses sendto.
+		wraps ::UDPSocket, :send
 	end
 end
 

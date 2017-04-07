@@ -19,4 +19,19 @@
 # THE SOFTWARE.
 
 RSpec.describe Async::Task do
+	let(:reactor) {Async::Reactor.new}
+	
+	it "can be interrupted" do
+		state = nil
+		
+		task = reactor.async do |task|
+			state = :started
+			task.sleep(10)
+			state = :finished
+		end
+		
+		task.stop!
+		
+		expect(state).to be == :started
+	end
 end

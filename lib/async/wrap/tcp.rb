@@ -26,12 +26,24 @@ module Async
 		class TCPSocket < IPSocket
 			wraps ::TCPSocket
 			
-			def self.connect(remote_address, remote_port, local_address = nil, local_port = nil, task: Task.current)
-				socket = task.wrap ::Socket.new(AF_INET, SOCK_STREAM, 0)
+			def self.connect(remote_address, remote_port, local_address = nil, local_port = nil, task: Task.current, &block)
+				# This may block if remote_address is a hostname
+				remote = Addrinfo.tcp(remote_address, remote_port)
 				
-				sockaddr = Socket.sockaddr_in(remote_port, remote_address)
+				socket = ::Socket.new(remote.afamily, ::Socket::SOCK_STREAM, 0)
+				socket.bind Addrinfo.tcp(local_address, local_port) if local_address
 				
-				socket.bind Addrinfo.tcp(local_host, local_port) if local_host
+				if block_given?
+					task.with(socket) do |wrapper|
+						wrapper.connect(remote.to_sockaddr)
+						
+						yield wrapper
+					end
+				else
+					task.bind(socket).connect(remote.to_sockaddr)
+					
+					return socket
+				end
 			end
 		end
 		

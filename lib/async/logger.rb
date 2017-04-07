@@ -25,5 +25,5 @@ module Async
 		attr :logger
 	end
 	
-	@logger = Logger.new($stderr, level: Logger::DEBUG)
+	@logger = Logger.new($stderr, level: Logger::INFO)
 end

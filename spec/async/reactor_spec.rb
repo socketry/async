@@ -47,10 +47,38 @@ RSpec.describe Async::Reactor do
 		end
 	end
 	
+	describe 'non-blocking tcp connect' do
+		include_context "reactor"
+		
+		let(:port) {6779}
+		
+		# These may block:
+		let(:server) {TCPServer.new("localhost", port)}
+		
+		let(:data) {"The quick brown fox jumped over the lazy dog."}
+		
+		it "should start server and send data" do
+			subject.async(server) do |server, task|
+				task.with(server.accept) do |peer|
+					peer.write(peer.read(512))
+				end
+			end
+			
+			subject.async do |task|
+				Async::Wrap::TCPSocket.connect("localhost", port) do |client|
+					client.write(data)
+					expect(client.read(512)).to be == data
+				end
+			end
+			
+			subject.run
+		end
+	end
+	
 	describe 'basic udp server' do
 		include_context "reactor"
 		
-		let(:port) {6778}
+		let(:port) {6776}
 		
 		# These may block:
 		let(:server) {UDPSocket.new.tap{|socket| socket.bind("localhost", port)}}

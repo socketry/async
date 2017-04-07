@@ -24,11 +24,25 @@ require 'socket'
 
 module Async::Wrap
 	class BasicSocket < IO
-		wraps ::BasicSocket, :send
+		wraps ::BasicSocket
+		
+		# We provide non-blocking send:
+		alias send sendmsg
 	end
 	
 	class Socket < BasicSocket
 		wraps ::Socket
+		
+		module Connect
+			def connect(*args)
+				begin
+					super
+				rescue Errno::EISCONN
+				end
+			end
+		end
+		
+		prepend Connect
 	end
 	
 	class IPSocket < BasicSocket
