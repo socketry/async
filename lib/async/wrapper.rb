@@ -46,7 +46,7 @@ module Async
 			yield
 			
 		ensure
-			@monitor.value = nil
+			@monitor.value = nil if @monitor
 		end
 		
 		def wait_readable
