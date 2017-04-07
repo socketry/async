@@ -47,4 +47,14 @@ RSpec.describe Async::Reactor do
 			expect(inner_reactor).to be_kind_of(described_class)
 		end
 	end
+	
+	describe 'return' do
+		it "can't return" do
+			expect do
+				Async::Reactor.run do |task|
+					return
+				end
+			end.to raise_error(LocalJumpError)
+		end
+	end
 end
