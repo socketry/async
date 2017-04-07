@@ -26,11 +26,13 @@ RSpec.describe Async::Reactor do
 		outer_fiber = Fiber.current
 		inner_fiber = nil
 		
-		described_class.run do
+		described_class.run do |task|
+			task.sleep(0)
 			inner_fiber = Fiber.current
 		end
 		
-		expect(outer_fiber).not_to be == inner_fiber
+		expect(inner_fiber).to_not be nil
+		expect(outer_fiber).to_not be == inner_fiber
 	end
 	
 	it "can be stopped" do

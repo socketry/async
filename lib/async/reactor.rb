@@ -36,7 +36,7 @@ module Async
 		def self.run(*args, &block)
 			reactor = self.new
 			
-			reactor.async(*args, &block)
+			reactor.run(*args, &block)
 		end
 		
 		def initialize(wrappers: IO)
