@@ -57,6 +57,7 @@ module Async
 			return @fiber
 		end
 		
+		# TODO: Should this be called `stop!` or `stop`. Is it siginificantly diferent from Reactor#stop that shoud be named differently? Perhaps `interrupt`?
 		def stop!
 			if @fiber.alive?
 				exception = Interrupt.new("Stop right now!")
