@@ -88,10 +88,6 @@ module Async
 			Thread.current[:async_task] or raise RuntimeError, "No async task available!"
 		end
 		
-		def self.reactor!
-			get!.reactor
-		end
-		
 		private
 		
 		def close
