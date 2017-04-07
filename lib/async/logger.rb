@@ -23,7 +23,17 @@ require 'logger'
 module Async
 	class << self
 		attr :logger
+		
+		def default_log_level
+			if $DEBUG
+				Logger::DEBUG
+			elsif $VERBOSE
+				Logger::INFO
+			else
+				LOGGER::WARN
+			end
+		end
 	end
 	
-	@logger = Logger.new($stderr, level: Logger::INFO)
+	@logger = Logger.new($stderr, level: default_log_level)
 end
