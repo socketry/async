@@ -34,11 +34,22 @@ module Async
 		end
 		
 		class << self
-			def wrap_blocking_method(new_name, method_name)
-				# puts "#{self}\##{$1} -> #{method_name}"
-				define_method(new_name) do |*args|
-					async do
-						@io.__send__(method_name, *args)
+			if RUBY_VERSION >= "2.3"
+				def wrap_blocking_method(new_name, method_name)
+					# puts "#{self}\##{$1} -> #{method_name}"
+					define_method(new_name) do |*args|
+						async do
+							@io.__send__(method_name, *args, exception: false)
+						end
+					end
+				end
+			else
+				def wrap_blocking_method(new_name, method_name)
+					# puts "#{self}\##{$1} -> #{method_name}"
+					define_method(new_name) do |*args|
+						async do
+							@io.__send__(method_name, *args)
+						end
 					end
 				end
 			end
