@@ -36,7 +36,13 @@ module Async
 		def self.run(*args, &block)
 			reactor = self.new
 			
-			reactor.run(*args, &block)
+			task = reactor.async(*args, &block)
+			
+			# TODO: Handle fiber returning through reactor.run?
+			reactor.run
+			
+			# TODO: Capture return value?
+			return task
 		end
 		
 		def initialize(wrappers: IO)
