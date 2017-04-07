@@ -155,19 +155,16 @@ module Async
 			backtrace = caller
 			task = Fiber.current
 			
-			# Async.logger.debug "Setting timeout #{duration} for #{backtrace.first}"
-			
 			timer = self.after(duration) do
-				error = TimeoutError.new("execution expired")
-				error.set_backtrace backtrace
-				# Async.logger.debug "Resuming task #{task} due to timeout..."
-				task.resume error
+				if task.alive?
+					error = TimeoutError.new("execution expired")
+					error.set_backtrace backtrace
+					task.resume error
+				end
 			end
 			
 			yield
 		ensure
-			# Async.logger.debug "Clearing timeout #{duration} for #{backtrace.first}"
-			
 			timer.cancel if timer
 		end
 	end
