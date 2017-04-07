@@ -21,10 +21,6 @@
 module Async
 	# Represents an asynchronous IO within a reactor.
 	class Wrapper
-		def self.[] instance
-			self
-		end
-		
 		def initialize(io, task)
 			@io = io
 			@task = task
