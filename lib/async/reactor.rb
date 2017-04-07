@@ -39,7 +39,7 @@ module Async
 			reactor.async(*args, &block)
 		end
 		
-		def initialize(wrappers: Async::Wrap::IO)
+		def initialize(wrappers: IO)
 			@wrappers = wrappers
 			
 			@selector = NIO::Selector.new

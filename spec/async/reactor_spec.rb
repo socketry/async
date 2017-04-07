@@ -65,7 +65,7 @@ RSpec.describe Async::Reactor do
 			end
 			
 			subject.async do |task|
-				Async::Wrap::TCPSocket.connect("localhost", port) do |client|
+				Async::TCPSocket.connect("localhost", port) do |client|
 					client.write(data)
 					expect(client.read(512)).to be == data
 				end

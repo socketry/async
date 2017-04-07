@@ -18,34 +18,10 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-require_relative 'io'
+require_relative 'socket'
 
-require 'socket'
-
-module Async::Wrap
-	class BasicSocket < IO
-		wraps ::BasicSocket
-		
-		# We provide non-blocking send:
-		alias send sendmsg
-	end
-	
-	class Socket < BasicSocket
-		wraps ::Socket
-		
-		module Connect
-			def connect(*args)
-				begin
-					super
-				rescue Errno::EISCONN
-				end
-			end
-		end
-		
-		prepend Connect
-	end
-	
-	class IPSocket < BasicSocket
-		wraps ::IPSocket
+module Async
+	module UNIXSocket < BasicSocket
+		wraps ::UNIXSocket
 	end
 end

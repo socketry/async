@@ -18,13 +18,13 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-require_relative 'socket'
+require_relative 'io'
 
-module Async::Wrap
-	# Asynchronous UDP socket.
-	class UDPSocket < IPSocket
-		# We pass `send` through directly, but in theory it might block. Internally, it uses sendto.
-		wraps ::UDPSocket, :send
+require 'openssl'
+
+module Async
+	# This might be better in a nested module?
+	class SSLSocket < IO
+		wraps OpenSSL::SSL::SSLSocket
 	end
 end
-

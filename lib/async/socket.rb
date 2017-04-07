@@ -18,67 +18,34 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-require_relative '../wrapper'
+require_relative 'io'
 
-require 'forwardable'
+require 'socket'
 
 module Async
-	module Wrap
-		# Represents an asynchronous IO within a reactor.
-		class IO < Wrapper
-			extend Forwardable
-			
-			WRAPPERS = {}
-			
-			def self.[] instance
-				WRAPPERS[instance.class]
-			end
-			
-			class << self
-				def wrap_blocking_method(new_name, method_name)
-					# puts "#{self}\##{$1} -> #{method_name}"
-					define_method(new_name) do |*args|
-						async do
-							@io.__send__(method_name, *args)
-						end
-					end
-				end
-				
-				def wraps(klass, *additional_methods)
-					WRAPPERS[klass] = self
-					
-					klass.instance_methods(false).grep(/(.*)_nonblock/) do |method_name|
-						wrap_blocking_method($1, method_name)
-					end
-					
-					def_delegators :@io, *(additional_methods - instance_methods(false))
-				end
-			end
-			
-			wraps ::IO
-			
-			protected
-			
-			def async
-				while true
-					begin
-						result = yield
-						
-						case result
-						when :wait_readable
-							wait_readable
-						when :wait_writable
-							wait_writable
-						else
-							return result
-						end
-					rescue ::IO::WaitReadable
-						wait_readable
-					rescue ::IO::WaitWritable
-						wait_writable
-					end
+	class BasicSocket < IO
+		wraps ::BasicSocket
+		
+		# We provide non-blocking send:
+		alias send sendmsg
+	end
+	
+	class Socket < BasicSocket
+		wraps ::Socket
+		
+		module Connect
+			def connect(*args)
+				begin
+					super
+				rescue Errno::EISCONN
 				end
 			end
 		end
+		
+		prepend Connect
+	end
+	
+	class IPSocket < BasicSocket
+		wraps ::IPSocket
 	end
 end

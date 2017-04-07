@@ -18,8 +18,8 @@ end
 
 require "bundler/setup"
 require "async"
-require "async/wrap/tcp"
-require "async/wrap/udp"
+require "async/tcp_socket"
+require "async/udp_socket"
 
 RSpec.shared_context "reactor" do
 	let(:reactor) {Async::Reactor.new}
