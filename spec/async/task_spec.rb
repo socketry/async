@@ -18,20 +18,78 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
+require 'benchmark'
+
 RSpec.describe Async::Task do
 	let(:reactor) {Async::Reactor.new}
 	
-	it "can be interrupted" do
-		state = nil
+	describe '#stop!' do
+		it "can be stopped" do
+			state = nil
+			
+			task = reactor.async do |task|
+				state = :started
+				task.sleep(10)
+				state = :finished
+			end
+			
+			task.stop!
+			
+			expect(state).to be == :started
+		end
+	end
+	
+	describe '#sleep' do
+		let(:duration) {0.01}
 		
-		task = reactor.async do |task|
-			state = :started
-			task.sleep(10)
-			state = :finished
+		it "can sleep for the requested duration" do
+			state = nil
+			
+			task = reactor.async do |task|
+				task.sleep(duration)
+				state = :finished
+			end
+			
+			time = Benchmark.realtime do
+				reactor.run
+			end
+			
+			expect(time).to be_within(50).percent_of(duration)
+			expect(state).to be == :finished
+		end
+	end
+	
+	describe '#timeout' do
+		it "will timeout if execution takes too long" do
+			state = nil
+			
+			task = reactor.async do |task|
+				task.timeout(0.01) do
+					state = :started
+					task.sleep(10)
+					state = :finished
+				end rescue nil
+			end
+			
+			reactor.run
+			
+			expect(state).to be == :started
 		end
 		
-		task.stop!
-		
-		expect(state).to be == :started
+		it "won't timeout if execution completes in time" do
+			state = nil
+			
+			task = reactor.async do |task|
+				state = :started
+				task.timeout(0.01) do
+					task.sleep(0.001)
+					state = :finished
+				end
+			end
+			
+			reactor.run
+			
+			expect(state).to be == :finished
+		end
 	end
 end

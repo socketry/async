@@ -19,16 +19,46 @@
 # THE SOFTWARE.
 
 RSpec.describe Async::Reactor do
+	# Shared port for localhost network tests.
+	let(:port) {6778}
+	
+	it "can run asynchronously" do
+		outer_fiber = Fiber.current
+		inner_fiber = nil
+		
+		described_class.run do
+			inner_fiber = Fiber.current
+		end
+		
+		expect(outer_fiber).not_to be == inner_fiber
+	end
+	
+	it "can be stopped" do
+		state = nil
+		
+		subject.async do |task|
+			state = :started
+			task.sleep(10)
+			state = :stopped
+		end
+		
+		subject.stop
+		
+		expect(state).to be == :started
+	end
+	
 	describe 'basic tcp server' do
 		include_context "reactor"
-		
-		let(:port) {6778}
 		
 		# These may block:
 		let(:server) {TCPServer.new("localhost", port)}
 		let(:client) {TCPSocket.new("localhost", port)}
 		
 		let(:data) {"The quick brown fox jumped over the lazy dog."}
+		
+		after(:each) do
+			server.close
+		end
 		
 		it "should start server and send data" do
 			subject.async(server) do |server, task|
@@ -37,25 +67,29 @@ RSpec.describe Async::Reactor do
 				end
 			end
 			
-			subject.async(client) do |client|
+			subject.with(client) do |client|
 				client.write(data)
 				
 				expect(client.read(512)).to be == data
 			end
 			
 			subject.run
+			
+			expect(client).to be_closed
 		end
 	end
 	
 	describe 'non-blocking tcp connect' do
 		include_context "reactor"
 		
-		let(:port) {6779}
-		
 		# These may block:
 		let(:server) {TCPServer.new("localhost", port)}
 		
 		let(:data) {"The quick brown fox jumped over the lazy dog."}
+		
+		after(:each) do
+			server.close
+		end
 		
 		it "should start server and send data" do
 			subject.async(server) do |server, task|
@@ -73,18 +107,48 @@ RSpec.describe Async::Reactor do
 			
 			subject.run
 		end
+		
+		it "can connect socket and read/write in a different task" do
+			subject.async(server) do |server, task|
+				task.with(server.accept) do |peer|
+					peer.write(peer.read(512))
+				end
+			end
+			
+			socket = nil
+			
+			subject.async do |task|
+				socket = Async::TCPSocket.connect("localhost", port)
+				
+				# Stop the reactor once the connection was made.
+				subject.stop
+			end
+			
+			subject.run
+			
+			expect(socket).to_not be_nil
+			
+			subject.async(socket) do |client|
+				client.write(data)
+				expect(client.read(512)).to be == data
+			end
+			
+			subject.run
+		end
 	end
 	
 	describe 'basic udp server' do
 		include_context "reactor"
-		
-		let(:port) {6776}
 		
 		# These may block:
 		let(:server) {UDPSocket.new.tap{|socket| socket.bind("localhost", port)}}
 		let(:client) {UDPSocket.new}
 		
 		let(:data) {"The quick brown fox jumped over the lazy dog."}
+		
+		after(:each) do
+			server.close
+		end
 		
 		it "should echo data back to peer" do
 			subject.async(server) do |server, task|
