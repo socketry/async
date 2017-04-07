@@ -30,7 +30,7 @@ module Async
 			elsif $VERBOSE
 				Logger::INFO
 			else
-				LOGGER::WARN
+				Logger::WARN
 			end
 		end
 	end
