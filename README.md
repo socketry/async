@@ -5,6 +5,10 @@ Asynchronous I/O framework for Ruby based on [nio4r] and [timers].
 [timers]: https://github.com/socketry/timers
 [nio4r]: https://github.com/socketry/nio4r
 
+[![Build Status](https://secure.travis-ci.org/socketry/async.svg)](http://travis-ci.org/socketry/async)
+[![Code Climate](https://codeclimate.com/github/socketry/async.svg)](https://codeclimate.com/github/socketry/async)
+[![Coverage Status](https://coveralls.io/repos/socketry/async/badge.svg)](https://coveralls.io/r/socketry/async)
+
 ## Installation
 
 Add this line to your application's Gemfile:
