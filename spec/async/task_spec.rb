@@ -23,7 +23,7 @@ require 'benchmark'
 RSpec.describe Async::Task do
 	let(:reactor) {Async::Reactor.new}
 	
-	describe '#stop!' do
+	describe '#stop' do
 		it "can be stopped" do
 			state = nil
 			
@@ -33,7 +33,7 @@ RSpec.describe Async::Task do
 				state = :finished
 			end
 			
-			task.stop!
+			task.stop
 			
 			expect(state).to be == :started
 		end
