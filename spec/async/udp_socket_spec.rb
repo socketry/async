@@ -19,32 +19,40 @@
 # THE SOFTWARE.
 
 RSpec.describe Async::Reactor do
-	describe '::run (in existing reactor)' do
+	# Shared port for localhost network tests.
+	let(:port) {6778}
+	
+	describe 'basic udp server' do
 		include_context "reactor"
 		
-		it "should nest reactor" do
-			outer_reactor = Async::Task.current.reactor
-			inner_reactor = nil
-			
-			task = described_class.run do |task|
-				inner_reactor = task.reactor
-			end 
-			
-			expect(outer_reactor).to be_kind_of(described_class)
-			expect(outer_reactor).to be_eql(inner_reactor)
+		# These may block:
+		let(:server) {UDPSocket.new.tap{|socket| socket.bind("localhost", port)}}
+		let(:client) {UDPSocket.new}
+		
+		let(:data) {"The quick brown fox jumped over the lazy dog."}
+		
+		after(:each) do
+			server.close
 		end
-	end
-	
-	describe '::run' do
-		it "should nest reactor" do
-			expect(Async::Task.current?).to be_nil
-			inner_reactor = nil
+		
+		it "should echo data back to peer" do
+			subject.async(server) do |server, task|
+				packet, (_, remote_port, remote_host) = server.recvfrom(512)
+				
+				reactor.async do
+					server.send(packet, 0, remote_host, remote_port)
+				end
+			end
 			
-			task = described_class.run do |task|
-				inner_reactor = task.reactor
-			end 
+			subject.async(client) do |client|
+				client.send(data, 0, "localhost", port)
+				
+				response, _ = client.recvfrom(512)
+				
+				expect(response).to be == data
+			end
 			
-			expect(inner_reactor).to be_kind_of(described_class)
+			subject.run
 		end
 	end
 end
