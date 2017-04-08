@@ -36,8 +36,10 @@ module Async
 		
 		# Attach this node to an existing parent.
 		def parent=(parent)
+			return if @parent.equal?(parent)
+			
 			if @parent
-				@parent.children.delete(self)
+				@parent.reap(self)
 				@parent = nil
 			end
 			
@@ -47,16 +49,16 @@ module Async
 			end
 		end
 		
-		# Fold this node into it's parent, merging all children up.
 		def consume
-			raise RuntimeError.new("Cannot consume top level node") unless @parent
-			
-			@children.each do |child|
-				# TODO: We could probably make this a bit more efficient.
-				child.parent = @parent
+			if @parent && @children.empty?
+				@parent.reap(self)
+				@parent.consume
+				@parent = nil
 			end
-			
-			self.parent = nil
+		end
+		
+		def reap(child)
+			@children.delete(child)
 		end
 	end
 end

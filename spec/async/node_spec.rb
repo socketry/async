@@ -35,22 +35,25 @@ RSpec.describe Async::Node do
 			expect(child.parent).to be_nil
 			expect(subject.children).to be_empty
 		end
+		
+		it "can consume bottom to top" do
+			child.consume
+			
+			expect(child.parent).to be_nil
+			expect(subject.children).to be_empty
+		end
 	end
 	
 	describe '#consume' do
 		let(:middle) {Async::Node.new(subject)}
 		let(:bottom) {Async::Node.new(middle)}
 		
-		it "should merge child into parent" do
+		it "can't consume middle node" do
 			expect(bottom.parent).to be middle
 			
 			middle.consume
 			
-			expect(middle.parent).to be_nil
-			expect(middle.children).to be_empty
-			
-			expect(bottom.parent).to be subject
-			expect(subject.children).to include(bottom)
+			expect(bottom.parent).to be middle
 		end
 	end
 end

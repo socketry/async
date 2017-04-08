@@ -54,7 +54,7 @@ module Async
 				rescue Interrupt
 					# Async.logger.debug("Task #{self} interrupted: #{$!}")
 				ensure
-					consume
+					close
 				end
 			end
 		end
@@ -111,10 +111,11 @@ module Async
 			Thread.current[:async_task]
 		end
 		
-		def consume
+		def close
 			@ios.each_value(&:close)
+			@ios = []
 			
-			super
+			consume
 		end 
 		
 		def inspect
