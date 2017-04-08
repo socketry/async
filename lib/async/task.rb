@@ -21,35 +21,51 @@
 require 'fiber'
 require 'forwardable'
 
+require_relative 'node'
+
 module Async
 	class Interrupt < Exception
 	end
 	
-	class Task
+	class Task < Node
 		extend Forwardable
 		
-		def initialize(ios, reactor, &block)
+		def initialize(ios, reactor)
+			if parent = Task.current?
+				super(parent)
+			else
+				super(reactor)
+			end
+			
 			@ios = Hash[
 				ios.collect{|io| [io.fileno, reactor.wrap(io, self)]}
 			]
 			
 			@reactor = reactor
 			
+			@result = nil
+			
 			@fiber = Fiber.new do
 				set!
 				
 				begin
-					yield(*@ios.values, self)
+					complete yield(*@ios.values, self)
 					# Async.logger.debug("Task #{self} completed normally.")
 				rescue Interrupt
 					# Async.logger.debug("Task #{self} interrupted: #{$!}")
 				ensure
-					close
+					consume
 				end
 			end
 		end
 		
+		attr :ios
+		
+		attr :reactor
 		def_delegators :@reactor, :timeout, :sleep
+		
+		attr :fiber
+		def_delegators :@fiber, :alive?
 		
 		def run
 			@fiber.resume
@@ -57,15 +73,18 @@ module Async
 			return @fiber
 		end
 		
+		def finished?
+			!@fiber.alive?
+		end
+		
 		def stop
+			@children.each(&:stop)
+			
 			if @fiber.alive?
 				exception = Interrupt.new("Stop right now!")
 				@fiber.resume(exception)
 			end
 		end
-		
-		attr :ios
-		attr :reactor
 		
 		def with(io)
 			wrapper = @reactor.wrap(io, self)
@@ -92,10 +111,20 @@ module Async
 			Thread.current[:async_task]
 		end
 		
+		def consume
+			@ios.each_value(&:close)
+			
+			super
+		end 
+		
+		def inspect
+			"<#{self.class} 0x#{self.object_id.to_s(16)}>"
+		end
+		
 		private
 		
-		def close
-			@ios.each_value(&:close)
+		def complete(result)
+			@result = result
 		end
 		
 		def set!

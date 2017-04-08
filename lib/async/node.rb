@@ -18,39 +18,45 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-RSpec.describe Async::Reactor do
-	# Shared port for localhost network tests.
-	let(:port) {6778}
-	
-	describe 'basic udp server' do
-		# These may block:
-		let(:server) {UDPSocket.new.tap{|socket| socket.bind("localhost", port)}}
-		let(:client) {UDPSocket.new}
-		
-		let(:data) {"The quick brown fox jumped over the lazy dog."}
-		
-		after(:each) do
-			server.close
+require 'set'
+
+module Async
+	class Node
+		def initialize(parent = nil)
+			@children = Set.new
+			@parent = nil
+			
+			if parent
+				self.parent = parent
+			end
 		end
 		
-		it "should echo data back to peer" do
-			subject.async(server) do |server, task|
-				packet, (_, remote_port, remote_host) = server.recvfrom(512)
-				
-				subject.async do
-					server.send(packet, 0, remote_host, remote_port)
-				end
+		attr :parent
+		attr :children
+		
+		# Attach this node to an existing parent.
+		def parent=(parent)
+			if @parent
+				@parent.children.delete(self)
+				@parent = nil
 			end
 			
-			subject.async(client) do |client|
-				client.send(data, 0, "localhost", port)
-				
-				response, _ = client.recvfrom(512)
-				
-				expect(response).to be == data
+			if parent
+				@parent = parent
+				@parent.children << self
+			end
+		end
+		
+		# Fold this node into it's parent, merging all children up.
+		def consume
+			raise RuntimeError.new("Cannot consume top level node") unless @parent
+			
+			@children.each do |child|
+				# TODO: We could probably make this a bit more efficient.
+				child.parent = @parent
 			end
 			
-			subject.run
+			self.parent = nil
 		end
 	end
 end

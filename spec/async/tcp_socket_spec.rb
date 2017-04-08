@@ -23,9 +23,11 @@ RSpec.describe Async::Reactor do
 	let(:port) {6779}
 	
 	def run_echo_server
+		# Accept a single incoming connection and then finish.
 		subject.async(server) do |server, task|
 			task.with(server.accept) do |peer|
-				peer.write(peer.read(512))
+				data = peer.read(512)
+				peer.write(data)
 			end
 		end
 		
@@ -37,8 +39,6 @@ RSpec.describe Async::Reactor do
 	end
 	
 	describe 'basic tcp server' do
-		include_context "reactor"
-		
 		# These may block:
 		let(:server) {TCPServer.new("localhost", port)}
 		let(:client) {TCPSocket.new("localhost", port)}
@@ -49,7 +49,6 @@ RSpec.describe Async::Reactor do
 			run_echo_server do
 				subject.with(client) do |client|
 					client.write(data)
-					
 					expect(client.read(512)).to be == data
 				end
 			end
@@ -59,8 +58,6 @@ RSpec.describe Async::Reactor do
 	end
 	
 	describe 'non-blocking tcp connect' do
-		include_context "reactor"
-		
 		# These may block:
 		let(:server) {TCPServer.new("localhost", port)}
 		
@@ -108,6 +105,7 @@ RSpec.describe Async::Reactor do
 				subject.async do |task|
 					socket = Async::TCPSocket.connect("localhost", port)
 					
+					# I'm not sure if this is the right behaviour or not. Without a significant amont of work, async sockets are tied to the task that creates them.
 					expect do
 						subject.async(socket) do |client|
 							client.write(data)

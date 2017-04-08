@@ -30,7 +30,7 @@ module Async
 	class TimeoutError < RuntimeError
 	end
 	
-	class Reactor
+	class Reactor < Node
 		extend Forwardable
 		
 		def self.run(*args, &block)
@@ -47,12 +47,12 @@ module Async
 		end
 		
 		def initialize(wrappers: IO)
+			super(nil)
+			
 			@wrappers = wrappers
 			
 			@selector = NIO::Selector.new
 			@timers = Timers::Group.new
-			
-			@fibers = []
 			
 			@stopped = true
 		end
@@ -82,10 +82,7 @@ module Async
 			# - Fail at the point of call where possible.
 			# - Execute determinstically where possible.
 			# - Avoid overhead if no blocking operation is performed.
-			fiber = task.run
-			
-			# We only start tracking this if the fiber is still alive:
-			@fibers << fiber if fiber.alive?
+			task.run
 			
 			# Async.logger.debug "Initial execution of task #{fiber} complete (#{result} -> #{fiber.alive?})..."
 			return task
@@ -112,16 +109,15 @@ module Async
 				# - +ve: timers waiting to fire
 				interval = 0 if interval && interval < 0
 				
-				# Async.logger.debug "[#{self} Pre] Updating #{@fibers.count} fibers..."
-				# Async.logger.debug @fibers.collect{|fiber| [fiber, fiber.alive?]}.inspect
+				Async.logger.debug "[#{self} Pre] Updating #{@children.count} children..."
+				Async.logger.debug @children.collect{|child| [child, child.alive?]}.inspect
 				# As timeouts may have been updated, and caused fibers to complete, we should check this.
-				@fibers.delete_if{|fiber| !fiber.alive?}
 				
 				# If there is nothing to do, then finish:
-				# Async.logger.debug "[#{self}] @fibers.empty? = #{@fibers.empty?} && interval #{interval.inspect}"
-				return if @fibers.empty? && interval.nil?
+				Async.logger.debug "[#{self}] @children.empty? = #{@children.empty?} && interval #{interval.inspect}"
+				return if @children.empty? && interval.nil?
 				
-				# Async.logger.debug "Selecting with #{@fibers.count} fibers interval = #{interval}..."
+				Async.logger.debug "Selecting with #{@children.count} fibers interval = #{interval}..."
 				if monitors = @selector.select(interval)
 					monitors.each do |monitor|
 						if task = monitor.value
@@ -134,8 +130,8 @@ module Async
 			
 			return self
 		ensure
-			# Async.logger.debug "[#{self} Ensure] Exiting run-loop (stopped: #{@stopped} exception: #{$!})..."
-			# Async.logger.debug @fibers.collect{|fiber| [fiber, fiber.alive?]}.inspect
+			Async.logger.debug "[#{self} Ensure] Exiting run-loop (stopped: #{@stopped} exception: #{$!})..."
+			Async.logger.debug @children.collect{|child| [child, child.alive?]}.inspect
 			@stopped = true
 		end
 		

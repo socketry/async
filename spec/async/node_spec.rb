@@ -18,39 +18,39 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-RSpec.describe Async::Reactor do
-	# Shared port for localhost network tests.
-	let(:port) {6778}
-	
-	describe 'basic udp server' do
-		# These may block:
-		let(:server) {UDPSocket.new.tap{|socket| socket.bind("localhost", port)}}
-		let(:client) {UDPSocket.new}
+require 'benchmark'
+
+RSpec.describe Async::Node do
+	describe '#parent=' do
+		let(:child) {Async::Node.new(subject)}
 		
-		let(:data) {"The quick brown fox jumped over the lazy dog."}
-		
-		after(:each) do
-			server.close
+		it "should construct nested tree" do
+			expect(child.parent).to be subject
+			expect(subject.children).to include(child)
 		end
 		
-		it "should echo data back to peer" do
-			subject.async(server) do |server, task|
-				packet, (_, remote_port, remote_host) = server.recvfrom(512)
-				
-				subject.async do
-					server.send(packet, 0, remote_host, remote_port)
-				end
-			end
+		it "should break nested tree" do
+			child.parent = nil
 			
-			subject.async(client) do |client|
-				client.send(data, 0, "localhost", port)
-				
-				response, _ = client.recvfrom(512)
-				
-				expect(response).to be == data
-			end
+			expect(child.parent).to be_nil
+			expect(subject.children).to be_empty
+		end
+	end
+	
+	describe '#consume' do
+		let(:middle) {Async::Node.new(subject)}
+		let(:bottom) {Async::Node.new(middle)}
+		
+		it "should merge child into parent" do
+			expect(bottom.parent).to be middle
 			
-			subject.run
+			middle.consume
+			
+			expect(middle.parent).to be_nil
+			expect(middle.children).to be_empty
+			
+			expect(bottom.parent).to be subject
+			expect(subject.children).to include(bottom)
 		end
 	end
 end

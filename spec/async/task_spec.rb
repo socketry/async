@@ -37,6 +37,30 @@ RSpec.describe Async::Task do
 			
 			expect(state).to be == :started
 		end
+		
+		it "should kill direct child" do
+			parent_task = child_task = nil
+			
+			task = reactor.async do |task|
+				parent_task = task
+				reactor.async do |task|
+					child_task = task
+					task.sleep(10)
+				end
+				task.sleep(10)
+			end
+			
+			expect(parent_task).to_not be_nil
+			expect(child_task).to_not be_nil
+			
+			expect(parent_task.fiber).to be_alive
+			expect(child_task.fiber).to be_alive
+			
+			parent_task.stop
+			
+			expect(parent_task.fiber).to_not be_alive
+			expect(child_task.fiber).to_not be_alive
+		end
 	end
 	
 	describe '#sleep' do
