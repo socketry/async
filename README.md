@@ -122,7 +122,7 @@ dropped.
 ## See Also
 
 - [async-dns](https://github.com/socketry/async-dns) — Asynchronous DNS resolver and server.
-- [rubydns](https://github.com/socketry/rubydns) — A easy to use Ruby DNS server.
+- [rubydns](https://github.com/ioquatix/rubydns) — A easy to use Ruby DNS server.
 
 ## License
 
