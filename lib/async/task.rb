@@ -43,20 +43,32 @@ module Async
 			
 			@reactor = reactor
 			
+			@status = :running
 			@result = nil
 			
 			@fiber = Fiber.new do
 				set!
 				
 				begin
-					complete yield(*@ios.values, self)
+					@result = yield(*@ios.values, self)
+					@status = :complete
 					# Async.logger.debug("Task #{self} completed normally.")
 				rescue Interrupt
+					@status = :interrupted
 					# Async.logger.debug("Task #{self} interrupted: #{$!}")
+				rescue Exception
+					@status = :failed
+					# Async.logger.debug("Task #{self} failed: #{$!}")
+					raise
 				ensure
+					# Async.logger.debug("Task #{self} closing: #{$!}")
 					close
 				end
 			end
+		end
+		
+		def to_s
+			"#{super}[#{@status}]"
 		end
 		
 		attr :ios
@@ -67,14 +79,13 @@ module Async
 		attr :fiber
 		def_delegators :@fiber, :alive?
 		
+		attr :status
+		attr :result
+		
 		def run
 			@fiber.resume
 				
 			return @fiber
-		end
-		
-		def finished?
-			!@fiber.alive?
 		end
 		
 		def stop
@@ -111,22 +122,19 @@ module Async
 			Thread.current[:async_task]
 		end
 		
+		# Whether we can remove this node from the reactor graph.
+		def finished?
+			super && @status != :running
+		end
+		
 		def close
 			@ios.each_value(&:close)
 			@ios = []
 			
 			consume
-		end 
-		
-		def inspect
-			"<#{self.class} 0x#{self.object_id.to_s(16)}>"
 		end
 		
 		private
-		
-		def complete(result)
-			@result = result
-		end
 		
 		def set!
 			# This is actually fiber-local:

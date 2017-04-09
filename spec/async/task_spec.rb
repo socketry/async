@@ -61,6 +61,23 @@ RSpec.describe Async::Task do
 			expect(parent_task.fiber).to_not be_alive
 			expect(child_task.fiber).to_not be_alive
 		end
+		
+		it "should not remove running task" do
+			top_task = middle_task = bottom_task = nil
+			
+			top_task = reactor.async do |task|
+				middle_task = reactor.async do |task|
+					bottom_task = reactor.async do |task|
+						task.sleep(10)
+					end
+					task.sleep(10)
+				end
+				task.sleep(10)
+			end
+			
+			bottom_task.stop
+			expect(top_task.children).to include(middle_task)
+		end
 	end
 	
 	describe '#sleep' do

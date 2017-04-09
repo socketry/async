@@ -49,8 +49,12 @@ module Async
 			end
 		end
 		
+		def finished?
+			@children.empty?
+		end
+		
 		def consume
-			if @parent && @children.empty?
+			if @parent && finished?
 				@parent.reap(self)
 				@parent.consume
 				@parent = nil
