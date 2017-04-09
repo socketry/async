@@ -22,6 +22,7 @@ require 'fiber'
 require 'forwardable'
 
 require_relative 'node'
+require_relative 'condition'
 
 module Async
 	class Interrupt < Exception
@@ -29,6 +30,20 @@ module Async
 	
 	class Task < Node
 		extend Forwardable
+		
+		def self.yield
+			if block_given?
+				result = yield
+			else
+				result = Fiber.yield
+			end
+			
+			if result.is_a? Exception
+				raise result
+			else
+				return result
+			end
+		end
 		
 		def initialize(ios, reactor)
 			if parent = Task.current?
@@ -46,6 +61,8 @@ module Async
 			@status = :running
 			@result = nil
 			
+			@condition = nil
+			
 			@fiber = Fiber.new do
 				set!
 				
@@ -56,7 +73,8 @@ module Async
 				rescue Interrupt
 					@status = :interrupted
 					# Async.logger.debug("Task #{self} interrupted: #{$!}")
-				rescue Exception
+				rescue Exception => error
+					@result = error
 					@status = :failed
 					# Async.logger.debug("Task #{self} failed: #{$!}")
 					raise
@@ -84,8 +102,17 @@ module Async
 		
 		def run
 			@fiber.resume
-				
-			return @fiber
+		end
+		
+		def result
+			raise RuntimeError.new("Cannot wait on own fiber") if Fiber.current.equal?(@fiber)
+			
+			if running?
+				@condition ||= Condition.new
+				@condition.wait
+			else
+				Task.yield {@result}
+			end
 		end
 		
 		def stop
@@ -122,6 +149,10 @@ module Async
 			Thread.current[:async_task]
 		end
 		
+		def running?
+			@status == :running
+		end
+		
 		# Whether we can remove this node from the reactor graph.
 		def finished?
 			super && @status != :running
@@ -132,6 +163,10 @@ module Async
 			@ios = []
 			
 			consume
+			
+			if @condition
+				@condition.signal(@result)
+			end
 		end
 		
 		private

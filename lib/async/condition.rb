@@ -18,50 +18,27 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
+require 'fiber'
+require 'forwardable'
+
+require_relative 'node'
+
 module Async
-	# Represents an asynchronous IO within a reactor.
-	class Wrapper
-		def initialize(io, task)
-			@io = io
-			@task = task
-			@monitor = nil
+	class Condition
+		def initialize
+			@waiting = []
 		end
 		
-		attr :io
-		attr :task
+		def wait
+			@waiting << Fiber.current
+			
+			Task.yield
+		end
 		
-		def monitor(interests)
-			unless @monitor
-				@monitor = @task.register(@io, interests)
-			else
-				@monitor.interests = interests
+		def signal(value)
+			@waiting.each do |task|
+				task.resume(value)
 			end
-			
-			@monitor.value = Fiber.current
-			
-			yield
-			
-		ensure
-			@monitor.value = nil if @monitor
-		end
-		
-		def wait_readable
-			wait_any(:r)
-		end
-		
-		def wait_writable
-			wait_any(:w)
-		end
-		
-		def wait_any(interests = :rw)
-			monitor(interests) do
-				Task.yield
-			end
-		end
-		
-		def close
-			@monitor.close if @monitor
-			@monitor = nil
 		end
 	end
 end

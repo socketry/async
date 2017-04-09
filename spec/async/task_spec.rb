@@ -133,4 +133,53 @@ RSpec.describe Async::Task do
 			expect(state).to be == :finished
 		end
 	end
+	
+	describe '#wait' do
+		it "will wait on another task to complete" do
+			result = nil
+			
+			apples_task = reactor.async do |task|
+				task.sleep(0.1)
+				
+				:apples
+			end
+			
+			oranges_task = reactor.async do |task|
+				task.sleep(0.01)
+				
+				:oranges
+			end
+			
+			fruit_salad_task = reactor.async do |task|
+				result = [apples_task.result, oranges_task.result]
+			end
+			
+			reactor.run
+			
+			expect(result).to be == [:apples, :oranges]
+		end
+		
+		it "will propagate exceptions" do
+			error_task = nil
+			
+			error_task = reactor.async do |task|
+				task.sleep(0.1)
+				
+				raise ArgumentError.new("It simply wasn't good enough")
+			end
+			
+			innocent_task = reactor.async do |task|
+				expect{error_task.result}.to raise_error(ArgumentError, /wasn't good enough/)
+			end
+			
+			begin
+				reactor.run
+			rescue Exception
+				retry
+			end
+			
+			expect(error_task).to be_finished
+			expect(innocent_task).to be_finished
+		end
+	end
 end

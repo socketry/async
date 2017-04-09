@@ -162,9 +162,7 @@ module Async
 				end
 			end
 			
-			result = Fiber.yield
-			
-			raise result if result.is_a? Exception
+			Task.yield
 		ensure
 			timer.cancel if timer
 		end
