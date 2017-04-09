@@ -36,7 +36,7 @@ module Async
 		end
 		
 		def signal(value)
-			@waiting.each do |task|
+			while task = @waiting.pop
 				task.resume(value)
 			end
 		end
