@@ -37,6 +37,55 @@ Or install it yourself as:
 
 	$ gem install async
 
+## Usage
+
+Implementing an asynchronous client/server is easy:
+
+```ruby
+#!/usr/bin/env ruby
+
+require 'async'
+require 'async/tcp_socket'
+
+def echo_server
+	Async::Reactor.run do |task|
+		# This is a synchronous block within the current task:
+		task.with(TCPServer.new('localhost', 9000)) do |server|
+			
+			# This is an asynchronous block within the current reactor:
+			task.reactor.with(server.accept) do |client|
+				data = client.read(512)
+				
+				task.sleep(rand)
+				
+				client.write(data)
+			end while true
+		end
+	end
+end
+
+def echo_client(data)
+	Async::Reactor.run do |task|
+		Async::TCPServer.connect('localhost', 9000) do |socket|
+			socket.write(data)
+			puts "echo_client: #{socket.read(512)}"
+		end
+	end
+end
+
+Async::Reactor.run do
+	# Start the echo server:
+	server = echo_server
+	
+	5.times.collect do |i|
+		echo_client("Hello World #{i}")
+	end.each(&:wait) # Wait until all clients are finished.
+	
+	# Terminate the server and all tasks created within it's async scope:
+	server.stop
+end
+```
+
 ## Supported Ruby Versions
 
 This library aims to support and is [tested against][travis] the following Ruby

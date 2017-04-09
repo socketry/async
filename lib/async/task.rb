@@ -115,6 +115,8 @@ module Async
 			end
 		end
 		
+		alias wait result
+		
 		def stop
 			@children.each(&:stop)
 			
