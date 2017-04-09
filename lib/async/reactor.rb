@@ -37,12 +37,17 @@ module Async
 			if current = Task.current?
 				reactor = current.reactor
 				
-				task = reactor.async(*args, &block)
-				
-				return task
+				reactor.async(*args, &block)
 			else
-				# TODO: What should this return?
-				self.new.run(*args, &block)
+				reactor = self.new
+				
+				begin
+					reactor.run(*args, &block)
+				ensure
+					reactor.close
+				end
+				
+				return reactor
 			end
 		end
 		
@@ -97,6 +102,8 @@ module Async
 		end
 		
 		def run(*args, &block)
+			raise RuntimeError, 'Reactor has been closed' if @selector.nil?
+			
 			@stopped = false
 			
 			# Allow the user to kick of the initial async tasks.
@@ -110,7 +117,7 @@ module Async
 				interval = 0 if interval && interval < 0
 				
 				Async.logger.debug "[#{self} Pre] Updating #{@children.count} children..."
-				Async.logger.debug @children.collect{|child| [child, child.alive?]}.inspect
+				Async.logger.debug @children.collect{|child| [child.to_s, child.alive?]}.inspect
 				# As timeouts may have been updated, and caused fibers to complete, we should check this.
 				
 				# If there is nothing to do, then finish:
@@ -131,8 +138,19 @@ module Async
 			return self
 		ensure
 			Async.logger.debug "[#{self} Ensure] Exiting run-loop (stopped: #{@stopped} exception: #{$!})..."
-			Async.logger.debug @children.collect{|child| [child, child.alive?]}.inspect
+			Async.logger.debug @children.collect{|child| [child.to_s, child.alive?]}.inspect
 			@stopped = true
+		end
+		
+		def close
+			@children.each(&:stop)
+			
+			@selector.close
+			@selector = nil
+		end
+		
+		def closed?
+			@selector.nil?
 		end
 		
 		def sleep(duration)

@@ -22,10 +22,10 @@ require "async/tcp_socket"
 require "async/udp_socket"
 
 RSpec.shared_context "reactor" do
-	let(:reactor) {Async::Reactor.new}
+	let(:reactor) {Async::Task.current.reactor}
 	
 	around(:each) do |example|
-		reactor.run do
+		Async::Reactor.run do
 			example.run
 		end
 	end

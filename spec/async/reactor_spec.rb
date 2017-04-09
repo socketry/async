@@ -53,4 +53,13 @@ RSpec.describe Async::Reactor do
 			end
 		end.to raise_error(LocalJumpError)
 	end
+	
+	it "is closed after running" do
+		reactor = Async::Reactor.run do
+		end
+		
+		expect(reactor).to be_closed
+		
+		expect{reactor.run}.to raise_error(RuntimeError, /closed/)
+	end
 end
