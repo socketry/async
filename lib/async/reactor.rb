@@ -116,15 +116,15 @@ module Async
 				# - +ve: timers waiting to fire
 				interval = 0 if interval && interval < 0
 				
-				Async.logger.debug "[#{self} Pre] Updating #{@children.count} children..."
-				Async.logger.debug @children.collect{|child| [child.to_s, child.alive?]}.inspect
+				Async.logger.debug{"[#{self} Pre] Updating #{@children.count} children..."}
+				Async.logger.debug{@children.collect{|child| [child.to_s, child.alive?]}.inspect}
 				# As timeouts may have been updated, and caused fibers to complete, we should check this.
 				
 				# If there is nothing to do, then finish:
-				Async.logger.debug "[#{self}] @children.empty? = #{@children.empty?} && interval #{interval.inspect}"
+				Async.logger.debug{"[#{self}] @children.empty? = #{@children.empty?} && interval #{interval.inspect}"}
 				return if @children.empty? && interval.nil?
 				
-				Async.logger.debug "Selecting with #{@children.count} fibers interval = #{interval}..."
+				Async.logger.debug{"Selecting with #{@children.count} fibers interval = #{interval}..."}
 				if monitors = @selector.select(interval)
 					monitors.each do |monitor|
 						if fiber = monitor.value
@@ -137,8 +137,8 @@ module Async
 			
 			return self
 		ensure
-			Async.logger.debug "[#{self} Ensure] Exiting run-loop (stopped: #{@stopped} exception: #{$!})..."
-			Async.logger.debug @children.collect{|child| [child.to_s, child.alive?]}.inspect
+			Async.logger.debug{"[#{self} Ensure] Exiting run-loop (stopped: #{@stopped} exception: #{$!})..."}
+			Async.logger.debug{@children.collect{|child| [child.to_s, child.alive?]}.inspect}
 			@stopped = true
 		end
 		
