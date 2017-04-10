@@ -3,6 +3,8 @@ sudo: false
 dist: trusty
 cache: bundler
 rvm:
+  - 2.0
+  - 2.1
   - 2.2.6
   - 2.3.3
   - 2.4.0
