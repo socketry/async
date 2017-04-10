@@ -127,9 +127,9 @@ module Async
 				Async.logger.debug "Selecting with #{@children.count} fibers interval = #{interval}..."
 				if monitors = @selector.select(interval)
 					monitors.each do |monitor|
-						if task = monitor.value
+						if fiber = monitor.value
 							# Async.logger.debug "Resuming task #{task} due to IO..."
-							task.resume
+							fiber.resume
 						end
 					end
 				end
