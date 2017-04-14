@@ -27,12 +27,21 @@ require 'timers'
 require 'forwardable'
 
 module Async
+	# Raised if a timeout occurs on a specific Fiber. Handled gracefully by {Task}.
 	class TimeoutError < RuntimeError
 	end
-	
+
+	# An asynchronous, cooperatively scheduled event reactor.
 	class Reactor < Node
 		extend Forwardable
 		
+		# The preferred method to invoke asynchronous behavior.
+		#
+		# - When invoked within an existing reactor task, it will run the given block
+		# asynchronously. Will return the task once it has been scheduled.
+		# - When invoked at the top level, will create and run a reactor, and invoke
+		# the block as an asynchronous task. Will block until the reactor finishes
+		# running.
 		def self.run(*args, &block)
 			if current = Task.current?
 				reactor = current.reactor
@@ -50,7 +59,8 @@ module Async
 				return reactor
 			end
 		end
-		
+	
+		# @param wrappers [Hash] A mapping for wrapping pre-existing IO objects.
 		def initialize(wrappers: IO)
 			super(nil)
 			
@@ -61,22 +71,29 @@ module Async
 			
 			@stopped = true
 		end
-		
+	
+		# @attr wrappers [Object] 
 		attr :wrappers
+		# @attr stopped [Boolean] 
 		attr :stopped
 		
 		def_delegators :@timers, :every, :after
-		
+	
+		# Wrap a given IO object and associate it with a specific task.
+		# @param io The `IO` instance to wrap.
+		# @param task [Task] The task which manages the wrapper.
+		# @return [Wrapper]
 		def wrap(io, task)
 			@wrappers[io].new(io, task)
 		end
-		
+	
 		def with(io, &block)
 			async do |task|
 				task.with(io, &block)
 			end
 		end
-		
+
+		# @return [Task]	
 		def async(*ios, &block)
 			task = Task.new(ios, self, &block)
 			
@@ -96,11 +113,18 @@ module Async
 		def register(*args)
 			@selector.register(*args)
 		end
-		
+	
+		# Stop the reactor at the earliest convenience.
+		# @return [void]
 		def stop
-			@stopped = true
+			unless @stopped
+				@stopped = true
+				@selector.wakeup
+			end
 		end
-		
+	
+		# Run the reactor until either all tasks complete or {#stop} is invoked.
+		# Proxies arguments to {#async} immediately before entering the loop.
 		def run(*args, &block)
 			raise RuntimeError, 'Reactor has been closed' if @selector.nil?
 			
@@ -129,7 +153,7 @@ module Async
 					monitors.each do |monitor|
 						if fiber = monitor.value
 							# Async.logger.debug "Resuming task #{task} due to IO..."
-							fiber.resume
+							fiber.resume # if fiber.alive?
 						end
 					end
 				end
@@ -141,7 +165,9 @@ module Async
 			Async.logger.debug{@children.collect{|child| [child.to_s, child.alive?]}.inspect}
 			@stopped = true
 		end
-		
+	
+		# Close each of the children tasts and selector.
+		# @return [void]
 		def close
 			@children.each(&:stop)
 			
@@ -149,10 +175,14 @@ module Async
 			@selector = nil
 		end
 		
+		# Check if the selector has been closed.
+		# @return [Boolean]
 		def closed?
 			@selector.nil?
 		end
-		
+	
+		# Put the calling fiber to sleep for a given ammount of time.
+		# @param duration [Numeric] The time in seconds, to sleep for.
 		def sleep(duration)
 			task = Fiber.current
 			
@@ -167,6 +197,10 @@ module Async
 			timer.cancel if timer
 		end
 		
+		# Invoke the block, but after the timeout, raise {TimeoutError} in any
+		# currenly blocking operation.
+		# @param duration [Integer] The time in seconds, in which the task should 
+		#   complete.
 		def timeout(duration)
 			backtrace = caller
 			task = Fiber.current

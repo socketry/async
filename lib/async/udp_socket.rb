@@ -21,13 +21,15 @@
 require_relative 'socket'
 
 module Async
-	# Asynchronous UDP socket.
+	# Asynchronous UDP socket wrapper.
 	class UDPSocket < IPSocket
 		# We pass `send` through directly, but in theory it might block. Internally, it uses sendto.
 		wraps ::UDPSocket, :send
 		
+		# Repeatedly handle incoming UDP messages.
+		# @yield [data, address] The result of calling {recvfrom}.
 		def recvfrom_each(*args, &block)
-			yield *self.recvfrom(*args) while true
+			yield(*self.recvfrom(*args)) while true
 		end
 	end
 end

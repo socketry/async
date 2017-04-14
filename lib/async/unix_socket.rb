@@ -21,7 +21,7 @@
 require_relative 'socket'
 
 module Async
-	module UNIXSocket < BasicSocket
+	class UNIXSocket < BasicSocket
 		wraps ::UNIXSocket
 	end
 end

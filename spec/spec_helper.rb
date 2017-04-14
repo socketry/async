@@ -26,7 +26,9 @@ RSpec.shared_context "reactor" do
 	
 	around(:each) do |example|
 		Async::Reactor.run do
-			example.run
+			result = example.run
+			
+			return result if result.is_a? Exception
 		end
 	end
 end

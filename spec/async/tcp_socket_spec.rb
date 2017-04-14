@@ -62,13 +62,14 @@ RSpec.describe Async::Reactor do
 	describe 'non-blocking tcp connect' do
 		# These may block:
 		let(:server) {TCPServer.new("localhost", port)}
+		let(:server_address) {Addrinfo.tcp("localhost", port)}
 		
 		let(:data) {"The quick brown fox jumped over the lazy dog."}
 		
 		it "should start server and send data" do
 			run_echo_server do
 				subject.async do |task|
-					Async::TCPSocket.connect("localhost", port) do |client|
+					Async::Socket.connect(server_address) do |client|
 						client.write(data)
 						expect(client.read(512)).to be == data
 					end
@@ -81,7 +82,7 @@ RSpec.describe Async::Reactor do
 			
 			run_echo_server do
 				subject.async do |task|
-					socket = Async::TCPSocket.connect("localhost", port)
+					socket = Async::Socket.connect(server_address)
 					
 					# Stop the reactor once the connection was made.
 					subject.stop
@@ -105,7 +106,7 @@ RSpec.describe Async::Reactor do
 			
 			run_echo_server do
 				subject.async do |task|
-					socket = Async::TCPSocket.connect("localhost", port)
+					socket = Async::Socket.connect(server_address)
 					
 					# I'm not sure if this is the right behaviour or not. Without a significant amont of work, async sockets are tied to the task that creates them.
 					expect do

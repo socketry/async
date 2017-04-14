@@ -21,9 +21,12 @@
 require 'logger'
 
 module Async
+	# The Async Logger class.
 	class << self
+		# @attr logger [Logger] the global logger instance used by `Async`.
 		attr :logger
-		
+	
+		# Set the default log level based on `$DEBUG` and `$VERBOSE`.
 		def default_log_level
 			if $DEBUG
 				Logger::DEBUG
@@ -34,6 +37,7 @@ module Async
 			end
 		end
 	end
-	
+
+	# Create the logger instance.
 	@logger = Logger.new($stderr, level: default_log_level)
 end

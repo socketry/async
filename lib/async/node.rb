@@ -21,7 +21,10 @@
 require 'set'
 
 module Async
+	# Represents a node in a tree, used for nested {Task} instances.
 	class Node
+		# Create a new node in the tree.
+		# @param parent [Node, nil] This node will attach to the given parent.
 		def initialize(parent = nil)
 			@children = Set.new
 			@parent = nil
@@ -31,10 +34,15 @@ module Async
 			end
 		end
 		
+		# @attr parent [Node, nil]
 		attr :parent
+		
+		# @attr children [Set<Node>]
 		attr :children
 		
-		# Attach this node to an existing parent.
+		# Change the parent of this node.
+		# @param parent [Node, nil] the parent to attach to, or nil to detach.
+		# @return [self]
 		def parent=(parent)
 			return if @parent.equal?(parent)
 			
@@ -47,12 +55,19 @@ module Async
 				@parent = parent
 				@parent.children << self
 			end
+			
+			return self
 		end
-		
+	
+		# Whether the node can be consumed safely. By default, checks if the
+		# children set is empty.
+		# @return [Boolean]	
 		def finished?
 			@children.empty?
 		end
-		
+	
+		# If the node has a parent, and is {finished?}, then remove this node from
+		# the parent.
 		def consume
 			if @parent && finished?
 				@parent.reap(self)
@@ -60,7 +75,9 @@ module Async
 				@parent = nil
 			end
 		end
-		
+	
+		# Remove a given child node.
+		# @param child [Node] 
 		def reap(child)
 			@children.delete(child)
 		end

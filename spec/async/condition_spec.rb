@@ -18,23 +18,24 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-require_relative 'socket'
+require 'async/condition'
 
-module Async
-	# Asynchronous TCP socket wrapper.
-	class TCPSocket < IPSocket
-		wraps ::TCPSocket
-	end
+RSpec.describe Async::Condition do
+	include_context 'reactor'
 	
-	# Asynchronous TCP server wrappper.
-	class TCPServer < TCPSocket
-		wraps ::TCPServer
-		
-		# @see accept_each
-		wrap_blocking_method :accept, :accept_nonblock
-		
-		def accept_each(task: Task.current, &block)
-			task.with(self.accept, &block) while true
+	it 'should continue after condition is signalled' do
+		task = reactor.async do
+			subject.wait
+			#puts "Got #{value}"
 		end
+		
+		expect(task.status).to be :running
+		
+		# This will cause the task to exit:
+		subject.signal
+		
+		expect(task.status).to be :complete
+		
+		task.stop
 	end
 end

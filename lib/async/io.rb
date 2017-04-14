@@ -29,27 +29,21 @@ module Async
 		
 		WRAPPERS = {}
 		
+		# Return the wrapper for a given native IO instance.
 		def self.[] instance
 			WRAPPERS[instance.class]
 		end
 		
 		class << self
-			if RUBY_VERSION >= "2.3"
-				def wrap_blocking_method(new_name, method_name)
-					# puts "#{self}\##{$1} -> #{method_name}"
+			# @!macro [attach] wrap_blocking_method
+			#   @method $1
+			#   Invokes `$2` on the underlying {io}. If the operation would block, the current task is paused until the operation can succeed, at which point it's resumed and the operation is completed.
+			def wrap_blocking_method(new_name, method_name, &block)
+				if block_given?
+					define_method(new_name, &block)
+				else
 					define_method(new_name) do |*args|
-						async do
-							@io.__send__(method_name, *args, exception: false)
-						end
-					end
-				end
-			else
-				def wrap_blocking_method(new_name, method_name)
-					# puts "#{self}\##{$1} -> #{method_name}"
-					define_method(new_name) do |*args|
-						async do
-							@io.__send__(method_name, *args)
-						end
+						async_send(method_name, *args)
 					end
 				end
 			end
@@ -67,7 +61,29 @@ module Async
 		
 		wraps ::IO
 		
+		# @example
+		#   data = io.read(512)
+		wrap_blocking_method :read, :read_nonblock
+		
+		# @example
+		#   io.write("Hello World")
+		wrap_blocking_method :write, :write_nonblock
+		
 		protected
+		
+		if RUBY_VERSION >= "2.3"
+			def async_send(*args)
+				async do
+					@io.__send__(*args, exception: false)
+				end
+			end
+		else
+			def async_send(*args)
+				async do
+					@io.__send__(*args)
+				end
+			end
+		end
 		
 		def async
 			while true

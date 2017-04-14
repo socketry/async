@@ -21,15 +21,48 @@
 module Async
 	# Represents an asynchronous IO within a reactor.
 	class Wrapper
+		# @param io [#filedes] the native object to wrap.
+		# @param task [Task] the task that is managing this wrapper.
 		def initialize(io, task)
 			@io = io
 			@task = task
 			@monitor = nil
 		end
 		
+		# The underlying native `io`.
 		attr :io
+		
+		# The task this wrapper is associated with.
 		attr :task
 		
+		# Wait for the io to become readable.
+		def wait_readable
+			wait_any(:r)
+		end
+		
+		# Wait for the io to become writable.
+		def wait_writable
+			wait_any(:w)
+		end
+		
+		# Wait fo the io to become either readable or writable.
+		# @param interests [:r | :w | :rw] what events to wait for.
+		def wait_any(interests = :rw)
+			monitor(interests) do
+				Task.yield
+			end
+		end
+		
+		# Close the monitor.
+		def close
+			@monitor.close if @monitor
+			@monitor = nil
+		end
+		
+		private
+		
+		# Monitor the io for the given events
+		# @param interests [:r | :w | :rw] what events to wait for.
 		def monitor(interests)
 			unless @monitor
 				@monitor = @task.register(@io, interests)
@@ -43,25 +76,6 @@ module Async
 			
 		ensure
 			@monitor.value = nil if @monitor
-		end
-		
-		def wait_readable
-			wait_any(:r)
-		end
-		
-		def wait_writable
-			wait_any(:w)
-		end
-		
-		def wait_any(interests = :rw)
-			monitor(interests) do
-				Task.yield
-			end
-		end
-		
-		def close
-			@monitor.close if @monitor
-			@monitor = nil
 		end
 	end
 end

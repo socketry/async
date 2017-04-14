@@ -20,22 +20,28 @@
 
 require 'fiber'
 require 'forwardable'
-
 require_relative 'node'
 
 module Async
+	# A synchronization primative, which allows fibers to wait until a particular condition is triggered.
 	class Condition
 		def initialize
 			@waiting = []
 		end
 		
+		# Queue up the current fiber and wait on yielding the task.
+		# @return [Object]
 		def wait
 			@waiting << Fiber.current
 			
 			Task.yield
 		end
 		
-		def signal(value)
+		# Signal to a given task that it should resume operations.
+		# @param value The value to return to the waiting fibers.
+		# @see Task.yield which is responsible for handling value.
+		# @return [void]
+		def signal(value = nil)
 			while task = @waiting.pop
 				task.resume(value)
 			end

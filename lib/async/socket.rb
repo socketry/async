@@ -26,23 +26,48 @@ module Async
 	class BasicSocket < IO
 		wraps ::BasicSocket
 		
-		# We provide non-blocking send:
-		alias send sendmsg
+		wrap_blocking_method :recv, :recv_nonblock
+		wrap_blocking_method :recvmsg, :recvmsg_nonblock
+		wrap_blocking_method :send, :sendmsg_nonblock
+		wrap_blocking_method :sendmsg, :sendmsg_nonblock
 	end
 	
 	class Socket < BasicSocket
 		wraps ::Socket
 		
-		module Connect
-			def connect(*args)
-				begin
-					super
-				rescue Errno::EISCONN
-				end
+		wrap_blocking_method :connect, :connect_nonblock do |*args|
+			begin
+				async_send(:connect_nonblock, *args)
+			rescue Errno::EISCONN
+				# We are now connected.
 			end
 		end
 		
-		prepend Connect
+		# Establish a connection to a given `remote_address`.
+		# @example
+		#  socket = Async::Socket.connect(Addrinfo.tcp("8.8.8.8", 53))
+		# @param remote_address [Addrinfo] The remote address to connect to.
+		# @param local_address [Addrinfo] The local address to bind to before connecting.
+		# @option protcol [Integer] The socket protocol to use.
+		def self.connect(remote_address, local_address = nil, protocol: 0, task: Task.current)
+			socket = ::Socket.new(remote_address.afamily, remote_address.socktype, protocol)
+			
+			if local_address
+				socket.bind(local_address) if local_address
+			end
+			
+			if block_given?
+				task.with(socket) do |wrapper|
+					wrapper.connect(remote_address.to_sockaddr)
+					
+					yield wrapper
+				end
+			else
+				task.bind(socket).connect(remote_address.to_sockaddr)
+				
+				return socket
+			end
+		end
 	end
 	
 	class IPSocket < BasicSocket
