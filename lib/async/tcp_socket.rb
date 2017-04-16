@@ -49,6 +49,9 @@ module Async
 	# Asynchronous TCP server
 	class TCPServer < TCPSocket
 		wraps ::TCPServer
+		
+		def accept_each(task: Task.current, &block)
+			task.with(self.accept, &block) while true
+		end
 	end
 end
-

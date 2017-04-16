@@ -24,10 +24,12 @@ RSpec.describe Async::Reactor do
 	
 	def run_echo_server
 		# Accept a single incoming connection and then finish.
-		subject.async(server) do |server, task|
-			task.with(server.accept) do |peer|
+		subject.async(server) do |server|
+			server.accept_each do |peer|
 				data = peer.read(512)
 				peer.write(data)
+				
+				break
 			end
 		end
 		

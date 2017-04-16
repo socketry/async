@@ -25,6 +25,10 @@ module Async
 	class UDPSocket < IPSocket
 		# We pass `send` through directly, but in theory it might block. Internally, it uses sendto.
 		wraps ::UDPSocket, :send
+		
+		def recvfrom_each(*args, &block)
+			yield *self.recvfrom(*args) while true
+		end
 	end
 end
 

@@ -34,11 +34,11 @@ RSpec.describe Async::Reactor do
 		end
 		
 		it "should echo data back to peer" do
-			subject.async(server) do |server, task|
-				packet, (_, remote_port, remote_host) = server.recvfrom(512)
-				
-				subject.async do
+			subject.async(server) do |server|
+				server.recvfrom_each(512) do |packet, (_, remote_port, remote_host)|
 					server.send(packet, 0, remote_host, remote_port)
+					
+					break
 				end
 			end
 			
