@@ -29,5 +29,7 @@ module Async
 	# Asynchronous TCP server wrappper.
 	class TCPServer < TCPSocket
 		wraps ::TCPServer
+		
+		wrap_blocking_method :accept, :accept_nonblock
 	end
 end

@@ -46,5 +46,26 @@ RSpec.describe Async::Reactor do
 			
 			subject.run
 		end
+		
+		it "should use unconnected socket" do
+			subject.async do
+				Async::Socket.bind(server_address) do |server|
+					packet, address = server.recvfrom(512)
+					
+					server.send(packet, 0, address)
+				end
+			end
+			
+			subject.async do |task|
+				task.with(UDPSocket.new(server_address.afamily)) do |client|
+					client.send(data, 0, server_address)
+					response, address = client.recvfrom(512)
+					
+					expect(response).to be == data
+				end
+			end
+			
+			subject.run
+		end
 	end
 end
