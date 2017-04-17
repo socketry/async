@@ -22,7 +22,8 @@ RSpec.describe Async::Reactor do
 	include_context "closes all io"
 	
 	# Shared port for localhost network tests.
-	let(:port) {6779}
+	let(:server_address) {Addrinfo.tcp("localhost", 6779)}
+	let(:data) {"The quick brown fox jumped over the lazy dog."}
 	
 	around(:each) do |example|
 		# Accept a single incoming connection and then finish.
@@ -43,11 +44,6 @@ RSpec.describe Async::Reactor do
 	end
 	
 	describe 'basic tcp server' do
-		# These may block:
-		let(:server_address) {Addrinfo.tcp("localhost", port)}
-		
-		let(:data) {"The quick brown fox jumped over the lazy dog."}
-		
 		it "should start server and send data" do
 			subject.async do
 				Async::Socket.connect(server_address) do |client|
@@ -59,12 +55,6 @@ RSpec.describe Async::Reactor do
 	end
 	
 	describe 'non-blocking tcp connect' do
-		# These may block:
-		let(:server) {TCPServer.new("localhost", port)}
-		let(:server_address) {Addrinfo.tcp("localhost", port)}
-		
-		let(:data) {"The quick brown fox jumped over the lazy dog."}
-		
 		it "should start server and send data" do
 			subject.async do |task|
 				Async::Socket.connect(server_address) do |client|
