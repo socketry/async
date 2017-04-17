@@ -103,8 +103,7 @@ module Async
 		def to_s
 			"#{super}[#{@status}]"
 		end
-
-
+	
 		# @attr ios [Array<IO>] All wrappers associated with this task.
 		attr :ios
 		
