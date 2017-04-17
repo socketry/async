@@ -28,6 +28,9 @@ module Async
 		
 		wrap_blocking_method :recv, :recv_nonblock
 		wrap_blocking_method :recvmsg, :recvmsg_nonblock
+		
+		wrap_blocking_method :recvfrom, :recvfrom_nonblock
+		
 		wrap_blocking_method :send, :sendmsg_nonblock
 		wrap_blocking_method :sendmsg, :sendmsg_nonblock
 	end
@@ -79,13 +82,11 @@ module Async
 		#  socket = Async::Socket.listen(Addrinfo.tcp("0.0.0.0", 9090))
 		# @param local_address [Addrinfo] The local address to bind to.
 		# @option protcol [Integer] The socket protocol to use.
-		def self.listen(local_address, backlog: 128, protocol: 0, task: Task.current, &block)
+		def self.bind(local_address, backlog: 128, protocol: 0, task: Task.current, &block)
 			socket = ::Socket.new(local_address.afamily, local_address.socktype, protocol)
 			
 			socket.setsockopt(Socket::SOL_SOCKET, Socket::SO_REUSEADDR, true)
 			socket.bind(local_address)
-			
-			socket.listen(128)
 			
 			if block_given?
 				task.with(socket, &block)
@@ -95,7 +96,7 @@ module Async
 		end
 		
 		def self.accept(*args, task: Task.current, &block)
-			listen(*args, task: task) do |wrapper|
+			bind(*args, task: task) do |wrapper|
 				task.with(*wrapper.accept, &block) while true
 			end
 		end

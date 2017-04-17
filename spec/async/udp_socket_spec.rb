@@ -27,32 +27,25 @@ RSpec.describe Async::Reactor do
 	describe 'basic udp server' do
 		include_context "closes all io"
 		
-		# These may block:
-		let(:server) {UDPSocket.new.tap{|socket| socket.bind("127.0.0.1", port)}}
-		let(:client) {UDPSocket.new}
-		
+		let(:server_address) {Addrinfo.udp("127.0.0.1", port)}
 		let(:data) {"The quick brown fox jumped over the lazy dog."}
 		
-		after(:each) do
-			server.close
-			client.close
-		end
-		
 		it "should echo data back to peer" do
-			subject.async(server) do |server|
-				server.recvfrom_each(512) do |packet, (_, remote_port, remote_host)|
-					server.send(packet, 0, remote_host, remote_port)
+			subject.async do
+				Async::Socket.bind(server_address) do |server|
+					packet, address = server.recvfrom(512)
 					
-					break
+					server.send(packet, 0, address)
 				end
 			end
 			
-			subject.async(client) do |client|
-				client.send(data, 0, "127.0.0.1", port)
-				
-				response, _ = client.recvfrom(512)
-				
-				expect(response).to be == data
+			subject.async do
+				Async::Socket.connect(server_address) do |client|
+					client.send(data)
+					response = client.recv(512)
+					
+					expect(response).to be == data
+				end
 			end
 			
 			subject.run

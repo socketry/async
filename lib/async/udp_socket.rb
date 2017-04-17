@@ -28,15 +28,7 @@ module Async
 		# We pass `send` through directly, but in theory it might block. Internally, it uses sendto.
 		def_delegators :@io, :send
 		
-		# @example
-		#  packet, (_, remote_port, remote_host) = socket.recvfrom(512)
 		wrap_blocking_method :recvfrom, :recvfrom_nonblock
-		
-		# Repeatedly handle incoming UDP messages.
-		# @yield [data, address] The result of calling {recvfrom}.
-		def recvfrom_each(*args, &block)
-			yield(*self.recvfrom(*args)) while true
-		end
 	end
 end
 
