@@ -23,8 +23,14 @@ require_relative 'socket'
 module Async
 	# Asynchronous UDP socket wrapper.
 	class UDPSocket < IPSocket
+		wraps ::UDPSocket
+		
 		# We pass `send` through directly, but in theory it might block. Internally, it uses sendto.
-		wraps ::UDPSocket, :send
+		def_delegators :@io, :send
+		
+		# @example
+		#  packet, (_, remote_port, remote_host) = socket.recvfrom(512)
+		wrap_blocking_method :recvfrom, :recvfrom_nonblock
 		
 		# Repeatedly handle incoming UDP messages.
 		# @yield [data, address] The result of calling {recvfrom}.

@@ -42,9 +42,12 @@ module Async
 		# @see Task.yield which is responsible for handling value.
 		# @return [void]
 		def signal(value = nil)
+			# TODO: Should we hot-swap @waiting - so that tasks can wait on this condition again?
 			while task = @waiting.pop
 				task.resume(value)
 			end
+			
+			return nil
 		end
 	end
 end
