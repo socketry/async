@@ -18,16 +18,36 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-require_relative 'socket'
+require 'async/unix_socket'
 
-module Async
-	class UNIXServer < BasicSocket
-		wraps ::UNIXServer
-		
-		wrap_blocking_method :accept, :accept_nonblock
+RSpec.describe Async::Reactor do
+	include_context "closes all io"
+	
+	let(:path) {File.join(__dir__, "unix-socket")}
+	let(:data) {"The quick brown fox jumped over the lazy dog."}
+	
+	before(:each) do
+		FileUtils.rm_f path
 	end
 	
-	class UNIXSocket < BasicSocket
-		wraps ::UNIXSocket
+	describe 'basic unix socket' do
+		it "should echo data back to peer" do
+			subject.async do |task|
+				task.with(UNIXServer.new(path)) do |server|
+					task.with(server.accept) do |peer|
+						peer.send(peer.recv(512))
+					end
+				end
+			end
+			
+			subject.with(UNIXSocket.new(path)) do |socket|
+				socket.send(data)
+				response = socket.recv(512)
+				
+				expect(response).to be == data
+			end
+			
+			subject.run
+		end
 	end
 end

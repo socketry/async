@@ -22,14 +22,10 @@ RSpec.describe Async::Reactor do
 	include_context "closes all io"
 	
 	# Shared port for localhost network tests.
-	let(:port) {6778}
+	let(:server_address) {Addrinfo.udp("127.0.0.1", 6778)}
+	let(:data) {"The quick brown fox jumped over the lazy dog."}
 	
 	describe 'basic udp server' do
-		include_context "closes all io"
-		
-		let(:server_address) {Addrinfo.udp("127.0.0.1", port)}
-		let(:data) {"The quick brown fox jumped over the lazy dog."}
-		
 		it "should echo data back to peer" do
 			subject.async do
 				Async::Socket.bind(server_address) do |server|
