@@ -80,11 +80,13 @@ module Async
 		#  socket = Async::Socket.bind(Addrinfo.tcp("0.0.0.0", 9090))
 		# @param local_address [Addrinfo] The local address to bind to.
 		# @option protcol [Integer] The socket protocol to use.
-		def self.bind(local_address, backlog: 128, protocol: 0, task: Task.current, &block)
+		def self.bind(local_address, backlog: nil, protocol: 0, task: Task.current, &block)
 			socket = ::Socket.new(local_address.afamily, local_address.socktype, protocol)
 			
 			socket.setsockopt(::Socket::SOL_SOCKET, ::Socket::SO_REUSEADDR, true)
 			socket.bind(local_address)
+			
+			socket.listen(backlog) if backlog
 			
 			if block_given?
 				task.with(socket, &block)

@@ -27,7 +27,7 @@ RSpec.describe Async::Reactor do
 	around(:each) do |example|
 		# Accept a single incoming connection and then finish.
 		subject.async do |task|
-			Async::Socket.bind(server_address) do |server|
+			Async::Socket.bind(server_address, backlog: 128) do |server|
 				task.with(*server.accept) do |peer, address|
 					data = peer.read(512)
 					peer.write(data)
