@@ -19,18 +19,23 @@
 # THE SOFTWARE.
 
 RSpec.describe Async::Reactor do
+	include_context "closes all io"
+	
 	# Shared port for localhost network tests.
 	let(:port) {6778}
 	
 	describe 'basic udp server' do
+		include_context "closes all io"
+		
 		# These may block:
-		let(:server) {UDPSocket.new.tap{|socket| socket.bind("localhost", port)}}
+		let(:server) {UDPSocket.new.tap{|socket| socket.bind("127.0.0.1", port)}}
 		let(:client) {UDPSocket.new}
 		
 		let(:data) {"The quick brown fox jumped over the lazy dog."}
 		
 		after(:each) do
 			server.close
+			client.close
 		end
 		
 		it "should echo data back to peer" do
@@ -43,7 +48,7 @@ RSpec.describe Async::Reactor do
 			end
 			
 			subject.async(client) do |client|
-				client.send(data, 0, "localhost", port)
+				client.send(data, 0, "127.0.0.1", port)
 				
 				response, _ = client.recvfrom(512)
 				

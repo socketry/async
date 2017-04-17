@@ -29,12 +29,5 @@ module Async
 	# Asynchronous TCP server wrappper.
 	class TCPServer < TCPSocket
 		wraps ::TCPServer
-		
-		# @see accept_each
-		wrap_blocking_method :accept, :accept_nonblock
-		
-		def accept_each(task: Task.current, &block)
-			task.with(self.accept, &block) while true
-		end
 	end
 end

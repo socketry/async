@@ -153,12 +153,12 @@ module Async
 	
 		# Provide a wrapper to an IO object with a Reactor.
 		# @yield [Async::Wrapper] a wrapped object.
-		def with(io)
+		def with(io, *args)
 			wrapper = @reactor.wrap(io, self)
-			yield wrapper
+			yield wrapper, *args
 		ensure
-			wrapper.close
-			io.close
+			wrapper.close if wrapper
+			io.close if io
 		end
 		
 		# Wrap and bind the given object to the reactor.

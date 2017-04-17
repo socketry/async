@@ -21,7 +21,7 @@
 module Async
 	# Represents an asynchronous IO within a reactor.
 	class Wrapper
-		# @param io [#filedes] the native object to wrap.
+		# @param io the native object to wrap.
 		# @param task [Task] the task that is managing this wrapper.
 		def initialize(io, task)
 			@io = io

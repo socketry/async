@@ -19,43 +19,42 @@
 # THE SOFTWARE.
 
 RSpec.describe Async::Reactor do
+	include_context "closes all io"
+	
 	# Shared port for localhost network tests.
 	let(:port) {6779}
 	
-	def run_echo_server
+	around(:each) do |example|
 		# Accept a single incoming connection and then finish.
-		subject.async(server) do |server|
-			server.accept_each do |peer|
-				data = peer.read(512)
-				peer.write(data)
-				
-				break
+		subject.async do |task|
+			Async::Socket.listen(server_address) do |server|
+				task.with(*server.accept) do |peer, address|
+					data = peer.read(512)
+					peer.write(data)
+				end
 			end
 		end
 		
-		yield
+		result = example.run
+		
+		return result if result.is_a? Exception
 		
 		subject.run
-		
-		server.close
 	end
 	
 	describe 'basic tcp server' do
 		# These may block:
-		let(:server) {TCPServer.new("localhost", port)}
-		let(:client) {TCPSocket.new("localhost", port)}
+		let(:server_address) {Addrinfo.tcp("localhost", port)}
 		
 		let(:data) {"The quick brown fox jumped over the lazy dog."}
 		
 		it "should start server and send data" do
-			run_echo_server do
-				subject.with(client) do |client|
+			subject.async do
+				Async::Socket.connect(server_address) do |client|
 					client.write(data)
 					expect(client.read(512)).to be == data
 				end
 			end
-			
-			expect(client).to be_closed
 		end
 	end
 	
@@ -67,12 +66,10 @@ RSpec.describe Async::Reactor do
 		let(:data) {"The quick brown fox jumped over the lazy dog."}
 		
 		it "should start server and send data" do
-			run_echo_server do
-				subject.async do |task|
-					Async::Socket.connect(server_address) do |client|
-						client.write(data)
-						expect(client.read(512)).to be == data
-					end
+			subject.async do |task|
+				Async::Socket.connect(server_address) do |client|
+					client.write(data)
+					expect(client.read(512)).to be == data
 				end
 			end
 		end
@@ -80,42 +77,39 @@ RSpec.describe Async::Reactor do
 		it "can connect socket and read/write in a different task" do
 			socket = nil
 			
-			run_echo_server do
-				subject.async do |task|
-					socket = Async::Socket.connect(server_address)
-					
-					# Stop the reactor once the connection was made.
-					subject.stop
-				end
-			
-				subject.run
+			subject.async do |task|
+				socket = Async::Socket.connect(server_address)
 				
-				expect(socket).to_not be_nil
-				
-				subject.async(socket) do |client|
-					client.write(data)
-					expect(client.read(512)).to be == data
-				end
-				
-				subject.run
+				# Stop the reactor once the connection was made.
+				subject.stop
 			end
+		
+			subject.run
+			
+			expect(socket).to_not be_nil
+			
+			subject.async(socket) do |client|
+				client.write(data)
+				expect(client.read(512)).to be == data
+			end
+			
+			subject.run
 		end
 		
 		it "can't use a socket in nested tasks" do
-			socket = nil
-			
-			run_echo_server do
-				subject.async do |task|
-					socket = Async::Socket.connect(server_address)
-					
-					# I'm not sure if this is the right behaviour or not. Without a significant amont of work, async sockets are tied to the task that creates them.
-					expect do
-						subject.async(socket) do |client|
-							client.write(data)
-							expect(client.read(512)).to be == data
-						end
-					end.to raise_error(ArgumentError, /already registered with selector/)
-				end
+			subject.async do |task|
+				socket = Async::Socket.connect(server_address)
+				
+				# I'm not sure if this is the right behaviour or not. Without a significant amont of work, async sockets are tied to the task that creates them.
+				expect do
+					subject.async(socket) do |client|
+						client.write(data)
+						expect(client.read(512)).to be == data
+					end
+				end.to raise_error(ArgumentError, /already registered with selector/)
+				
+				# We need to explicitly close the socket, since we explicitly opened it.
+				socket.close
 			end
 		end
 	end
