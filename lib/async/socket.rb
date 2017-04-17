@@ -38,8 +38,6 @@ module Async
 	class Socket < BasicSocket
 		wraps ::Socket
 		
-		include ::Socket::Constants
-		
 		wrap_blocking_method :accept, :accept_nonblock
 		
 		wrap_blocking_method :connect, :connect_nonblock do |*args|
@@ -60,7 +58,7 @@ module Async
 			socket = ::Socket.new(remote_address.afamily, remote_address.socktype, protocol)
 			
 			if local_address
-				socket.setsockopt(Socket::SOL_SOCKET, Socket::SO_REUSEADDR, true)
+				socket.setsockopt(::Socket::SOL_SOCKET, ::Socket::SO_REUSEADDR, true)
 				socket.bind(local_address) if local_address
 			end
 			
@@ -77,15 +75,15 @@ module Async
 			end
 		end
 		
-		# Bind to a local address and listen for incoming connections.
+		# Bind to a local address.
 		# @example
-		#  socket = Async::Socket.listen(Addrinfo.tcp("0.0.0.0", 9090))
+		#  socket = Async::Socket.bind(Addrinfo.tcp("0.0.0.0", 9090))
 		# @param local_address [Addrinfo] The local address to bind to.
 		# @option protcol [Integer] The socket protocol to use.
 		def self.bind(local_address, backlog: 128, protocol: 0, task: Task.current, &block)
 			socket = ::Socket.new(local_address.afamily, local_address.socktype, protocol)
 			
-			socket.setsockopt(Socket::SOL_SOCKET, Socket::SO_REUSEADDR, true)
+			socket.setsockopt(::Socket::SOL_SOCKET, ::Socket::SO_REUSEADDR, true)
 			socket.bind(local_address)
 			
 			if block_given?
@@ -95,6 +93,7 @@ module Async
 			end
 		end
 		
+		# Bind to a local address and accept connections in a loop.
 		def self.accept(*args, task: Task.current, &block)
 			bind(*args, task: task) do |wrapper|
 				task.with(*wrapper.accept, &block) while true
