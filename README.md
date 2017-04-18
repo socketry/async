@@ -1,6 +1,6 @@
 # Async
 
-Asynchronous I/O framework for Ruby based on [nio4r] and [timers].
+Async is a composable asynchronous I/O framework for Ruby based on [nio4r] and [timers].
 
 [timers]: https://github.com/socketry/timers
 [nio4r]: https://github.com/socketry/nio4r
