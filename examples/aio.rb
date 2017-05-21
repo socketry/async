@@ -1,6 +1,7 @@
 #!/usr/bin/env ruby
 
 require 'async'
+require 'async/tcp_socket'
 
 reactor = Async::Reactor.new
 
@@ -19,8 +20,8 @@ reactor.async(server) do |server, task|
 		puts "Accepting peer on server #{server}"
 		task.with(server.accept) do |peer|
 			puts "Sending data to peer"
-			peer << "data #{i}"
-			peer.shutdown
+			
+			peer.write "data #{i}"
 		end
 	end
 	
@@ -35,6 +36,7 @@ REPEATS.times do |i|
 	
 	reactor.async(client) do |client|
 		puts "Reading data on client #{i}"
+		
 		puts client.read(1024)
 	end
 end

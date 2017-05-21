@@ -47,26 +47,24 @@ Implementing an asynchronous client/server is easy:
 require 'async'
 require 'async/tcp_socket'
 
+SERVER_ADDRESS = Addrinfo.tcp('localhost', 9000)
+
 def echo_server
   Async::Reactor.run do |task|
     # This is a synchronous block within the current task:
-    task.with(TCPServer.new('localhost', 9000)) do |server|
+    Async::Socket.accept(SERVER_ADDRESS, backlog: 100) do |peer|
+      data = client.read(512)
       
-      # This is an asynchronous block within the current reactor:
-      task.reactor.with(server.accept) do |client|
-        data = client.read(512)
-        
-        task.sleep(rand)
-        
-        client.write(data)
-      end while true
+      task.sleep(rand)
+      
+      client.write(data)
     end
   end
 end
 
 def echo_client(data)
   Async::Reactor.run do |task|
-    Async::TCPServer.connect('localhost', 9000) do |socket|
+    Async::Socket.connect('localhost', 9000) do |socket|
       socket.write(data)
       puts "echo_client: #{socket.read(512)}"
     end

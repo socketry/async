@@ -96,8 +96,10 @@ module Async
 		end
 		
 		# Bind to a local address and accept connections in a loop.
-		def self.accept(*args, task: Task.current, &block)
-			bind(*args, task: task) do |wrapper|
+		def self.accept(*args, &block)
+			bind(*args) do |wrapper|
+				task = wrapper.task
+				
 				task.with(*wrapper.accept, &block) while true
 			end
 		end

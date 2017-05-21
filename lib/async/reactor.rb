@@ -87,13 +87,14 @@ module Async
 			@wrappers[io].new(io, task)
 		end
 	
-		def with(io, &block)
+		# Run the given block asynchronously
+		def with(io, *args, &block)
 			async do |task|
-				task.with(io, &block)
+				task.with(io, *args, &block)
 			end
 		end
 
-		# @return [Task]	
+		# @return [Task]
 		def async(*ios, &block)
 			task = Task.new(ios, self, &block)
 			

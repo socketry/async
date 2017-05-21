@@ -93,7 +93,7 @@ module Async
 					raise
 				ensure
 					# Async.logger.debug("Task #{self} closing: #{$!}")
-					close
+					finish!
 				end
 			end
 		end
@@ -201,8 +201,10 @@ module Async
 			super && @status != :running
 		end
 		
-		# Close all bound IO objects.
-		def close
+		private
+		
+		# Finish the current task, and all bound bound IO objects.
+		def finish!
 			@ios.each_value(&:close)
 			@ios = nil
 			
@@ -214,8 +216,6 @@ module Async
 				@condition.signal(@result)
 			end
 		end
-		
-		private
 		
 		# Set the current fiber's `:async_task` to this task.
 		def set!
