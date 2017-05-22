@@ -41,7 +41,12 @@ RSpec.describe Async::Reactor do
 			state = :stopped
 		end
 		
-		subject.stop
+		subject.async do |task|
+			task.sleep(0.1)
+			task.reactor.stop
+		end
+		
+		subject.run
 		
 		expect(state).to be == :started
 	end

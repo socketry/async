@@ -39,50 +39,46 @@ Or install it yourself as:
 
 ## Usage
 
-Implementing an asynchronous client/server is easy:
+`Async::Reactor` is the top level IO reactor, and runs `Async::Task`s asynchronously. The reactor itself is not thread-safe, so you'd typically have one reactor per thread.
 
-```ruby
-#!/usr/bin/env ruby
+An `Async::Task` runs using a `Fiber` and blocking operations e.g. `sleep`, `read`, `write` yield control until the operation can succeed.
 
-require 'async'
-require 'async/tcp_socket'
+The design of this core library is deliberately simple in scope. Additional libraries provide asynchronous networking, process management, etc.
 
-SERVER_ADDRESS = Addrinfo.tcp('localhost', 9000)
+### Entry Points
 
-def echo_server
-  Async::Reactor.run do |task|
-    # This is a synchronous block within the current task:
-    Async::Socket.accept(SERVER_ADDRESS, backlog: 100) do |peer|
-      data = client.read(512)
-      
-      task.sleep(rand)
-      
-      client.write(data)
-    end
-  end
-end
+#### `Async::Reactor.run`
 
-def echo_client(data)
-  Async::Reactor.run do |task|
-    Async::Socket.connect('localhost', 9000) do |socket|
-      socket.write(data)
-      puts "echo_client: #{socket.read(512)}"
-    end
-  end
-end
+The highest level entry point is `Async::Reactor.run`. It's useful if you are building a library and you want well defined asynchronous semantics.
 
-Async::Reactor.run do
-  # Start the echo server:
-  server = echo_server
-  
-  5.times.collect do |i|
-    echo_client("Hello World #{i}")
-  end.each(&:wait) # Wait until all clients are finished.
-  
-  # Terminate the server and all tasks created within it's async scope:
-  server.stop
-end
-```
+If `Async::Reactor.run(&block)` happens within an existing reactor, it will schedule an asynchronous task and return.
+
+If `Async::Reactor.run(&block)` happens outside of an existing reactor, it will create a reactor, schedule the asynchronous task, and block until it completes.
+
+This puts the power into the hands of the client, who can either have blocking or non-blocking behaviour by explicitly wrapping the call in a reactor (or not).
+
+#### `Async::Reactor#async`
+
+If you can guarantee you are running in a reactor, and have access to it (e.g. via an instance variable), you efficiently schedule new tasks using the `Async::Reactor#async(&block)` method.
+
+This method creates a task. The task is executed until the first blocking operation, at which point it will yield control and `#async` will return. The result of this method is the task itself.
+
+
+#### `Async::Reactor#with`
+
+If you have an existing native IO instance, `Async::Reactor#with(io, *args, &block)` can be used to schedule a task which will expose asynchronous operations on the underlying IO.
+
+The critical thing about this method, is that it does resource management for you. It will invoke `close` on the `io` after the task completes. The reasoning behind this, is that after invoking `#with`, you will have little control over the completion of the task (either successfully or due to error). Therefore, this method assists with ensuring that the `io` is closed no matter the outcome.
+
+#### `Async::Task#with`
+
+If you are already running within an asynchronous task, you may want to explicitly manage your IO instances. `Async::Task#with(io, *args, &block)` will invoke the block with the wrapped `io`, but won't close it afterwards. Because code within a task runs sequentially, you can implement this logic for yourself if required.
+
+### Reactor Tree
+
+`Async::Reactor` and `Async::Task` form nodes in a tree. Reactors and tasks can spawn children tasks, and the hierarchy is tracked.
+
+When invoking `Async::Reactor#stop`, you will stop *all* children tasks of that reactor. Tasks will raise `Async::Interrupt` if they are in a blocking operation. In addition, it's possible to only stop a sub-tree by issuing `Async::Task#stop`, which will stop that task and all it's children (recursively). When you write a server, you should return the task back to the caller. They can use this task to stop the server if needed, independently of any other unrelated tasks within the reactor.
 
 ## Supported Ruby Versions
 
@@ -117,7 +113,9 @@ dropped.
 
 ## See Also
 
+- [async-socket](https://github.com/socketry/async-socket) — Asynchronous networking and sockets.
 - [async-dns](https://github.com/socketry/async-dns) — Asynchronous DNS resolver and server.
+- [async-rspec](https://github.com/socketry/async-rspec) — Shared contexts for running async specs.
 - [rubydns](https://github.com/ioquatix/rubydns) — A easy to use Ruby DNS server.
 
 ## License

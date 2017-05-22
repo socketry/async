@@ -55,19 +55,14 @@ module Async
 		end
 	
 		# Create a new task.
-		# @param ios [Array] an array of `IO` objects such as `TCPServer`, `Socket`, etc.
 		# @param reactor [Async::Reactor] 
 		# @return [void]
-		def initialize(ios, reactor)
+		def initialize(reactor)
 			if parent = Task.current?
 				super(parent)
 			else
 				super(reactor)
 			end
-			
-			@ios = Hash[
-				ios.collect{|io| [io.fileno, reactor.wrap(io, self)]}
-			]
 			
 			@reactor = reactor
 			
@@ -80,7 +75,7 @@ module Async
 				set!
 				
 				begin
-					@result = yield(*@ios.values, self)
+					@result = yield(self)
 					@status = :complete
 					# Async.logger.debug("Task #{self} completed normally.")
 				rescue Interrupt
@@ -99,14 +94,10 @@ module Async
 		end
 		
 		# Show the current status of the task as a string.
-		# @todo (picat) Add test for this method?	
 		def to_s
 			"#{super}[#{@status}]"
 		end
 	
-		# @attr ios [Array<IO>] All wrappers associated with this task.
-		attr :ios
-		
 		# @attr ios [Reactor] The reactor the task was created within.
 		attr :reactor
 		def_delegators :@reactor, :timeout, :sleep
@@ -150,21 +141,13 @@ module Async
 			end
 		end
 	
-		# Provide a wrapper to an IO object with a Reactor.
+		# Wrap the given io object, execute the given block, and then close the wrapper and the io.
 		# @yield [Async::Wrapper] a wrapped object.
 		def with(io, *args)
 			wrapper = @reactor.wrap(io, self)
 			yield wrapper, *args
 		ensure
 			wrapper.close if wrapper
-			io.close if io
-		end
-		
-		# Wrap and bind the given object to the reactor.
-		# @param io the native object to bind to this task.
-		# @return [Wrapper] The wrapped object.
-		def bind(io)
-			@ios[io.fileno] ||= @reactor.wrap(io, self)
 		end
 		
 		# Register a given IO with given interests to be able to monitor it.
@@ -205,9 +188,6 @@ module Async
 		
 		# Finish the current task, and all bound bound IO objects.
 		def finish!
-			@ios.each_value(&:close)
-			@ios = nil
-			
 			# Attempt to remove this node from the task tree.
 			consume
 			

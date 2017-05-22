@@ -35,7 +35,7 @@ module Async
 	class Reactor < Node
 		extend Forwardable
 		
-		# The preferred method to invoke asynchronous behavior.
+		# The preferred method to invoke asynchronous behavior at the top level.
 		#
 		# - When invoked within an existing reactor task, it will run the given block
 		# asynchronously. Will return the task once it has been scheduled.
@@ -90,13 +90,24 @@ module Async
 		# Run the given block asynchronously
 		def with(io, *args, &block)
 			async do |task|
-				task.with(io, *args, &block)
+				begin
+					task.with(io, *args, &block)
+				ensure
+					io.close if io
+				end
 			end
 		end
-
-		# @return [Task]
-		def async(*ios, &block)
-			task = Task.new(ios, self, &block)
+	
+		# Start an asynchronous task within the specified reactor. The task will be
+		# executed until the first blocking call, at which point it will yield and
+		# and this method will return.
+		#
+		# This is the main entry point for scheduling asynchronus tasks.
+		#
+		# @yield [Task] Executed within the asynchronous task.
+		# @return [Task] The task that was 
+		def async(&block)
+			task = Task.new(self, &block)
 			
 			# I want to take a moment to explain the logic of this.
 			# When calling an async block, we deterministically execute it until the
@@ -167,10 +178,13 @@ module Async
 			@stopped = true
 		end
 	
-		# Close each of the children tasts and selector.
+		# Stop each of the children tasks and close the selector.
+		# 
 		# @return [void]
 		def close
 			@children.each(&:stop)
+			
+			# TODO Should we also clear all timers?
 			
 			@selector.close
 			@selector = nil

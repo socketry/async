@@ -21,7 +21,7 @@
 require 'async/condition'
 
 RSpec.describe Async::Condition do
-	include_context 'reactor'
+	include_context Async::RSpec::Reactor
 	
 	it 'should continue after condition is signalled' do
 		task = reactor.async do

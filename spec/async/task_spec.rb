@@ -184,4 +184,21 @@ RSpec.describe Async::Task do
 			expect(innocent_task).to be_finished
 		end
 	end
+	
+	describe '#to_s' do
+		it "should show running" do
+			apples_task = reactor.async do |task|
+				task.sleep(0.1)
+			end
+			
+			expect(apples_task.to_s).to include "running"
+		end
+		
+		it "should show complete" do
+			apples_task = reactor.async do |task|
+			end
+			
+			expect(apples_task.to_s).to include "complete"
+		end
+	end
 end

@@ -51,10 +51,12 @@ module Async
 			def wraps(klass, *additional_methods)
 				WRAPPERS[klass] = self
 				
+				# Doing this explicitly is better for documentation.
 				# klass.instance_methods(false).grep(/(.*)_nonblock/) do |method_name|
 				# 	wrap_blocking_method($1, method_name)
 				# end
 				
+				# puts "Forwarding methods #{additional_methods - instance_methods(false)} to @io"
 				def_delegators :@io, *(additional_methods - instance_methods(false))
 			end
 		end

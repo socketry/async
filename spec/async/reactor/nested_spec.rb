@@ -20,7 +20,7 @@
 
 RSpec.describe Async::Reactor do
 	describe '::run (in existing reactor)' do
-		include_context "reactor"
+		include_context Async::RSpec::Reactor
 		
 		it "should nest reactor" do
 			outer_reactor = Async::Task.current.reactor
