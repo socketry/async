@@ -20,7 +20,7 @@ require "bundler/setup"
 require "async"
 
 # Shared rspec helpers:
-require "async/rspec/reactor"
+require "async/rspec"
 
 RSpec.configure do |config|
 	# Enable flags like --only-failures and --next-failure
