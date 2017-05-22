@@ -22,18 +22,20 @@ module Async
 	# Represents an asynchronous IO within a reactor.
 	class Wrapper
 		# @param io the native object to wrap.
-		# @param task [Task] the task that is managing this wrapper.
-		def initialize(io, task)
+		# @param reactor [Reactor] the reactor that is managing this wrapper.
+		# @param bound [Boolean] whether the underlying socket will be closed if the wrapper is closed.
+		def initialize(io, reactor)
 			@io = io
-			@task = task
+			
+			@reactor = reactor
 			@monitor = nil
 		end
 		
 		# The underlying native `io`.
 		attr :io
 		
-		# The task this wrapper is associated with.
-		attr :task
+		# The reactor this wrapper is associated with.
+		attr :reactor
 		
 		# Wait for the io to become readable.
 		def wait_readable
@@ -57,6 +59,8 @@ module Async
 		def close
 			@monitor.close if @monitor
 			@monitor = nil
+			
+			@io.close if @io
 		end
 		
 		private
@@ -65,7 +69,7 @@ module Async
 		# @param interests [:r | :w | :rw] what events to wait for.
 		def monitor(interests)
 			unless @monitor
-				@monitor = @task.register(@io, interests)
+				@monitor = @reactor.register(@io, interests)
 			else
 				@monitor.interests = interests
 			end

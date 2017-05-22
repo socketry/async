@@ -78,23 +78,18 @@ module Async
 		attr :stopped
 		
 		def_delegators :@timers, :every, :after
-	
+		
 		# Wrap a given IO object and associate it with a specific task.
-		# @param io The `IO` instance to wrap.
-		# @param task [Task] The task which manages the wrapper.
+		# @param io [IO] The instance to wrap.
 		# @return [Wrapper]
-		def wrap(io, task)
-			@wrappers[io].new(io, task)
+		def wrap(io)
+			@wrappers[io].new(io, self)
 		end
 	
-		# Run the given block asynchronously
-		def with(io, *args, &block)
+		# Run the given block asynchronously, passing the arguments to `Task#with`.
+		def with(*args, &block)
 			async do |task|
-				begin
-					task.with(io, *args, &block)
-				ensure
-					io.close if io
-				end
+				task.with(*args, &block)
 			end
 		end
 	

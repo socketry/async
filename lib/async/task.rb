@@ -140,22 +140,18 @@ module Async
 				@fiber.resume(exception)
 			end
 		end
-	
+		
 		# Wrap the given io object, execute the given block, and then close the wrapper and the io.
-		# @yield [Async::Wrapper] a wrapped object.
+		# @yield [Async::Wrapper] a wrapped io object.
 		def with(io, *args)
-			wrapper = @reactor.wrap(io, self)
+			wrapper = wrap(io)
 			yield wrapper, *args
 		ensure
 			wrapper.close if wrapper
 		end
 		
-		# Register a given IO with given interests to be able to monitor it.
-		# @param io [IO] a native io object.
-		# @param interests [Symbol] One of `:r`, `:w` or `:rw`.
-		# @return [NIO::Monitor]
-		def register(io, interests)
-			@reactor.register(io, interests)
+		def wrap(io)
+			@reactor.wrap(io)
 		end
 	
 		# Lookup the {Task} for the current fiber. Raise `RuntimeError` if none is available.

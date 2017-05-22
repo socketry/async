@@ -51,17 +51,15 @@ module Async
 			def wraps(klass, *additional_methods)
 				WRAPPERS[klass] = self
 				
-				# Doing this explicitly is better for documentation.
-				# klass.instance_methods(false).grep(/(.*)_nonblock/) do |method_name|
-				# 	wrap_blocking_method($1, method_name)
-				# end
+				# These are methods implemented by the wrapped class, that we aren't overriding, that may be of interest:
+				# fallback_methods = klass.instance_methods(false) - instance_methods
+				# puts "Forwarding #{klass} methods #{fallback_methods} to @io"
 				
-				# puts "Forwarding methods #{additional_methods - instance_methods(false)} to @io"
-				def_delegators :@io, *(additional_methods - instance_methods(false))
+				def_delegators :@io, *additional_methods
 			end
 		end
 		
-		wraps ::IO
+		wraps ::IO, :external_encoding, :internal_encoding, :autoclose?, :autoclose=, :pid, :stat, :binmode, :flush, :set_encoding, :to_io, :to_i, :reopen, :fileno, :fsync, :fdatasync, :sync, :sync=, :tell, :seek, :rewind, :pos, :pos=, :eof, :eof?, :close_on_exec?, :close_on_exec=, :closed?, :close_read, :close_write, :isatty, :tty?, :binmode?, :sysseek, :advise, :ioctl, :fcntl
 		
 		# @example
 		#   data = io.read(512)

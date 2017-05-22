@@ -63,16 +63,13 @@ If you can guarantee you are running in a reactor, and have access to it (e.g. v
 
 This method creates a task. The task is executed until the first blocking operation, at which point it will yield control and `#async` will return. The result of this method is the task itself.
 
-
 #### `Async::Reactor#with`
 
-If you have an existing native IO instance, `Async::Reactor#with(io, *args, &block)` can be used to schedule a task which will expose asynchronous operations on the underlying IO.
-
-The critical thing about this method, is that it does resource management for you. It will invoke `close` on the `io` after the task completes. The reasoning behind this, is that after invoking `#with`, you will have little control over the completion of the task (either successfully or due to error). Therefore, this method assists with ensuring that the `io` is closed no matter the outcome.
+If you have an existing native IO instance, `Async::Reactor#with(io, *args, &block)` can be used to schedule a task which will expose asynchronous operations on the underlying IO. After the block has completed, the IO will be closed.
 
 #### `Async::Task#with`
 
-If you are already running within an asynchronous task, you may want to explicitly manage your IO instances. `Async::Task#with(io, *args, &block)` will invoke the block with the wrapped `io`, but won't close it afterwards. Because code within a task runs sequentially, you can implement this logic for yourself if required.
+If you are already running within an asynchronous task, you may want find it useful to explicitly manage your IO instances. `Async::Task#with(io, *args, &block)` will invoke the block with the wrapped `io`. After the block has completed, the IO will be closed.
 
 ### Reactor Tree
 
