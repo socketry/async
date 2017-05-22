@@ -164,8 +164,7 @@ module Async
 		def self.current
 			Thread.current[:async_task] or raise RuntimeError, "No async task available!"
 		end
-
-			
+	
 		# Check if there is a task defined for the current fiber.
 		# @return [Async::Task, nil]
 		def self.current?
@@ -177,15 +176,15 @@ module Async
 		def running?
 			@status == :running
 		end
-		
+	
 		# Whether we can remove this node from the reactor graph.
 		# @return [Boolean]
 		def finished?
 			super && @status != :running
 		end
-		
+	
 		private
-		
+	
 		# Finish the current task, and all bound bound IO objects.
 		def finish!
 			# Attempt to remove this node from the task tree.
@@ -196,7 +195,7 @@ module Async
 				@condition.signal(@result)
 			end
 		end
-		
+	
 		# Set the current fiber's `:async_task` to this task.
 		def set!
 			# This is actually fiber-local:
