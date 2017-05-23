@@ -43,39 +43,64 @@ Or install it yourself as:
 
 An `Async::Task` runs using a `Fiber` and blocking operations e.g. `sleep`, `read`, `write` yield control until the operation can succeed.
 
-The design of this core library is deliberately simple in scope. Additional libraries provide asynchronous networking, process management, etc.
+The design of this core library is deliberately simple in scope. Additional libraries provide asynchronous networking, process management, etc. It's likely you will prefer to depend on `async-io` for actual wrappers around `IO` and `Socket`.
 
-### Entry Points
+### Main Entry Points
 
 #### `Async::Reactor.run`
 
 The highest level entry point is `Async::Reactor.run`. It's useful if you are building a library and you want well defined asynchronous semantics.
 
-If `Async::Reactor.run(&block)` happens within an existing reactor, it will schedule an asynchronous task and return.
+```ruby
+def run_server
+	Async::Reactor.run do |task|
+		# ... acccept connections
+	end
+end
+```
 
-If `Async::Reactor.run(&block)` happens outside of an existing reactor, it will create a reactor, schedule the asynchronous task, and block until it completes.
+If `Async::Reactor.run(&block)` happens within an existing reactor, it will schedule an asynchronous task and return. If `Async::Reactor.run(&block)` happens outside of an existing reactor, it will create a reactor, schedule the asynchronous task, and block until it completes. The task is scheduled by calling `Async::Reactor.async(&block)`.
 
-This puts the power into the hands of the client, who can either have blocking or non-blocking behaviour by explicitly wrapping the call in a reactor (or not).
+This puts the power into the hands of the client, who can either have blocking or non-blocking behaviour by explicitly wrapping the call in a reactor (or not). The cost of using `Async::Reactor.run` is minimal for initialization/server setup, but is not ideal for per-connection tasks.
 
-#### `Async::Reactor#async`
+#### `Async::Task#async`
 
-If you can guarantee you are running in a reactor, and have access to it (e.g. via an instance variable), you efficiently schedule new tasks using the `Async::Reactor#async(&block)` method.
+If you can guarantee you are running within a task, and have access to it (e.g. via an argument), you can efficiently schedule new tasks using the `Async::Task#async(&block)` method.
 
-This method creates a task. The task is executed until the first blocking operation, at which point it will yield control and `#async` will return. The result of this method is the task itself.
+```ruby
+def do_request(task: Task.current)
+	task.async do
+		# ... do some actual work
+	end
+end
+```
 
-#### `Async::Reactor#with`
-
-If you have an existing native IO instance, `Async::Reactor#with(io, *args, &block)` can be used to schedule a task which will expose asynchronous operations on the underlying IO. After the block has completed, the IO will be closed.
-
-#### `Async::Task#with`
-
-If you are already running within an asynchronous task, you may want find it useful to explicitly manage your IO instances. `Async::Task#with(io, *args, &block)` will invoke the block with the wrapped `io`. After the block has completed, the IO will be closed.
+This method effectively creates a child task. It's the most efficient way to schedule a task. The task is executed until the first blocking operation, at which point it will yield control and `#async` will return. The result of this method is the task itself.
 
 ### Reactor Tree
 
-`Async::Reactor` and `Async::Task` form nodes in a tree. Reactors and tasks can spawn children tasks, and the hierarchy is tracked.
+`Async::Reactor` and `Async::Task` form nodes in a tree. Reactors and tasks can spawn children tasks. When you invoke `Async::Reactor#async`, the parent task is determined by calling `Async::Task.current?` which uses fiber local storage. A slightly more efficient method is to use `Async::Task#async`, which uses `self` as the parent task.
 
-When invoking `Async::Reactor#stop`, you will stop *all* children tasks of that reactor. Tasks will raise `Async::Interrupt` if they are in a blocking operation. In addition, it's possible to only stop a sub-tree by issuing `Async::Task#stop`, which will stop that task and all it's children (recursively). When you write a server, you should return the task back to the caller. They can use this task to stop the server if needed, independently of any other unrelated tasks within the reactor.
+When invoking `Async::Reactor#stop`, you will stop *all* children tasks of that reactor. Tasks will raise `Async::Interrupt` if they are in a blocking operation. In addition, it's possible to only stop a sub-tree by issuing `Async::Task#stop`, which will stop that task and all it's children (recursively). When you design a server, you should return the task back to the caller. They can use this task to stop the server if needed, independently of any other unrelated tasks within the reactor, and it will correctly clean up all related tasks.
+
+#### Resource Management
+
+In order to ensure your resources are cleaned up correctly, make sure you wrap resources appropriately, e.g.:
+
+```ruby
+Async::Reactor.run do
+	begin
+		socket = connect(remote_address) # May raise Async::Interrupt so socket could be nil
+		
+		socket.write(...) # May raise Async::Interrupt
+		socket.read(...) # May raise Async::Interrupt
+	ensure
+		socket.close if socket
+	end
+end
+```
+
+As tasks run synchronously until they yield back to the reactor, you can guarantee this model works correctly. While in theory `IO#autoclose` allows you to automatically close file descriptors when they go out of scope via the GC, it may produce unpredictable behavour (exhaustion of file descriptors, flushing data at odd times), so it's not recommended.
 
 ## Supported Ruby Versions
 

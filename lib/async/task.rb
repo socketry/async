@@ -55,14 +55,10 @@ module Async
 		end
 	
 		# Create a new task.
-		# @param reactor [Async::Reactor] 
-		# @return [void]
-		def initialize(reactor)
-			if parent = Task.current?
-				super(parent)
-			else
-				super(reactor)
-			end
+		# @param reactor [Async::Reactor] the reactor this task will run within.
+		# @param parent [Async::Task] the parent task.
+		def initialize(reactor, parent = Task.current?)
+			super(parent || reactor)
 			
 			@reactor = reactor
 			
@@ -113,7 +109,15 @@ module Async
 		def run
 			@fiber.resume
 		end
-	
+		
+		def async(*args, &block)
+			task = Task.new(@reactor, self, &block)
+			
+			task.run
+			
+			return task
+		end
+		
 		# Retrieve the current result of the task. Will cause the caller to wait until result is available.
 		# @raise [RuntimeError] if the task's fiber is the current fiber.
 		# @return [Object]
