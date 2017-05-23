@@ -83,6 +83,7 @@ module Async
 				Task.yield
 			end
 			
+			return true
 		ensure
 			@monitor.value = nil if @monitor
 		end
