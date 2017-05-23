@@ -22,12 +22,12 @@ module Async
 	# Represents an asynchronous IO within a reactor.
 	class Wrapper
 		# @param io the native object to wrap.
-		# @param reactor [Reactor] the reactor that is managing this wrapper.
+		# @param reactor [Reactor] the reactor that is managing this wrapper, or not specified, it's looked up by way of {Task.current}.
 		# @param bound [Boolean] whether the underlying socket will be closed if the wrapper is closed.
-		def initialize(io, reactor)
+		def initialize(io, reactor = nil)
 			@io = io
 			
-			@reactor = reactor
+			@reactor = reactor || Task.current.reactor
 			@monitor = nil
 		end
 		
@@ -56,13 +56,19 @@ module Async
 		
 		# Close the monitor.
 		def close
-			@monitor.close if @monitor
-			@monitor = nil
+			close_monitor
 			
-			@io.close
+			@io.close if @io
 		end
 		
 		private
+		
+		def close_monitor
+			if @monitor
+				@monitor.close
+				@monitor = nil
+			end
+		end
 		
 		# Monitor the io for the given events
 		def monitor(interests, duration = nil)
