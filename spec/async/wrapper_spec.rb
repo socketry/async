@@ -21,28 +21,30 @@
 require 'benchmark'
 
 RSpec.describe Async::Wrapper do
-	include_context Async::RSpec::Reactor
-	
 	let(:pipe) {IO.pipe}
-	let(:input) {Async::Wrapper.new(pipe.last, reactor)}
-	let(:output) {Async::Wrapper.new(pipe.first, reactor)}
+	let(:input) {Async::Wrapper.new(pipe.last)}
+	let(:output) {Async::Wrapper.new(pipe.first)}
 	
-	it "can wait for writability" do
-		expect(input.wait_writable(1)).to be_truthy
+	describe '#wait_*' do
+		include_context Async::RSpec::Reactor
 		
-		input.close
-		output.close
-	end
-	
-	it "can wait for readability" do
-		reactor.async do
-			input.wait_writable(1)
-			input.io.write('Hello World')
+		it "can wait for writability" do
+			expect(input.wait_writable(1)).to be_truthy
+			
+			input.close
+			output.close
 		end
 		
-		expect(output.wait_readable(1)).to be_truthy
-		
-		input.close
-		output.close
+		it "can wait for readability" do
+			reactor.async do
+				input.wait_writable(1)
+				input.io.write('Hello World')
+			end
+			
+			expect(output.wait_readable(1)).to be_truthy
+			
+			input.close
+			output.close
+		end
 	end
 end

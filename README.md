@@ -83,7 +83,7 @@ This method effectively creates a child task. It's the most efficient way to sch
 
 When invoking `Async::Reactor#stop`, you will stop *all* children tasks of that reactor. Tasks will raise `Async::Interrupt` if they are in a blocking operation. In addition, it's possible to only stop a sub-tree by issuing `Async::Task#stop`, which will stop that task and all it's children (recursively). When you design a server, you should return the task back to the caller. They can use this task to stop the server if needed, independently of any other unrelated tasks within the reactor, and it will correctly clean up all related tasks.
 
-#### Resource Management
+### Resource Management
 
 In order to ensure your resources are cleaned up correctly, make sure you wrap resources appropriately, e.g.:
 
@@ -135,7 +135,7 @@ dropped.
 
 ## See Also
 
-- [async-socket](https://github.com/socketry/async-socket) — Asynchronous networking and sockets.
+- [async-io](https://github.com/socketry/async-io) — Asynchronous networking and sockets.
 - [async-dns](https://github.com/socketry/async-dns) — Asynchronous DNS resolver and server.
 - [async-rspec](https://github.com/socketry/async-rspec) — Shared contexts for running async specs.
 - [rubydns](https://github.com/ioquatix/rubydns) — A easy to use Ruby DNS server.

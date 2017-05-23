@@ -74,13 +74,6 @@ module Async
 		
 		def_delegators :@timers, :every, :after
 		
-		# Run the given block asynchronously, passing the arguments to `Task#with`.
-		def with(*args, &block)
-			async do |task|
-				task.with(*args, &block)
-			end
-		end
-		
 		# Start an asynchronous task within the specified reactor. The task will be
 		# executed until the first blocking call, at which point it will yield and
 		# and this method will return.

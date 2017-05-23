@@ -157,7 +157,7 @@ module Async
 		def self.current?
 			Thread.current[:async_task]
 		end
-	
+		
 		# Check if the task is running.
 		# @return [Boolean]
 		def running?
