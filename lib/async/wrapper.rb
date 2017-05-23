@@ -38,21 +38,20 @@ module Async
 		attr :reactor
 		
 		# Wait for the io to become readable.
-		def wait_readable
-			wait_any(:r)
+		def wait_readable(duration = nil)
+			wait_any(:r, duration)
 		end
 		
 		# Wait for the io to become writable.
-		def wait_writable
-			wait_any(:w)
+		def wait_writable(duration = nil)
+			wait_any(:w, duration)
 		end
 		
 		# Wait fo the io to become either readable or writable.
 		# @param interests [:r | :w | :rw] what events to wait for.
-		def wait_any(interests = :rw)
-			monitor(interests) do
-				Task.yield
-			end
+		# @param duration [Float] timeout after the given duration if not `nil`.
+		def wait_any(interests = :rw, duration = nil)
+			monitor(interests, duration)
 		end
 		
 		# Close the monitor.
@@ -60,14 +59,13 @@ module Async
 			@monitor.close if @monitor
 			@monitor = nil
 			
-			@io.close if @io
+			@io.close
 		end
 		
 		private
 		
 		# Monitor the io for the given events
-		# @param interests [:r | :w | :rw] what events to wait for.
-		def monitor(interests)
+		def monitor(interests, duration = nil)
 			unless @monitor
 				@monitor = @reactor.register(@io, interests)
 			else
@@ -76,7 +74,14 @@ module Async
 			
 			@monitor.value = Fiber.current
 			
-			yield
+			# If the user requested an explicit timeout for this operation:
+			if duration
+				@reactor.timeout(duration) do
+					Task.yield
+				end
+			else
+				Task.yield
+			end
 			
 		ensure
 			@monitor.value = nil if @monitor
