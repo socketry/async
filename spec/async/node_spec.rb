@@ -44,6 +44,23 @@ RSpec.describe Async::Node do
 		end
 	end
 	
+	describe '#print_hierarchy' do
+		let(:buffer) {StringIO.new}
+		let(:output) {buffer.string}
+		let(:lines) {output.lines}
+		
+		let!(:child) {Async::Node.new(subject)}
+		
+		it "can print hierarchy to bufffer" do
+			subject.print_hierarchy(buffer)
+			
+			expect(lines.count).to be 2
+			
+			expect(lines[0]).to be =~ /#<Async::Node:0x\h+>\n/
+			expect(lines[1]).to be =~ /\t#<Async::Node:0x\h+>\n/
+		end
+	end
+	
 	describe '#consume' do
 		let(:middle) {Async::Node.new(subject)}
 		let(:bottom) {Async::Node.new(middle)}
@@ -54,6 +71,26 @@ RSpec.describe Async::Node do
 			middle.consume
 			
 			expect(bottom.parent).to be middle
+		end
+	end
+	
+	describe '#annotate' do
+		let(:annotation) {'reticulating splines'}
+		
+		it "should have no annotation by default" do
+			expect(subject.annotation).to be_nil
+		end
+		
+		it 'should output annotation when invoking #to_s' do
+			subject.annotate(annotation) do
+				expect(subject.to_s).to include(annotation)
+			end
+		end
+		
+		it 'can assign annotation' do
+			subject.annotate(annotation)
+			
+			expect(subject.annotation).to be == annotation
 		end
 	end
 end

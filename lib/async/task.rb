@@ -89,11 +89,10 @@ module Async
 			end
 		end
 		
-		# Show the current status of the task as a string.
 		def to_s
-			"#{super}[#{@status}]"
+			"<#{self.description} status=#{@status}>"
 		end
-	
+		
 		# @attr ios [Reactor] The reactor the task was created within.
 		attr :reactor
 		def_delegators :@reactor, :timeout, :sleep

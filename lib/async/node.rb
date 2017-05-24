@@ -29,6 +29,9 @@ module Async
 			@children = Set.new
 			@parent = nil
 			
+			@annotation = nil
+			@object_name = nil
+			
 			if parent
 				self.parent = parent
 			end
@@ -39,6 +42,34 @@ module Async
 		
 		# @attr children [Set<Node>]
 		attr :children
+		
+		# A useful identifier for the current node.
+		attr :annotation
+		
+		def annotate(annotation)
+			if block_given?
+				previous_annotation = @annotation
+				@annotation = annotation
+				yield
+				@annotation = previous_annotation
+			else
+				@annotation = annotation
+			end
+		end
+		
+		def description
+			@object_name ||= "#{self.class}:0x#{object_id.to_s(16)}"
+			
+			if @annotation
+				"#{@object_name} #{@annotation}"
+			else
+				@object_name
+			end
+		end
+		
+		def to_s
+			"\#<#{description}>"
+		end
 		
 		# Change the parent of this node.
 		# @param parent [Node, nil] the parent to attach to, or nil to detach.
@@ -80,6 +111,22 @@ module Async
 		# @param child [Node] 
 		def reap(child)
 			@children.delete(child)
+		end
+		
+		# Traverse the tree.
+		# @yield [node, level] The node and the level relative to the given root.
+		def traverse(level = 0, &block)
+			yield self, level
+			
+			@children.each do |child|
+				child.traverse(level + 1, &block)
+			end
+		end
+		
+		def print_hierarchy(out = $stdout)
+			self.traverse do |node, level|
+				out.puts "#{"\t" * level}#{node}"
+			end
 		end
 	end
 end

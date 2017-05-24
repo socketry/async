@@ -69,6 +69,10 @@ module Async
 			@stopped = true
 		end
 		
+		def to_s
+			"<#{self.description} stopped=#{@stopped}>"
+		end
+		
 		# @attr stopped [Boolean]
 		attr :stopped
 		

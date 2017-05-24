@@ -67,4 +67,10 @@ RSpec.describe Async::Reactor do
 		
 		expect{reactor.run}.to raise_error(RuntimeError, /closed/)
 	end
+	
+	describe '#to_s' do
+		it "shows stopped=" do
+			expect(subject.to_s).to include "stopped"
+		end
+	end
 end
