@@ -68,6 +68,16 @@ RSpec.describe Async::Reactor do
 		expect{reactor.run}.to raise_error(RuntimeError, /closed/)
 	end
 	
+	describe '#async' do
+		include_context Async::RSpec::Reactor
+		
+		it "can pass in arguments" do
+			reactor.async(:arg) do |task, arg|
+				expect(arg).to be == :arg
+			end.wait
+		end
+	end
+	
 	describe '#to_s' do
 		it "shows stopped=" do
 			expect(subject.to_s).to include "stopped"

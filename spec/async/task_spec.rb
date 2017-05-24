@@ -23,6 +23,39 @@ require 'benchmark'
 RSpec.describe Async::Task do
 	let(:reactor) {Async::Reactor.new}
 	
+	describe '#run' do
+		it "can't be invoked twice" do
+			task = reactor.async do |task|
+			end
+			
+			expect{task.run}.to raise_error(RuntimeError, /already running/)
+		end
+	end
+	
+	describe '#async' do
+		it "can start child async tasks" do
+			child = nil
+			
+			parent = reactor.async do |task|
+				child = task.async do
+					task.sleep(1)
+				end
+			end
+			
+			expect(parent).to_not be_nil
+			expect(child).to_not be_nil
+			expect(child.parent).to be parent
+		end
+		
+		it "can pass in arguments" do
+			reactor.async do |task|
+				task.async(:arg) do |task, arg|
+					expect(arg).to be == :arg
+				end.wait
+			end.wait
+		end
+	end
+	
 	describe '#stop' do
 		it "can be stopped" do
 			state = nil

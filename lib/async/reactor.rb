@@ -86,7 +86,7 @@ module Async
 		#
 		# @yield [Task] Executed within the asynchronous task.
 		# @return [Task] The task that was 
-		def async(&block)
+		def async(*args, &block)
 			task = Task.new(self, &block)
 			
 			# I want to take a moment to explain the logic of this.
@@ -96,7 +96,7 @@ module Async
 			# - Fail at the point of call where possible.
 			# - Execute determinstically where possible.
 			# - Avoid overhead if no blocking operation is performed.
-			task.run
+			task.run(*args)
 			
 			# Async.logger.debug "Initial execution of task #{fiber} complete (#{result} -> #{fiber.alive?})..."
 			return task
@@ -133,7 +133,6 @@ module Async
 				interval = 0 if interval && interval < 0
 				
 				Async.logger.debug{"[#{self} Pre] Updating #{@children.count} children..."}
-				Async.logger.debug{@children.collect{|child| [child.to_s, child.alive?]}.inspect}
 				# As timeouts may have been updated, and caused fibers to complete, we should check this.
 				
 				# If there is nothing to do, then finish:
@@ -153,8 +152,7 @@ module Async
 			
 			return self
 		ensure
-			Async.logger.debug{"[#{self} Ensure] Exiting run-loop (stopped: #{@stopped} exception: #{$!})..."}
-			Async.logger.debug{@children.collect{|child| [child.to_s, child.alive?]}.inspect}
+			Async.logger.debug{"[#{self} Ensure] Exiting run-loop (stopped: #{@stopped} exception: #{$!.inspect})..."}
 			@stopped = true
 		end
 	

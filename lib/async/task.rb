@@ -53,7 +53,7 @@ module Async
 				return result
 			end
 		end
-	
+		
 		# Create a new task.
 		# @param reactor [Async::Reactor] the reactor this task will run within.
 		# @param parent [Async::Task] the parent task.
@@ -62,16 +62,16 @@ module Async
 			
 			@reactor = reactor
 			
-			@status = :running
+			@status = :initialized
 			@result = nil
 			
 			@condition = nil
 			
-			@fiber = Fiber.new do
+			@fiber = Fiber.new do |args|
 				set!
 				
 				begin
-					@result = yield(self)
+					@result = yield(self, *args)
 					@status = :complete
 					# Async.logger.debug("Task #{self} completed normally.")
 				rescue Interrupt
@@ -105,14 +105,19 @@ module Async
 		attr :status
 		
 		# Resume the execution of the task.
-		def run
-			@fiber.resume
+		def run(*args)
+			if @status == :initialized
+				@status = :running
+				@fiber.resume(*args)
+			else
+				raise RuntimeError, "Task already running!"
+			end
 		end
 		
 		def async(*args, &block)
 			task = Task.new(@reactor, self, &block)
 			
-			task.run
+			task.run(*args)
 			
 			return task
 		end
