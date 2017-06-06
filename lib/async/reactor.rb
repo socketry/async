@@ -106,7 +106,7 @@ module Async
 			@selector.register(*args)
 		end
 	
-		# Stop the reactor at the earliest convenience.
+		# Stop the reactor at the earliest convenience. Can be called from a different thread safely.
 		# @return [void]
 		def stop
 			unless @stopped

@@ -92,7 +92,7 @@ module Async
 	
 		# Whether the node can be consumed safely. By default, checks if the
 		# children set is empty.
-		# @return [Boolean]	
+		# @return [Boolean]
 		def finished?
 			@children.empty?
 		end
@@ -108,7 +108,7 @@ module Async
 		end
 	
 		# Remove a given child node.
-		# @param child [Node] 
+		# @param child [Node]
 		def reap(child)
 			@children.delete(child)
 		end
