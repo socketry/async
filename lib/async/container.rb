@@ -22,6 +22,7 @@ require_relative 'reactor'
 require 'thread'
 
 module Async
+	# TODO Move this into it's own gem, since it's really not required for async to work - it's only really for servers and this implementation is very basic.
 	# Manages a reactor within one or more threads.
 	module Container
 		def self.new(klass: ThreadContainer, **options, &block)
@@ -37,6 +38,8 @@ module Async
 			
 			@threads = @reactors.collect do |reactor|
 				Thread.new do
+					Thread.current.abort_on_exception = true
+					
 					reactor.run(&block)
 				end
 			end
