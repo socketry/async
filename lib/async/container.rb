@@ -23,19 +23,45 @@ require 'thread'
 
 module Async
 	# Manages a reactor within one or more threads.
-	class Container
-		def initialize(&block)
-			@reactor = Reactor.new
-			@threads = []
+	module Container
+		def self.new(klass: ThreadContainer, **options, &block)
+			klass.new(**options, &block)
+		end
+	end
+	
+	class ThreadContainer
+		def initialize(concurrency: 1, &block)
+			@reactors = concurrency.times.collect do
+				Async::Reactor.new
+			end
 			
-			@threads << Thread.new do
-				@reactor.run(&block)
+			@threads = @reactors.collect do |reactor|
+				Thread.new do
+					reactor.run(&block)
+				end
 			end
 		end
 		
 		def stop
-			@reactor.stop
+			@reactors.each(&:stop)
 			@threads.each(&:join)
+		end
+	end
+	
+	class ProcessContainer
+		def initialize(concurrency: 1, &block)
+			@pids = concurrency.times.collect do
+				fork do
+					Async::Reactor.run(&block)
+				end
+			end
+		end
+		
+		def stop
+			@pids.each do |pid|
+				Process.kill(:INT, pid) rescue nil
+				Process.wait(pid)
+			end
 		end
 	end
 end
