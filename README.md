@@ -81,7 +81,7 @@ This method effectively creates a child task. It's the most efficient way to sch
 
 `Async::Reactor` and `Async::Task` form nodes in a tree. Reactors and tasks can spawn children tasks. When you invoke `Async::Reactor#async`, the parent task is determined by calling `Async::Task.current?` which uses fiber local storage. A slightly more efficient method is to use `Async::Task#async`, which uses `self` as the parent task.
 
-When invoking `Async::Reactor#stop`, you will stop *all* children tasks of that reactor. Tasks will raise `Async::Interrupt` if they are in a blocking operation. In addition, it's possible to only stop a sub-tree by issuing `Async::Task#stop`, which will stop that task and all it's children (recursively). When you design a server, you should return the task back to the caller. They can use this task to stop the server if needed, independently of any other unrelated tasks within the reactor, and it will correctly clean up all related tasks.
+When invoking `Async::Reactor#stop`, you will stop *all* children tasks of that reactor. Tasks will raise `Async::Stop` if they are in a blocking operation. In addition, it's possible to only stop a sub-tree by issuing `Async::Task#stop`, which will stop that task and all it's children (recursively). When you design a server, you should return the task back to the caller. They can use this task to stop the server if needed, independently of any other unrelated tasks within the reactor, and it will correctly clean up all related tasks.
 
 ### Resource Management
 
@@ -90,10 +90,10 @@ In order to ensure your resources are cleaned up correctly, make sure you wrap r
 ```ruby
 Async::Reactor.run do
 	begin
-		socket = connect(remote_address) # May raise Async::Interrupt so socket could be nil
+		socket = connect(remote_address) # May raise Async::Stop so socket could be nil
 		
-		socket.write(...) # May raise Async::Interrupt
-		socket.read(...) # May raise Async::Interrupt
+		socket.write(...) # May raise Async::Stop
+		socket.read(...) # May raise Async::Stop
 	ensure
 		socket.close if socket
 	end

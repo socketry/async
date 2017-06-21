@@ -26,7 +26,7 @@ require_relative 'condition'
 
 module Async
 	# Raised when a task is explicitly stopped.
-	class Interrupt < Exception
+	class Stop < Exception
 	end
 
 	# A task represents the state associated with the execution of an asynchronous
@@ -74,9 +74,9 @@ module Async
 					@result = yield(self, *args)
 					@status = :complete
 					# Async.logger.debug("Task #{self} completed normally.")
-				rescue Interrupt
-					@status = :interrupted
-					# Async.logger.debug("Task #{self} interrupted: #{$!}")
+				rescue Stop
+					@status = :stop
+					# Async.logger.debug("Task #{self} stopped: #{$!}")
 				rescue Exception => error
 					@result = error
 					@status = :failed
@@ -101,7 +101,7 @@ module Async
 		attr :fiber
 		def_delegators :@fiber, :alive?
 		
-		# @attr status [Symbol] The status of the execution of the fiber, one of `:running`, `:complete`, `:interrupted`, or `:failed`.
+		# @attr status [Symbol] The status of the execution of the fiber, one of `:running`, `:complete`, `:stopped`, or `:failed`.
 		attr :status
 		
 		# Resume the execution of the task.
@@ -144,8 +144,7 @@ module Async
 			@children.each(&:stop)
 			
 			if @fiber.alive?
-				exception = Interrupt.new("Stop right now!")
-				@fiber.resume(exception)
+				@fiber.resume(Stop.new)
 			end
 		end
 	
