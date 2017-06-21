@@ -39,5 +39,5 @@ module Async
 	end
 
 	# Create the logger instance.
-	@logger = Logger.new($stderr, level: default_log_level)
+	@logger = Logger.new($stderr).tap{|logger| logger.level = default_log_level}
 end
