@@ -15,6 +15,8 @@ Several years ago, I was hosting websites on a server in my garage. Back then, m
 
 Moving forward, I refactored the internals of RubyDNS into [Celluloid::DNS]. This rewrite helped solidify the design of RubyDNS and to a certain extent it works. However, [unfixed bugs and design problems](https://github.com/celluloid/celluloid/pull/710) in Celluloid meant that RubyDNS 2.0 was delayed by almost 2 years. I wasn't happy releasing things with known bugs and problems. Anyway, a lot of discussion and thinking, I decided to build a small event reactor using [nio4r] and [timers], the core parts of [Celluloid::IO] which made it work so well.
 
+In addition, there is a [similarly designed C++ library of the same name](https://github.com/kurocha/async). These two libraries share similar design principles, but are different in some areas due to the underlying semantic differences of the languages.
+
 [Celluloid]: https://github.com/celluloid/celluloid
 [Celluloid::IO]: https://github.com/celluloid/celluloid-io
 [Celluloid::DNS]: https://github.com/celluloid/celluloid-dns
