@@ -1,4 +1,4 @@
-# Async
+# Async [![Gitter](https://badges.gitter.im/join.svg)](https://gitter.im/socketry)
 
 Async is a composable asynchronous I/O framework for Ruby based on [nio4r] and [timers].
 
