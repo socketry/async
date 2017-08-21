@@ -42,7 +42,7 @@ Or install it yourself as:
 
 ## Usage
 
-`Async::Reactor` is the top level IO reactor, and runs `Async::Task`s asynchronously. The reactor itself is not thread-safe, so you'd typically have one reactor per thread.
+`Async::Reactor` is the top level IO reactor, and runs multiple tasks asynchronously. The reactor itself is not thread-safe, so you'd typically have [one reactor per thread or process](https://github.com/socketry/async-container).
 
 An `Async::Task` runs using a `Fiber` and blocking operations e.g. `sleep`, `read`, `write` yield control until the operation can succeed.
 
