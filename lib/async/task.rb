@@ -97,6 +97,11 @@ module Async
 		attr :reactor
 		def_delegators :@reactor, :timeout, :sleep
 		
+		# Yield back to the reactor and allow other fibers to execute.
+		def yield
+			self.sleep(0)
+		end
+		
 		# @attr fiber [Fiber] The fiber which is being used for the execution of this task.
 		attr :fiber
 		def_delegators :@fiber, :alive?

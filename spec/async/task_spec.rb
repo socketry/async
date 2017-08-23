@@ -56,6 +56,22 @@ RSpec.describe Async::Task do
 		end
 	end
 	
+	describe '#yield' do
+		it "can yield back to reactor" do
+			state = nil
+			
+			task = reactor.async do |task|
+				state = :started
+				task.yield
+				state = :finished
+			end
+			
+			reactor.run
+			
+			expect(state).to be == :finished
+		end
+	end
+	
 	describe '#stop' do
 		it "can be stopped" do
 			state = nil
