@@ -76,6 +76,14 @@ RSpec.describe Async::Reactor do
 				expect(arg).to be == :arg
 			end.wait
 		end
+		
+		it "passes in the correct number of arguments" do
+			reactor.async(:arg1, :arg2, :arg3) do |task, arg1, arg2, arg3|
+				expect(arg1).to be == :arg1
+				expect(arg2).to be == :arg2
+				expect(arg3).to be == :arg3
+			end.wait
+		end
 	end
 	
 	describe '#to_s' do
