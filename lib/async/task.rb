@@ -113,7 +113,7 @@ module Async
 		def run(*args)
 			if @status == :initialized
 				@status = :running
-				@fiber.resume(*args)
+				@fiber.resume(args)
 			else
 				raise RuntimeError, "Task already running!"
 			end
