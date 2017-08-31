@@ -56,9 +56,9 @@ The highest level entry point is `Async::Reactor.run`. It's useful if you are bu
 
 ```ruby
 def run_server
-	Async::Reactor.run do |task|
-		# ... acccept connections
-	end
+  Async::Reactor.run do |task|
+    # ... accept connections
+  end
 end
 ```
 
@@ -72,9 +72,9 @@ If you can guarantee you are running within a task, and have access to it (e.g. 
 
 ```ruby
 def do_request(task: Task.current)
-	task.async do
-		# ... do some actual work
-	end
+  task.async do
+    # ... do some actual work
+  end
 end
 ```
 
@@ -92,14 +92,14 @@ In order to ensure your resources are cleaned up correctly, make sure you wrap r
 
 ```ruby
 Async::Reactor.run do
-	socket = connect(remote_address) # May raise Async::Stop
+  socket = connect(remote_address) # May raise Async::Stop
 	
-	begin
-		socket.write(...) # May raise Async::Stop
-		socket.read(...) # May raise Async::Stop
-	ensure
-		socket.close
-	end
+  begin
+    socket.write(...) # May raise Async::Stop
+    socket.read(...) # May raise Async::Stop
+  ensure
+    socket.close
+  end
 end
 ```
 
