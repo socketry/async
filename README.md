@@ -1,4 +1,4 @@
-# ![Async](logo.png)
+# ![Async](logo.svg)
 
 Async is a composable asynchronous I/O framework for Ruby based on [nio4r] and [timers].
 
