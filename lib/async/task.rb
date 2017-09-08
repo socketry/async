@@ -67,7 +67,7 @@ module Async
 			
 			@condition = nil
 			
-			@fiber = Fiber.new do |args|
+			@fiber = Fiber.new do |*args|
 				set!
 				
 				begin
@@ -113,7 +113,7 @@ module Async
 		def run(*args)
 			if @status == :initialized
 				@status = :running
-				@fiber.resume(args)
+				@fiber.resume(*args)
 			else
 				raise RuntimeError, "Task already running!"
 			end
