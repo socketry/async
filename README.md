@@ -140,6 +140,7 @@ dropped.
 
 - [async-io](https://github.com/socketry/async-io) — Asynchronous networking and sockets.
 - [async-process](https://github.com/socketry/async-process) — Asynchronous process spawning/waiting.
+- [async-websocket](https://github.com/socketry/async-websocket) — Asynchronous client and server websockets.
 - [async-dns](https://github.com/socketry/async-dns) — Asynchronous DNS resolver and server.
 - [async-rspec](https://github.com/socketry/async-rspec) — Shared contexts for running async specs.
 - [rubydns](https://github.com/ioquatix/rubydns) — A easy to use Ruby DNS server.
