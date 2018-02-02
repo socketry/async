@@ -139,7 +139,7 @@ module Async
 				# Async.logger.debug{"[#{self}] @children.empty? = #{@children.empty?} && interval #{interval.inspect}"}
 				return if @children.empty? && interval.nil?
 				
-				# Async.logger.debug{"Selecting with #{@children.count} fibers interval = #{interval}..."}
+				# Async.logger.debug{"Selecting with #{@children.count} fibers interval = #{interval.inspect}..."}
 				if monitors = @selector.select(interval)
 					monitors.each do |monitor|
 						if fiber = monitor.value

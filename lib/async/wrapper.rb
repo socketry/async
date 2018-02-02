@@ -91,7 +91,11 @@ module Async
 			
 			return true
 		ensure
-			@monitor.value = nil if @monitor
+			if @monitor
+				# Alas, @monitor.interests = nil does not yet work.
+				@monitor.value = nil
+				@monitor.remove_interest(@monitor.interests)
+			end
 		end
 	end
 end
