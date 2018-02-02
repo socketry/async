@@ -18,6 +18,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
+require 'nio'
+
 module Async
 	# Represents an asynchronous IO within a reactor.
 	class Wrapper
@@ -70,6 +72,18 @@ module Async
 			end
 		end
 		
+		if ::NIO::VERSION >= "2.0"
+			def clear_monitor
+				if @monitor
+					# Alas, @monitor.interests = nil does not yet work.
+					@monitor.value = nil
+					@monitor.remove_interest(@monitor.interests)
+				end
+			end
+		else
+			alias clear_monitor close_monitor
+		end
+		
 		# Monitor the io for the given events
 		def monitor(interests, duration = nil)
 			unless @monitor
@@ -91,11 +105,7 @@ module Async
 			
 			return true
 		ensure
-			if @monitor
-				# Alas, @monitor.interests = nil does not yet work.
-				@monitor.value = nil
-				@monitor.remove_interest(@monitor.interests)
-			end
+			clear_monitor
 		end
 	end
 end
