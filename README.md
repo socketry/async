@@ -139,6 +139,8 @@ dropped.
 ## See Also
 
 - [async-io](https://github.com/socketry/async-io) — Asynchronous networking and sockets.
+- [async-http](https://github.com/socketry/async-http) — Asynchronous HTTP client/server.
+- [falcon](https://github.com/socketry/falcon) — A rack compatible server built on top of `async-http`.
 - [async-process](https://github.com/socketry/async-process) — Asynchronous process spawning/waiting.
 - [async-websocket](https://github.com/socketry/async-websocket) — Asynchronous client and server websockets.
 - [async-dns](https://github.com/socketry/async-dns) — Asynchronous DNS resolver and server.
