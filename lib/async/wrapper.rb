@@ -29,14 +29,13 @@ module Async
 		def initialize(io, reactor = nil)
 			@io = io
 			
-			@reactor = reactor || Task.current.reactor
-			@monitor = nil
+			@reactor = reactor
 		end
 		
 		# The underlying native `io`.
 		attr :io
 		
-		# The reactor this wrapper is associated with.
+		# The reactor this wrapper is associated with, if any.
 		attr :reactor
 		
 		# Wait for the io to become readable.
@@ -58,45 +57,24 @@ module Async
 		
 		# Close the monitor.
 		def close
-			close_monitor
-			
 			@io.close if @io
 		end
 		
 		private
 		
-		def close_monitor
-			if @monitor
-				@monitor.close
-				@monitor = nil
-			end
-		end
-		
-		if ::NIO::VERSION >= "2.0"
-			def clear_monitor
-				if @monitor
-					# Alas, @monitor.interests = nil does not yet work.
-					@monitor.value = nil
-					@monitor.remove_interest(@monitor.interests)
-				end
-			end
-		else
-			alias clear_monitor close_monitor
+		def current_reactor
+			@reactor || Task.current.reactor
 		end
 		
 		# Monitor the io for the given events
 		def monitor(interests, duration = nil)
-			unless @monitor
-				@monitor = @reactor.register(@io, interests)
-			else
-				@monitor.interests = interests
-			end
+			reactor = current_reactor
 			
-			@monitor.value = Fiber.current
+			monitor = reactor.register(@io, interests)
 			
 			# If the user requested an explicit timeout for this operation:
 			if duration
-				@reactor.timeout(duration) do
+				reactor.timeout(duration) do
 					Task.yield
 				end
 			else
@@ -105,7 +83,7 @@ module Async
 			
 			return true
 		ensure
-			clear_monitor
+			monitor.close if monitor
 		end
 	end
 end
