@@ -20,6 +20,7 @@ task :external do
 	Bundler.with_clean_env do
 		clone_and_test("async-io")
 		clone_and_test("async-websocket")
+		clone_and_test("async-dns")
 		clone_and_test("falcon")
 	end
 end
