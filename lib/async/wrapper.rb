@@ -39,6 +39,15 @@ module Async
 		# The reactor this wrapper is associated with, if any.
 		attr :reactor
 		
+		# Bind this wrapper to a different reactor. Assign nil to convert to an unbound wrapper (can be used from any reactor/task but with slightly increased overhead.)
+		# Binding to a reactor is purely a performance consideration. Generally, I don't like APIs that exist only due to optimisations. This is borderline, so consider this functionality semi-private.
+		def reactor= reactor
+			@monitor&.close
+			
+			@reactor = reactor
+			@monitor = nil
+		end
+		
 		# Wait for the io to become readable.
 		def wait_readable(duration = nil)
 			wait_any(:r, duration)
@@ -59,6 +68,7 @@ module Async
 					@monitor = @reactor.register(@io, interests)
 				else
 					@monitor.interests = interests
+					@monitor.value = Fiber.current
 				end
 				
 				begin
