@@ -3,7 +3,7 @@ require "rspec/core/rake_task"
 
 RSpec::Core::RakeTask.new(:test)
 
-task :default => [:test, :external]
+task :default => :test
 
 def clone_and_test(name)
 	sh("git clone https://git@github.com/socketry/#{name}")
