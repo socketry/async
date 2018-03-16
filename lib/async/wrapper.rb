@@ -42,7 +42,7 @@ module Async
 		# Bind this wrapper to a different reactor. Assign nil to convert to an unbound wrapper (can be used from any reactor/task but with slightly increased overhead.)
 		# Binding to a reactor is purely a performance consideration. Generally, I don't like APIs that exist only due to optimisations. This is borderline, so consider this functionality semi-private.
 		def reactor= reactor
-			@monitor&.close
+			@monitor.close if @monitor
 			
 			@reactor = reactor
 			@monitor = nil
@@ -91,7 +91,7 @@ module Async
 		
 		# Close the io and monitor.
 		def close
-			@monitor&.close
+			@monitor.close if @monitor
 			
 			@io.close
 		end
