@@ -75,6 +75,7 @@ module Async
 					wait_for(@reactor, @monitor, duration)
 				ensure
 					@monitor.remove_interest(@monitor.interests)
+					@monitor.value = nil
 				end
 			else
 				reactor = Task.current.reactor
