@@ -60,12 +60,22 @@ RSpec.describe Async::Reactor do
 	end
 	
 	it "is closed after running" do
-		reactor = Async::Reactor.run do
+		reactor = nil
+		
+		Async::Reactor.run do |task|
+			reactor = task.reactor
 		end
 		
 		expect(reactor).to be_closed
 		
 		expect{reactor.run}.to raise_error(RuntimeError, /closed/)
+	end
+	
+	it "should return a task" do
+		result = Async::Reactor.run do |task|
+		end
+		
+		expect(result).to be_kind_of(Async::Task)
 	end
 	
 	describe '#async' do

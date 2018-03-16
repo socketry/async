@@ -46,17 +46,15 @@ module Async
 			if current = Task.current?
 				reactor = current.reactor
 				
-				reactor.async(*args, &block)
+				return reactor.async(*args, &block)
 			else
 				reactor = self.new
 				
 				begin
-					reactor.run(*args, &block)
+					return reactor.run(*args, &block)
 				ensure
 					reactor.close
 				end
-				
-				return reactor
 			end
 		end
 		
@@ -103,7 +101,11 @@ module Async
 		end
 		
 		def register(*args)
-			@selector.register(*args)
+			monitor = @selector.register(*args)
+			
+			monitor.value = Fiber.current
+			
+			return monitor
 		end
 	
 		# Stop the reactor at the earliest convenience. Can be called from a different thread safely.
@@ -123,7 +125,7 @@ module Async
 			@stopped = false
 			
 			# Allow the user to kick of the initial async tasks.
-			async(*args, &block) if block_given?
+			initial_task = async(*args, &block) if block_given?
 			
 			@timers.wait do |interval|
 				# - nil: no timers
@@ -137,7 +139,7 @@ module Async
 				
 				# If there is nothing to do, then finish:
 				# Async.logger.debug{"[#{self}] @children.empty? = #{@children.empty?} && interval #{interval.inspect}"}
-				return if @children.empty? && interval.nil?
+				return initial_task if @children.empty? && interval.nil?
 				
 				# Async.logger.debug{"Selecting with #{@children.count} fibers interval = #{interval.inspect}..."}
 				if monitors = @selector.select(interval)
@@ -149,7 +151,7 @@ module Async
 				end
 			end until @stopped
 			
-			return self
+			return initial_task
 		ensure
 			Async.logger.debug{"[#{self} Ensure] Exiting run-loop (stopped: #{@stopped} exception: #{$!.inspect})..."}
 			@stopped = true
