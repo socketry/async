@@ -30,6 +30,7 @@ module Async
 			@io = io
 			
 			@reactor = reactor
+			@monitor = nil
 		end
 		
 		# The underlying native `io`.
@@ -52,26 +53,41 @@ module Async
 		# @param interests [:r | :w | :rw] what events to wait for.
 		# @param duration [Float] timeout after the given duration if not `nil`.
 		def wait_any(interests = :rw, duration = nil)
-			monitor(interests, duration)
+			# There is value in caching this monitor - if you can reuse it, you will get about 2x the throughput, because you avoid calling Reactor#register and Monitor#close for every call. That being said, by caching it, you also introduce lifetime issues. I'm going to accept this overhead into the wrapper design because it's pretty convenient, but if you want faster IO, take a look at the performance spec which compares this method with a more direct alternative.
+			if @reactor
+				unless @monitor
+					@monitor = @reactor.register(@io, interests)
+				else
+					@monitor.interests = interests
+				end
+				
+				begin
+					wait_for(@reactor, @monitor, duration)
+				ensure
+					@monitor.remove_interest(@monitor.interests)
+				end
+			else
+				reactor = Task.current.reactor
+				monitor = reactor.register(@io, interests)
+				
+				begin
+					wait_for(reactor, monitor, duration)
+				ensure
+					monitor.close
+				end
+			end
 		end
 		
-		# Close the monitor.
+		# Close the io and monitor.
 		def close
-			@io.close if @io
+			@monitor&.close
+			
+			@io.close
 		end
 		
 		private
 		
-		def current_reactor
-			@reactor || Task.current.reactor
-		end
-		
-		# Monitor the io for the given events
-		def monitor(interests, duration = nil)
-			reactor = current_reactor
-			
-			monitor = reactor.register(@io, interests)
-			
+		def wait_for(reactor, monitor, duration)
 			# If the user requested an explicit timeout for this operation:
 			if duration
 				reactor.timeout(duration) do
@@ -82,8 +98,6 @@ module Async
 			end
 			
 			return true
-		ensure
-			monitor.close if monitor
 		end
 	end
 end

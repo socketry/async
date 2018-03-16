@@ -1,4 +1,4 @@
-# -*- encoding: utf-8 -*-
+
 require_relative 'lib/async/version'
 
 Gem::Specification.new do |spec|
@@ -21,9 +21,9 @@ Gem::Specification.new do |spec|
 	spec.require_paths = ["lib"]
 	spec.has_rdoc      = "yard"
 	
-	spec.required_ruby_version = "~> 2.0"
+	spec.required_ruby_version = ">= 2.2.7"
 
-	spec.add_runtime_dependency "nio4r"
+	spec.add_runtime_dependency "nio4r", "~> 2.0"
 	spec.add_runtime_dependency "timers", "~> 4.1"
 	
 	spec.add_development_dependency "async-rspec", "~> 1.1"
