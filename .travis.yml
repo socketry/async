@@ -2,6 +2,12 @@ language: ruby
 sudo: false
 dist: trusty
 cache: bundler
+addons:
+  apt:
+    packages:
+    - bind9
+
+before_script: sudo sh -c 'echo 0 > /proc/sys/net/ipv6/conf/all/disable_ipv6'
 
 matrix:
   include:
