@@ -18,6 +18,45 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
+require 'fiber'
+require 'forwardable'
+require_relative 'node'
+
 module Async
-	VERSION = "1.4.0"
+	# A synchronization primative, which allows fibers to wait until a notification is received. Does not block the task which signals the notification. Waiting tasks are resumed on next iteration of the reactor.
+	class Notification
+		def initialize
+			@waiting = []
+		end
+		
+		# Queue up the current fiber and wait on yielding the task.
+		# @return [Object]
+		def wait
+			@waiting << Fiber.current
+			
+			Task.yield
+		end
+		
+		# Signal to a given task that it should resume operations.
+		# @return [void]
+		def signal(value = nil, task: Task.current)
+			task.reactor.ready << Signal.new(@waiting, value)
+			
+			@waiting = []
+			
+			return nil
+		end
+		
+		Signal = Struct.new(:waiting, :value) do
+			def alive?
+				true
+			end
+			
+			def resume
+				waiting.each do |fiber|
+					fiber.resume(value) if fiber.alive?
+				end
+			end
+		end
+	end
 end

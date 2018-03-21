@@ -64,6 +64,8 @@ module Async
 			@selector = NIO::Selector.new
 			@timers = Timers::Group.new
 			
+			@ready = []
+			
 			@stopped = true
 		end
 		
@@ -116,7 +118,17 @@ module Async
 				@selector.wakeup
 			end
 		end
-	
+		
+		# A list of fibers that will be resumed on the next iteration through the event loop.
+		attr :ready
+		
+		# Yield the current fiber and resume it on the next iteration of the event loop.
+		def yield(fiber = Fiber.current)
+			@ready << fiber
+			
+			Fiber.yield
+		end
+		
 		# Run the reactor until either all tasks complete or {#stop} is invoked.
 		# Proxies arguments to {#async} immediately before entering the loop.
 		def run(*args, &block)
@@ -136,6 +148,10 @@ module Async
 				
 				# Async.logger.debug{"[#{self} Pre] Updating #{@children.count} children..."}
 				# As timeouts may have been updated, and caused fibers to complete, we should check this.
+				
+				@ready.each do |fiber|
+					fiber.resume if fiber.alive?
+				end; @ready.clear
 				
 				# If there is nothing to do, then finish:
 				# Async.logger.debug{"[#{self}] @children.empty? = #{@children.empty?} && interval #{interval.inspect}"}
@@ -178,11 +194,11 @@ module Async
 		# Put the calling fiber to sleep for a given ammount of time.
 		# @param duration [Numeric] The time in seconds, to sleep for.
 		def sleep(duration)
-			task = Fiber.current
+			fiber = Fiber.current
 			
 			timer = self.after(duration) do
-				if task.alive?
-					task.resume
+				if fiber.alive?
+					fiber.resume
 				end
 			end
 			

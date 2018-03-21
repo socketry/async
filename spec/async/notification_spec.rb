@@ -18,6 +18,42 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-module Async
-	VERSION = "1.4.0"
+require 'async/notification'
+
+RSpec.describe Async::Notification do
+	include_context Async::RSpec::Reactor
+	
+	it 'should continue after notification is signalled' do
+		sequence = []
+		
+		task = reactor.async do
+			sequence << :waiting
+			subject.wait
+			sequence << :resumed
+		end
+		
+		expect(task.status).to be :running
+		
+		sequence << :running
+		# This will cause the task to exit:
+		subject.signal
+		sequence << :signalled
+		
+		expect(task.status).to be :running
+		
+		sequence << :yielding
+		reactor.yield
+		sequence << :finished
+		
+		expect(task.status).to be :complete
+		
+		expect(sequence).to be == [
+			:waiting,
+			:running,
+			:signalled,
+			:yielding,
+			:resumed,
+			:finished
+		]
+	end
 end
