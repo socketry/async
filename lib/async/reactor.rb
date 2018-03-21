@@ -119,8 +119,10 @@ module Async
 			end
 		end
 		
-		# A list of fibers that will be resumed on the next iteration through the event loop.
-		attr :ready
+		# Schedule a fiber (or equivalent object) to be resumed on the next loop through the reactor.
+		def << fiber
+			@ready << fiber
+		end
 		
 		# Yield the current fiber and resume it on the next iteration of the event loop.
 		def yield(fiber = Fiber.current)

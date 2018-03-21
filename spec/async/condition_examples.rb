@@ -1,4 +1,4 @@
-# Copyright, 2017, by Samuel G. D. Williams. <http://www.codeotaku.com>
+# Copyright, 2018, by Samuel G. D. Williams. <http://www.codeotaku.com>
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -18,33 +18,36 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-require_relative 'condition'
-
-module Async
-	# A synchronization primative, which allows fibers to wait until a notification is received. Does not block the task which signals the notification. Waiting tasks are resumed on next iteration of the reactor.
-	class Notification < Condition
-		# Signal to a given task that it should resume operations.
-		# @return [void]
-		def signal(value = nil, task: Task.current)
-			return if @waiting.empty?
-			
-			task.reactor << Signal.new(@waiting, value)
-			
-			@waiting = []
-			
-			return nil
+RSpec.shared_examples Async::Condition do
+	it 'can signal waiting task' do
+		state = nil
+		
+		task = reactor.async do
+			state = :waiting
+			subject.wait
+			state = :resumed
 		end
 		
-		Signal = Struct.new(:waiting, :value) do
-			def alive?
-				true
-			end
-			
-			def resume
-				waiting.each do |fiber|
-					fiber.resume(value) if fiber.alive?
-				end
-			end
+		expect(state).to be == :waiting
+		
+		subject.signal
+		
+		reactor.yield
+		
+		expect(state).to be == :resumed
+	end
+	
+	it 'should be able to signal stopped task' do
+		expect(subject.empty?).to be_truthy
+		
+		task = reactor.async do
+			subject.wait
 		end
+		
+		expect(subject.empty?).to be_falsey
+		
+		task.stop
+		
+		subject.signal
 	end
 end

@@ -20,6 +20,8 @@
 
 require 'async/condition'
 
+require_relative 'condition_examples'
+
 RSpec.describe Async::Condition do
 	include_context Async::RSpec::Reactor
 	
@@ -38,4 +40,6 @@ RSpec.describe Async::Condition do
 		
 		task.stop
 	end
+	
+	it_behaves_like Async::Condition
 end

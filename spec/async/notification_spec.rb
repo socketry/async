@@ -20,6 +20,8 @@
 
 require 'async/notification'
 
+require_relative 'condition_examples'
+
 RSpec.describe Async::Notification do
 	include_context Async::RSpec::Reactor
 	
@@ -56,4 +58,6 @@ RSpec.describe Async::Notification do
 			:finished
 		]
 	end
+	
+	it_behaves_like Async::Condition
 end

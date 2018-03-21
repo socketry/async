@@ -37,17 +37,49 @@ module Async
 			Task.yield
 		end
 		
+		# Is any fiber waiting on this notification?
+		# @return [Boolean]
+		def empty?
+			@waiting.empty?
+		end
+		
 		# Signal to a given task that it should resume operations.
 		# @param value The value to return to the waiting fibers.
 		# @see Task.yield which is responsible for handling value.
 		# @return [void]
 		def signal(value = nil)
-			# TODO: Should we hot-swap @waiting - so that tasks can wait on this condition again?
-			while task = @waiting.pop
-				task.resume(value)
+			waiting = @waiting
+			@waiting = []
+			
+			waiting.each do |fiber|
+				fiber.resume(value) if fiber.alive?
 			end
 			
 			return nil
+		end
+		
+		# Signal to a given task that it should resume operations.
+		# @return [void]
+		def resume(value = nil, task: Task.current)
+			return if @waiting.empty?
+			
+			task.reactor << Signal.new(@waiting, value)
+			
+			@waiting = []
+			
+			return nil
+		end
+		
+		Signal = Struct.new(:waiting, :value) do
+			def alive?
+				true
+			end
+			
+			def resume
+				waiting.each do |fiber|
+					fiber.resume(value) if fiber.alive?
+				end
+			end
 		end
 	end
 end
