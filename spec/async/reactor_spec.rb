@@ -96,6 +96,34 @@ RSpec.describe Async::Reactor do
 		end
 	end
 	
+	describe '#timeout' do
+		let(:duration) {1}
+		
+		it "stops immediately" do
+			start_time = Time.now
+			
+			described_class.run do |task|
+				condition = Async::Condition.new
+				
+				task.timeout(duration) do
+					task.async do
+						condition.wait
+					end
+					
+					condition.signal
+					
+					task.yield
+					
+					task.children.each(&:wait)
+				end
+			end
+			
+			duration = Time.now - start_time
+			
+			expect(duration).to be < 0.1
+		end
+	end
+	
 	describe '#to_s' do
 		it "shows stopped=" do
 			expect(subject.to_s).to include "stopped"
