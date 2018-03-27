@@ -131,6 +131,10 @@ module Async
 			Fiber.yield
 		end
 		
+		def finished?
+			super && @ready.empty?
+		end
+		
 		# Run the reactor until either all tasks complete or {#stop} is invoked.
 		# Proxies arguments to {#async} immediately before entering the loop.
 		def run(*args, &block)
@@ -142,22 +146,33 @@ module Async
 			initial_task = async(*args, &block) if block_given?
 			
 			@timers.wait do |interval|
+				if @ready.any?
+					@ready.each do |fiber|
+						fiber.resume if fiber.alive?
+					end
+					
+					@ready.clear
+					
+					# The above tasks may schedule, cancel or affect timers in some way. We need to compute a new wait interval for the blocking selector call below:
+					interval = @timers.wait_interval
+				end
+				
 				# - nil: no timers
 				# - -ve: timers expired already
 				# -   0: timers ready to fire
 				# - +ve: timers waiting to fire
-				interval = 0 if interval && interval < 0
+				if interval && interval < 0
+					interval = 0
+				end
 				
 				# Async.logger.debug{"[#{self} Pre] Updating #{@children.count} children..."}
 				# As timeouts may have been updated, and caused fibers to complete, we should check this.
 				
-				@ready.each do |fiber|
-					fiber.resume if fiber.alive?
-				end; @ready.clear
-				
 				# If there is nothing to do, then finish:
 				# Async.logger.debug{"[#{self}] @children.empty? = #{@children.empty?} && interval #{interval.inspect}"}
-				return initial_task if @children.empty? && interval.nil?
+				if !interval && self.finished?
+					return initial_task
+				end
 				
 				# Async.logger.debug{"Selecting with #{@children.count} fibers interval = #{interval.inspect}..."}
 				if monitors = @selector.select(interval)
@@ -171,7 +186,7 @@ module Async
 			
 			return initial_task
 		ensure
-			Async.logger.debug{"[#{self} Ensure] Exiting run-loop (stopped: #{@stopped} exception: #{$!.inspect})..."}
+			Async.logger.debug(self) {"Exiting run-loop because #{$! ? $!.inspect : 'finished'}."}
 			@stopped = true
 		end
 	
