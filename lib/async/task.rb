@@ -65,7 +65,7 @@ module Async
 			@status = :initialized
 			@result = nil
 			
-			@condition = nil
+			@finished = nil
 			
 			@fiber = Fiber.new do |*args|
 				set!
@@ -134,8 +134,8 @@ module Async
 			raise RuntimeError.new("Cannot wait on own fiber") if Fiber.current.equal?(@fiber)
 			
 			if running?
-				@condition ||= Condition.new
-				@condition.wait
+				@finished ||= Condition.new
+				@finished.wait
 			else
 				Task.yield {@result}
 			end
@@ -186,8 +186,8 @@ module Async
 			consume
 			
 			# If this task was being used as a future, signal completion here:
-			if @condition
-				@condition.signal(@result)
+			if @finished
+				@finished.signal(@result)
 			end
 		end
 	
