@@ -7,7 +7,10 @@ addons:
     packages:
     - bind9
 
-before_script: sudo sh -c 'echo 0 > /proc/sys/net/ipv6/conf/all/disable_ipv6'
+before_script: 
+  - sudo sh -c 'echo 0 > /proc/sys/net/ipv6/conf/all/disable_ipv6'
+  - gem update --system
+  - gem install bundler
 
 matrix:
   include:
