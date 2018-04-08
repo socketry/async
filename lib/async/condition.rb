@@ -57,29 +57,5 @@ module Async
 			
 			return nil
 		end
-		
-		# Signal to a given task that it should resume operations.
-		# @return [void]
-		def resume(value = nil, task: Task.current)
-			return if @waiting.empty?
-			
-			task.reactor << Signal.new(@waiting, value)
-			
-			@waiting = []
-			
-			return nil
-		end
-		
-		Signal = Struct.new(:waiting, :value) do
-			def alive?
-				true
-			end
-			
-			def resume
-				waiting.each do |fiber|
-					fiber.resume(value) if fiber.alive?
-				end
-			end
-		end
 	end
 end
