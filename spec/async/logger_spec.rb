@@ -1,4 +1,4 @@
-# Copyright, 2017, by Samuel G. D. Williams. <http://www.codeotaku.com>
+# Copyright, 2018, by Samuel G. D. Williams. <http://www.codeotaku.com>
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -18,46 +18,30 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-require 'benchmark'
-
-RSpec.describe Async::Wrapper do
-	let(:pipe) {IO.pipe}
-	let(:input) {Async::Wrapper.new(pipe.last)}
-	let(:output) {Async::Wrapper.new(pipe.first)}
+RSpec.describe Async.logger do
+	let!(:debug) {$DEBUG}
+	after {$DEBUG = debug}
 	
-	describe '#wait_*' do
-		include_context Async::RSpec::Reactor
+	let!(:verbose) {$VERBOSE}
+	after {$VERBOSE = verbose}
+	
+	it 'should set default log level' do
+		$DEBUG = false
+		$VERBOSE = false
 		
-		it "can wait for writability" do
-			expect(input.wait_writable(1)).to be_truthy
-			
-			input.close
-			output.close
-		end
-		
-		it "can wait for readability" do
-			reactor.async do
-				input.wait_writable(1)
-				input.io.write('Hello World')
-			end
-			
-			expect(output.wait_readable(1)).to be_truthy
-			
-			input.close
-			output.close
-		end
+		expect(Async.default_log_level).to be == Logger::WARN
 	end
 	
-	describe '#reactor=' do
-		include_context Async::RSpec::Reactor
+	it 'should set default log level based on $DEBUG' do
+		$DEBUG = true
 		
-		it 'can assign a wrapper to a reactor' do
-			input.reactor = reactor
-			
-			expect(input.reactor).to be == reactor
-			
-			input.close
-			output.close
-		end
+		expect(Async.default_log_level).to be == Logger::DEBUG
+	end
+	
+	it 'should set default log level based on $VERBOSE' do
+		$DEBUG = false
+		$VERBOSE = true
+		
+		expect(Async.default_log_level).to be == Logger::INFO
 	end
 end
