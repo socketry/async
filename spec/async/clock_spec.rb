@@ -18,20 +18,18 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-module Async
-	module Clock
-		# Get the current elapsed monotonic time.
-		def self.now
-			::Process.clock_gettime(::Process::CLOCK_MONOTONIC)
+require 'async/clock'
+
+RSpec.describe Async::Clock do
+	it "can measure durations" do
+		duration = Async::Clock.measure do
+			sleep 0.1
 		end
 		
-		# Measure the execution of a block of code.
-		def self.measure
-			start_time = self.now
-			
-			yield
-			
-			return self.now - start_time
-		end
+		expect(duration).to be_within(0.01).of(0.1)
+	end
+	
+	it "can get current offset" do
+		expect(Async::Clock.now).to be_kind_of Float
 	end
 end
