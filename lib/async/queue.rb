@@ -29,6 +29,8 @@ module Async
 			@items = []
 		end
 		
+		attr :items
+		
 		def enqueue item
 			@items.push(item)
 			
