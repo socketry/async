@@ -46,6 +46,24 @@ RSpec.describe Async::Wrapper do
 			input.close
 			output.close
 		end
+		
+		it "can wait for readability in multiple tasks" do
+			reactor.async do
+				input.wait_writable(1)
+				input.io.write('Hello World')
+			end
+			
+			output.reactor = reactor
+			
+			2.times do
+				reactor.async do
+					expect(output.wait_readable(1)).to be_truthy
+				end.wait
+			end
+			
+			input.close
+			output.close
+		end
 	end
 	
 	describe '#reactor=' do

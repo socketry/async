@@ -70,6 +70,7 @@ module Async
 					@monitor = @reactor.register(@io, interests)
 				else
 					@monitor.interests = interests
+					@monitor.value = Fiber.current
 				end
 				
 				begin
