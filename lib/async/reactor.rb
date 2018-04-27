@@ -179,7 +179,7 @@ module Async
 						if fiber = monitor.value
 							fiber.resume # if fiber.alive?
 						else
-							Async.logger.warn(self) {"Event detected on IO #{monitor.io} (#{monitor.interests} -> #{monitor.readiness}) without corresponding fiber!"}
+							Async.logger.warn(self) {"Event detected on IO #{monitor.io.inspect} (#{monitor.interests} -> #{monitor.readiness}) without corresponding fiber!"}
 						end
 					end
 				end
