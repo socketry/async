@@ -19,6 +19,8 @@ RSpec.describe Async::Wrapper do
 						input.wait_readable
 						input.io.read(1)
 					end
+					
+					input.reactor = nil
 				end
 			end
 			
