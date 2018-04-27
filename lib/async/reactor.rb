@@ -30,7 +30,17 @@ module Async
 	# Raised if a timeout occurs on a specific Fiber. Handled gracefully by {Task}.
 	class TimeoutError < RuntimeError
 	end
-
+	
+	class MonitorError < RuntimeError
+		def initialize(monitor)
+			super "Event detected on IO #{monitor.io.inspect} (#{monitor.interests} -> #{monitor.readiness}) without corresponding fiber!"
+			
+			@monitor = monitor
+		end
+		
+		attr :monitor
+	end
+	
 	# An asynchronous, cooperatively scheduled event reactor.
 	class Reactor < Node
 		extend Forwardable
@@ -179,7 +189,7 @@ module Async
 						if fiber = monitor.value
 							fiber.resume # if fiber.alive?
 						else
-							Async.logger.warn(self) {"Event detected on IO #{monitor.io.inspect} (#{monitor.interests} -> #{monitor.readiness}) without corresponding fiber!"}
+							raise MonitorError.new(monitor)
 						end
 					end
 				end
