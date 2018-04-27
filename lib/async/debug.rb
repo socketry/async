@@ -48,6 +48,8 @@ module Async
 		end
 		
 		def register(io, interests)
+			$stderr.puts "Registering #{io.inspect} for #{interests}."
+			
 			if monitor = @monitors[io.fileno]
 				raise RuntimeError, "Trying to register monitor for #{io.inspect} but it was already registered as #{monitor.io.inspect}!"
 			end
@@ -58,6 +60,8 @@ module Async
 		end
 		
 		def deregister(io)
+			$stderr.puts "Deregistering #{io.inspect}."
+			
 			unless @monitors.delete(io.fileno)
 				raise RuntimeError, "Trying to remove monitor for #{io.inspect} but it was not registered!"
 			end
@@ -69,7 +73,7 @@ module Async
 		
 		def close
 			if @monitors.any?
-				raise RuntimeError, "Trying to close selector with active monitors: #{@monitors.values.inspect}!"
+				$stderr.puts "Trying to close selector with active monitors: #{@monitors.values.inspect}!"
 			end
 			
 			@selector.close
