@@ -165,20 +165,21 @@ module Async
 					interval = 0
 				end
 				
-				# Async.logger.debug{"[#{self} Pre] Updating #{@children.count} children..."}
+				# Async.logger.debug(self) {"Updating #{@children.count} children..."}
 				# As timeouts may have been updated, and caused fibers to complete, we should check this.
 				
 				# If there is nothing to do, then finish:
-				# Async.logger.debug{"[#{self}] @children.empty? = #{@children.empty?} && interval #{interval.inspect}"}
 				if !interval && self.finished?
 					return initial_task
 				end
 				
-				# Async.logger.debug{"Selecting with #{@children.count} fibers interval = #{interval.inspect}..."}
+				# Async.logger.debug(self) {"Selecting with #{@children.count} fibers interval = #{interval.inspect}..."}
 				if monitors = @selector.select(interval)
 					monitors.each do |monitor|
 						if fiber = monitor.value
 							fiber.resume # if fiber.alive?
+						else
+							Async.logger.warn(self) {"Event detected on IO #{monitor.io} (#{monitor.interests} -> #{monitor.readiness}) without corresponding fiber!"}
 						end
 					end
 				end
