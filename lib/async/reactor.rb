@@ -68,10 +68,10 @@ module Async
 			end
 		end
 		
-		def initialize
-			super
+		def initialize(parent = nil, selector: NIO::Selector.new)
+			super(parent)
 			
-			@selector = NIO::Selector.new
+			@selector = selector
 			@timers = Timers::Group.new
 			
 			@ready = []
