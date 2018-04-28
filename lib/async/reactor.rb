@@ -31,16 +31,6 @@ module Async
 	class TimeoutError < RuntimeError
 	end
 	
-	class MonitorError < RuntimeError
-		def initialize(monitor)
-			super "Event detected on IO #{monitor.io.inspect} (#{monitor.interests} -> #{monitor.readiness}) without corresponding fiber!"
-			
-			@monitor = monitor
-		end
-		
-		attr :monitor
-	end
-	
 	# An asynchronous, cooperatively scheduled event reactor.
 	class Reactor < Node
 		extend Forwardable
@@ -185,11 +175,7 @@ module Async
 				# Async.logger.debug(self) {"Selecting with #{@children.count} fibers interval = #{interval.inspect}..."}
 				if monitors = @selector.select(interval)
 					monitors.each do |monitor|
-						if fiber = monitor.value
-							fiber.resume # if fiber.alive?
-						else
-							raise MonitorError.new(monitor)
-						end
+						monitor.value.resume
 					end
 				end
 			end until @stopped
