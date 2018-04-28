@@ -112,10 +112,9 @@ module Async
 			return task
 		end
 		
-		def register(*args)
-			monitor = @selector.register(*args)
-			
-			monitor.value = Fiber.current
+		def register(io, interest, value = Fiber.current)
+			monitor = @selector.register(io, interest)
+			monitor.value = value
 			
 			return monitor
 		end

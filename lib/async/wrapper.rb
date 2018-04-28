@@ -23,14 +23,46 @@ require 'nio'
 module Async
 	# Represents an asynchronous IO within a reactor.
 	class Wrapper
+		class Cancelled < StandardError
+			def initialize
+				super "The operation has been cancelled!"
+			end
+		end
+		
+		# wait_readable, wait_writable and wait_any are not re-entrant, and will raise this failure.
+		class WaitError < StandardError
+			def initialize
+				super "A fiber is already waiting!"
+			end
+		end
+		
 		# @param io the native object to wrap.
 		# @param reactor [Reactor] the reactor that is managing this wrapper, or not specified, it's looked up by way of {Task.current}.
-		# @param bound [Boolean] whether the underlying socket will be closed if the wrapper is closed.
 		def initialize(io, reactor = nil)
 			@io = io
 			
 			@reactor = reactor
 			@monitor = nil
+			
+			@readable = nil
+			@writable = nil
+			@any = nil
+		end
+		
+		def resume(*args)
+			readiness = @monitor.readiness
+			
+			if @readable and (readiness == :r or readiness == :rw)
+				@readable.resume(*args)
+			end
+			
+			if @writable and (readiness == :w or readiness == :rw)
+				@writable.resume(*args)
+			end
+			
+			if @any
+				@any.resume(*args)
+			end
 		end
 		
 		# The underlying native `io`.
@@ -42,71 +74,128 @@ module Async
 		# Bind this wrapper to a different reactor. Assign nil to convert to an unbound wrapper (can be used from any reactor/task but with slightly increased overhead.)
 		# Binding to a reactor is purely a performance consideration. Generally, I don't like APIs that exist only due to optimisations. This is borderline, so consider this functionality semi-private.
 		def reactor= reactor
-			if @monitor
-				@monitor.close 
-				@monitor = nil
-			end
+			return if @reactor.equal?(reactor)
+			
+			cancel_monitor
 			
 			@reactor = reactor
 		end
 		
 		# Wait for the io to become readable.
 		def wait_readable(duration = nil)
-			wait_any(:r, duration)
+			raise WaitError if @readable
+			
+			self.reactor = Task.current.reactor
+			
+			begin
+				@readable = Fiber.current
+				wait_for(duration)
+			ensure
+				@readable = nil
+				@monitor.interests = interests
+			end
 		end
 		
 		# Wait for the io to become writable.
 		def wait_writable(duration = nil)
-			wait_any(:w, duration)
+			raise WaitError if @writable
+			
+			self.reactor = Task.current.reactor
+			
+			begin
+				@writable = Fiber.current
+				wait_for(duration)
+			ensure
+				@writable = nil
+				@monitor.interests = interests
+			end
 		end
 		
 		# Wait fo the io to become either readable or writable.
-		# @param interests [:r | :w | :rw] what events to wait for.
 		# @param duration [Float] timeout after the given duration if not `nil`.
-		def wait_any(interests = :rw, duration = nil)
-			# There is value in caching this monitor - if you can reuse it, you will get about 2x the throughput, because you avoid calling Reactor#register and Monitor#close for every call. That being said, by caching it, you also introduce lifetime issues. I'm going to accept this overhead into the wrapper design because it's pretty convenient, but if you want faster IO, take a look at the performance spec which compares this method with a more direct alternative.
-			if @reactor
-				unless @monitor
-					@monitor = @reactor.register(@io, interests)
-				else
-					@monitor.interests = interests
-					@monitor.value = Fiber.current
-				end
-				
-				begin
-					wait_for(@reactor, @monitor, duration)
-				ensure
-					@monitor.interests = nil
-				end
-			else
-				reactor = Task.current.reactor
-				monitor = reactor.register(@io, interests)
-				
-				begin
-					wait_for(reactor, monitor, duration)
-				ensure
-					monitor.close
-				end
+		def wait_any(duration = nil)
+			raise WaitError if @any
+			
+			self.reactor = Task.current.reactor
+			
+			begin
+				@any = Fiber.current
+				wait_for(duration)
+			ensure
+				@any = nil
+				@monitor.interests = interests
 			end
 		end
 		
 		# Close the io and monitor.
 		def close
-			if @monitor
-				@monitor.close 
-				@monitor = nil
-			end
+			cancel_monitor
 			
 			@io.close
 		end
 		
 		private
 		
-		def wait_for(reactor, monitor, duration)
+		# What an abomination.
+		def interests
+			if @any
+				return :rw
+			elsif @readable
+				if @writable
+					return :rw
+				else
+					return :r
+				end
+			elsif @writable
+				return :w
+			end
+			
+			return nil
+		end
+		
+		def cancel_monitor
+			if @readable
+				readable = @readable
+				@readable = nil
+				
+				readable.resume(Cancelled.new)
+			end
+			
+			if @writable
+				writable = @writable
+				@writable = nil
+				
+				writable.resume(Cancelled.new)
+			end
+			
+			if @any
+				any = @any
+				@any = nil
+				
+				any.resume(Cancelled.new)
+			end
+			
+			if @monitor
+				@monitor.close
+				@monitor = nil
+			end
+		end
+		
+		def wait_for(duration)
+			if @monitor
+				@monitor.interests = interests
+			else
+				@monitor = @reactor.register(@io, interests, self)
+			end
+			
 			# If the user requested an explicit timeout for this operation:
 			if duration
-				reactor.timeout(duration) do
-					Task.yield
+				@reactor.timeout(duration) do
+					begin
+						Task.yield
+					rescue Async::TimeoutError
+						return false
+					end
 				end
 			else
 				Task.yield

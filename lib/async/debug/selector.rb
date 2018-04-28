@@ -31,20 +31,30 @@ module Async
 				@monitors = {}
 			end
 			
-			def register(io, interests)
-				Async.logger.debug(self) {"Registering #{io.inspect} for #{interests}."}
+			def register(object, interests)
+				Async.logger.debug(self) {"Registering #{object.inspect} for #{interests}."}
 				
-				if monitor = @monitors[io.fileno]
-					raise RuntimeError, "Trying to register monitor for #{io.inspect} but it was already registered as #{monitor.io.inspect}!"
+				unless io = ::IO.try_convert(object)
+					raise RuntimeError, "Could not convert #{io} into IO!"
 				end
 				
-				@monitors[io.fileno] = io
+				if monitor = @monitors[io.fileno]
+					raise RuntimeError, "Trying to register monitor for #{object.inspect} but it was already registered as #{monitor.io.inspect}!"
+				end
 				
-				Monitor.new(@selector.register(io, interests), self)
+				monitor = Monitor.new(@selector.register(object, interests), self)
+				
+				@monitors[io.fileno] = monitor
+				
+				return monitor
 			end
 			
-			def deregister(io)
-				Async.logger.debug(self) {"Deregistering #{io.inspect}."}
+			def deregister(object)
+				Async.logger.debug(self) {"Deregistering #{object.inspect}."}
+				
+				unless io = ::IO.try_convert(object)
+					raise RuntimeError, "Could not convert #{io} into IO!"
+				end
 				
 				unless @monitors.delete(io.fileno)
 					raise RuntimeError, "Trying to remove monitor for #{io.inspect} but it was not registered!"

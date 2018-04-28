@@ -47,7 +47,14 @@ RSpec.describe Async::Wrapper do
 			output.close
 		end
 		
-		it "can wait for readability in multiple tasks" do
+		it "can wait and timeout" do
+			expect(output.wait_readable(0.1)).to be_falsey
+			
+			input.close
+			output.close
+		end
+		
+		it "can wait for readability in multiple tasks sequentially" do
 			reactor.async do
 				input.wait_writable(1)
 				input.io.write('Hello World')
@@ -64,6 +71,41 @@ RSpec.describe Async::Wrapper do
 			input.close
 			output.close
 		end
+		
+		it "can wait for readability in one task and writability in another" do
+			reactor.async do
+				expect do
+					input.wait_readable(1)
+				end.to raise_error(Async::Wrapper::Cancelled)
+			end
+			
+			reactor.async do
+				input.wait_writable
+				
+				input.close
+				output.close
+			end
+		end
+		
+		it "fails if waiting on from multiple tasks" do
+			input.reactor = reactor
+			
+			reactor.async do
+				expect do
+					input.wait_readable
+				end.to raise_error(Async::Wrapper::Cancelled)
+			end
+			
+			reactor.async do
+				expect do
+					input.wait_readable
+				end.to raise_error(Async::Wrapper::WaitError)
+			end
+			
+			input.close
+			output.close
+		end
+
 	end
 	
 	describe '#reactor=' do
