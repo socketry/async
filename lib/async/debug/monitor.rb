@@ -38,6 +38,10 @@ module Async
 			def respond_to?(*args)
 				@monitor.respond_to?(*args)
 			end
+			
+			def inspect
+				"\#<#{self.class} io=#{@monitor.io.inspect} interests=#{@monitor.interests.inspect} readiness=#{@monitor.readiness.inspect}>"
+			end
 		end
 	end
 end
