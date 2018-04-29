@@ -76,6 +76,10 @@ module Async
 		# @attr stopped [Boolean]
 		attr :stopped
 		
+		def stopped?
+			@stopped
+		end
+		
 		def_delegators :@timers, :every, :after
 		
 		# Start an asynchronous task within the specified reactor. The task will be

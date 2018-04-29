@@ -19,29 +19,31 @@
 # THE SOFTWARE.
 
 RSpec.describe Async.logger do
-	let!(:debug) {$DEBUG}
-	after {$DEBUG = debug}
-	
-	let!(:verbose) {$VERBOSE}
-	after {$VERBOSE = verbose}
-	
-	it 'should set default log level' do
-		$DEBUG = false
-		$VERBOSE = false
+	describe '::default_log_level' do
+		let!(:debug) {$DEBUG}
+		after {$DEBUG = debug}
 		
-		expect(Async.default_log_level).to be == Logger::WARN
-	end
-	
-	it 'should set default log level based on $DEBUG' do
-		$DEBUG = true
+		let!(:verbose) {$VERBOSE}
+		after {$VERBOSE = verbose}
 		
-		expect(Async.default_log_level).to be == Logger::DEBUG
-	end
-	
-	it 'should set default log level based on $VERBOSE' do
-		$DEBUG = false
-		$VERBOSE = true
+		it 'should set default log level' do
+			$DEBUG = false
+			$VERBOSE = false
+			
+			expect(Async.default_log_level).to be == Logger::WARN
+		end
 		
-		expect(Async.default_log_level).to be == Logger::INFO
+		it 'should set default log level based on $DEBUG' do
+			$DEBUG = true
+			
+			expect(Async.default_log_level).to be == Logger::DEBUG
+		end
+		
+		it 'should set default log level based on $VERBOSE' do
+			$DEBUG = false
+			$VERBOSE = true
+			
+			expect(Async.default_log_level).to be == Logger::INFO
+		end
 	end
 end

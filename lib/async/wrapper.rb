@@ -71,6 +71,9 @@ module Async
 		# The reactor this wrapper is associated with, if any.
 		attr :reactor
 		
+		# The monitor for this wrapper, if any.
+		attr :monitor
+		
 		# Bind this wrapper to a different reactor. Assign nil to convert to an unbound wrapper (can be used from any reactor/task but with slightly increased overhead.)
 		# Binding to a reactor is purely a performance consideration. Generally, I don't like APIs that exist only due to optimisations. This is borderline, so consider this functionality semi-private.
 		def reactor= reactor
@@ -92,7 +95,7 @@ module Async
 				wait_for(duration)
 			ensure
 				@readable = nil
-				@monitor.interests = interests
+				@monitor.interests = interests if @monitor
 			end
 		end
 		
@@ -107,7 +110,7 @@ module Async
 				wait_for(duration)
 			ensure
 				@writable = nil
-				@monitor.interests = interests
+				@monitor.interests = interests if @monitor
 			end
 		end
 		
@@ -123,7 +126,7 @@ module Async
 				wait_for(duration)
 			ensure
 				@any = nil
-				@monitor.interests = interests
+				@monitor.interests = interests if @monitor
 			end
 		end
 		

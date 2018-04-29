@@ -21,55 +21,82 @@
 require 'benchmark'
 
 RSpec.describe Async::Wrapper do
+	include_context Async::RSpec::Reactor
+	
 	let(:pipe) {IO.pipe}
 	let(:input) {Async::Wrapper.new(pipe.last)}
 	let(:output) {Async::Wrapper.new(pipe.first)}
 	
-	describe '#wait_*' do
-		include_context Async::RSpec::Reactor
+	after(:each) do
+		input.close
+		output.close
 		
-		it "can wait for writability" do
-			expect(input.wait_writable(1)).to be_truthy
-			
-			input.close
-			output.close
-		end
-		
-		it "can wait for readability" do
-			reactor.async do
-				input.wait_writable(1)
-				input.io.write('Hello World')
+		expect(input.monitor).to be_nil
+		expect(output.monitor).to be_nil
+	end
+	
+	describe '#wait_readable' do
+		it "can wait to be readable" do
+			reader = reactor.async do
+				expect(output.wait_readable).to be_truthy
 			end
 			
-			expect(output.wait_readable(1)).to be_truthy
-			
-			input.close
-			output.close
+			input.io.write('Hello World')
+			reader.wait
 		end
 		
-		it "can wait and timeout" do
+		it "can timeout if no event occurs" do
 			expect(output.wait_readable(0.1)).to be_falsey
-			
-			input.close
-			output.close
 		end
 		
-		it "can wait for readability in multiple tasks sequentially" do
+		it "can wait for readability in sequential tasks" do
 			reactor.async do
 				input.wait_writable(1)
 				input.io.write('Hello World')
 			end
-			
-			output.reactor = reactor
 			
 			2.times do
 				reactor.async do
 					expect(output.wait_readable(1)).to be_truthy
 				end.wait
 			end
+		end
+		
+		it "can be cancelled" do
+			reactor.async do
+				expect do
+					output.wait_readable
+				end.to raise_error(Async::Wrapper::Cancelled)
+			end
 			
-			input.close
-			output.close
+			expect(output.monitor).to_not be_nil
+		end
+	end
+	
+	describe '#wait_writable' do
+		it "can wait to be writable" do
+			expect(input.wait_writable).to be_truthy
+		end
+		
+		it "can be cancelled" do
+			reactor.async do
+				expect do
+					input.wait_readable
+				end.to raise_error(Async::Wrapper::Cancelled)
+			end
+			
+			expect(input.monitor).to_not be_nil
+		end
+	end
+	
+	describe "#wait_any" do
+		it "can wait for any events" do
+			reactor.async do
+				input.wait_any(1)
+				input.io.write('Hello World')
+			end
+			
+			expect(output.wait_readable(1)).to be_truthy
 		end
 		
 		it "can wait for readability in one task and writability in another" do
@@ -79,12 +106,14 @@ RSpec.describe Async::Wrapper do
 				end.to raise_error(Async::Wrapper::Cancelled)
 			end
 			
+			expect(input.monitor.interests).to be == :r
+			
 			reactor.async do
 				input.wait_writable
 				
 				input.close
 				output.close
-			end
+			end.wait
 		end
 		
 		it "fails if waiting on from multiple tasks" do
@@ -96,28 +125,45 @@ RSpec.describe Async::Wrapper do
 				end.to raise_error(Async::Wrapper::Cancelled)
 			end
 			
+			expect(input.monitor.interests).to be == :r
+			
 			reactor.async do
 				expect do
 					input.wait_readable
 				end.to raise_error(Async::Wrapper::WaitError)
 			end
-			
-			input.close
-			output.close
 		end
-
 	end
 	
 	describe '#reactor=' do
-		include_context Async::RSpec::Reactor
-		
 		it 'can assign a wrapper to a reactor' do
 			input.reactor = reactor
 			
 			expect(input.reactor).to be == reactor
+		end
+		
+		it 'assigns current reactor when waiting for events' do
+			input.wait_writable
 			
+			expect(input.reactor).to be == reactor
+		end
+	end
+	
+	describe '#close' do
+		it "closes monitor when closing wrapper" do
+			input.wait_writable
+			expect(input.monitor).to_not be_nil
+			input.close
+			expect(input.monitor).to be_nil
+		end
+		
+		it "can't wait on closed wrapper" do
 			input.close
 			output.close
+			
+			expect do
+				output.wait_readable
+			end.to raise_error(IOError, /closed stream/)
 		end
 	end
 end

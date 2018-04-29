@@ -19,38 +19,60 @@
 # THE SOFTWARE.
 
 RSpec.describe Async::Reactor do
-	it "can run asynchronously" do
-		outer_fiber = Fiber.current
-		inner_fiber = nil
-		
-		described_class.run do |task|
-			task.sleep(0)
-			inner_fiber = Fiber.current
+	describe '#run' do
+		it "can run tasks on different fibers" do
+			outer_fiber = Fiber.current
+			inner_fiber = nil
+			
+			described_class.run do |task|
+				task.sleep(0)
+				inner_fiber = Fiber.current
+			end
+			
+			expect(inner_fiber).to_not be nil
+			expect(outer_fiber).to_not be == inner_fiber
 		end
-		
-		expect(inner_fiber).to_not be nil
-		expect(outer_fiber).to_not be == inner_fiber
 	end
 	
-	it "can be stopped" do
-		state = nil
-		
-		subject.async do |task|
-			state = :started
-			task.sleep(10)
-			state = :stopped
+	describe '#stop' do
+		it "can be stop reactor" do
+			state = nil
+			
+			subject.async do |task|
+				state = :started
+				task.sleep(10)
+				state = :stopped
+			end
+			
+			subject.async do |task|
+				task.sleep(0.1)
+				task.reactor.stop
+			end
+			
+			subject.run
+			
+			expect(state).to be == :started
 		end
 		
-		subject.async do |task|
-			task.sleep(0.1)
-			task.reactor.stop
+		it "can stop reactor from different thread" do
+			events = Thread::Queue.new
+			
+			thread = Thread.new do
+				if events.pop
+					subject.stop
+				end
+			end
+			
+			subject.async do |task|
+				events << true
+			end
+			
+			subject.run
+			
+			thread.join
+			expect(subject).to be_stopped
 		end
-		
-		subject.run
-		
-		expect(state).to be == :started
 	end
-	
 	it "can't return" do
 		expect do
 			Async::Reactor.run do |task|
