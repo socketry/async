@@ -39,7 +39,7 @@ module Async
 				end
 				
 				if monitor = @monitors[io.fileno]
-					raise RuntimeError, "Trying to register monitor for #{object.inspect} but it was already registered as #{monitor.io.inspect}!"
+					raise RuntimeError, "Trying to register monitor for #{object.inspect} but it was already registered: #{monitor.inspect}!"
 				end
 				
 				monitor = Monitor.new(@selector.register(object, interests), self)
