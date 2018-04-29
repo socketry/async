@@ -67,9 +67,9 @@ module Async
 			
 			def close
 				if @monitors.any?
-					Async.logger.warn(self) {"Trying to close selector with active monitors: #{@monitors.values.inspect}!"}
+					raise RuntimeError, "Trying to close selector with active monitors: #{@monitors.values.inspect}!"
 				end
-				
+			ensure
 				@selector.close
 			end
 			
