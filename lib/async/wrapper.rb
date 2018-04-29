@@ -137,6 +137,10 @@ module Async
 			@io.close
 		end
 		
+		def closed?
+			@io.closed?
+		end
+		
 		private
 		
 		# What an abomination.

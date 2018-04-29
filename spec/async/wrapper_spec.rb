@@ -28,8 +28,8 @@ RSpec.describe Async::Wrapper do
 	let(:output) {Async::Wrapper.new(pipe.first)}
 	
 	after(:each) do
-		input.close
-		output.close
+		input.close unless input.closed?
+		output.close unless output.closed?
 		
 		expect(input.monitor).to be_nil
 		expect(output.monitor).to be_nil
