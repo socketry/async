@@ -85,7 +85,6 @@ module Async
 			available = @waiting.pop(@limit - @count)
 			
 			available.each do |fiber|
-				Task.current.reactor.print_hierarchy
 				fiber.resume if fiber.alive?
 			end
 		end

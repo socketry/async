@@ -25,33 +25,108 @@ require_relative 'condition_examples'
 RSpec.describe Async::Semaphore do
 	include_context Async::RSpec::Reactor
 	
-	let(:repeats) {40}
-	let(:limit) {4}
+	context '#async' do
+		let(:repeats) {40}
+		let(:limit) {4}
+		
+		it 'should process work in batches' do
+			semaphore = Async::Semaphore.new(limit)
+			current, maximum = 0, 0
+			
+			result = repeats.times.map do |i|
+				semaphore.async do |task|
+					current += 1
+					maximum = [current, maximum].max
+					task.sleep(rand * 0.1)
+					current -= 1
+					
+					i
+				end
+			end.collect(&:result)
+			
+			# Verify that the maximum number of concurrent tasks was the specificed limit:
+			expect(maximum).to be == limit
+			
+			# Verify that the results were in the correct order:
+			expect(result).to be == (0...repeats).to_a
+		end
+		
+		it 'only allows one task at a time' do
+			semaphore = Async::Semaphore.new(1)
+			order = []
+			
+			3.times.map do |i|
+				semaphore.async do |task|
+					order << i
+					task.sleep(0.1)
+					order << i
+				end
+			end.collect(&:result)
+			
+			expect(order).to be == [0, 0, 1, 1, 2, 2]
+		end
+		
+		it 'allows tasks to execute concurrently' do
+			semaphore = Async::Semaphore.new(3)
+			order = []
+			
+			3.times.map do |i|
+				semaphore.async do |task|
+					order << i
+					task.sleep(0.1)
+					order << i
+				end
+			end.collect(&:result)
+			
+			expect(order).to be == [0, 1, 2, 0, 1, 2]
+		end
+	end
 	
-	it 'should process work in batches' do
-		semaphore = Async::Semaphore.new(limit)
-		current, maximum = 0, 0
-		
-		result = repeats.times.map do |i|
-			puts "Repeat #{i}"
+	context '#count' do
+		it 'should count number of current acquisitions' do
+			expect(subject.count).to be == 0
 			
-			semaphore.async do |task|
-				puts "Semaphore acquire #{i}"
-				current += 1
-				maximum = [current, maximum].max
-				puts "Task sleep #{i}"
-				task.sleep(1)
-				current -= 1
-				puts "Semaphore release #{i}"
-				i
+			subject.acquire do
+				expect(subject.count).to be == 1
 			end
+		end
+	end
+	
+	context '#limit' do
+		it 'should have a default limit' do
+			expect(subject.limit).to be == 1
+		end
+	end
+	
+	context '#empty?' do
+		it 'should be empty unless acquired' do
+			expect(subject).to be_empty
 			
-		end.collect(&:result)
-		
-		# Verify that the maximum number of concurrent tasks was the specificed limit:
-		expect(maximum).to be == limit
-		
-		# Verify that the results were in the correct order:
-		expect(result).to be == (0...repeats).to_a
+			subject.acquire do
+				expect(subject).to_not be_empty
+			end
+		end
+	end
+	
+	context '#blocking?' do
+		it 'will be blocking when acquired' do
+			expect(subject).to_not be_blocking
+			
+			subject.acquire do
+				expect(subject).to be_blocking
+			end
+		end
+	end
+	
+	context '#acquire/#release' do
+		it 'works when called without block' do
+			subject.acquire
+			
+			expect(subject.count).to be == 1
+			
+			subject.release
+			
+			expect(subject.count).to be == 0
+		end
 	end
 end
