@@ -51,6 +51,4 @@ RSpec.describe Async::Semaphore do
 		# Verify that the results were in the correct order:
 		expect(result).to be == (0...repeats).to_a
 	end
-	
-	it_behaves_like Async::Condition
 end
