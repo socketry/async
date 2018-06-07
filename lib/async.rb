@@ -21,3 +21,10 @@
 require_relative "async/version"
 require_relative "async/logger"
 require_relative "async/reactor"
+
+module Async
+	# Invoke `Reactor.run` with all arguments/block.
+	def self.run(*args, &block)
+		Reactor.run(*args, &block)
+	end
+end
