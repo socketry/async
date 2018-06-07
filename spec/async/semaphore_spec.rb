@@ -1,4 +1,4 @@
-# Copyright, 2017, by Samuel G. D. Williams. <http://www.codeotaku.com>
+# Copyright, 2018, by Samuel G. D. Williams. <http://www.codeotaku.com>
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -18,6 +18,26 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-module Async
-	VERSION = "1.9.0"
+require 'async/semaphore'
+
+RSpec.describe Async::Semaphore do
+	include_context Async::RSpec::Reactor
+	
+	it 'should process work in batches' do
+		semaphore = Async::Semaphore.new(4)
+		current, maximum = 0, 0
+		
+		100.times.map do
+			reactor.async do |task|
+				semaphore.acquire do
+					current += 1
+					maximum = [current, maximum].max
+					task.sleep(0.01)
+					current -= 1
+				end
+			end
+		end.collect(&:result)
+		
+		expect(maximum).to be == 4
+	end
 end
