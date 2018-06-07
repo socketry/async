@@ -38,19 +38,6 @@ module Async
 			@count >= @limit
 		end
 		
-		def empty?
-			@waiting.empty?
-		end
-		
-		def wait
-			@waiting << Fiber.current
-			Task.yield
-		end
-		
-		def signal(task: Task.current)
-			task.reactor << self if @waiting.any?
-		end
-		
 		# Acquire the semaphore, block if we are at the limit.
 		# If no block is provided, you must call release manually.
 		# @yield when the semaphore can be acquired
@@ -74,6 +61,22 @@ module Async
 			@count -= 1
 			
 			self.signal
+		end
+		
+		# Is anyone waiting?
+		def empty?
+			@waiting.empty?
+		end
+		
+		# Wait on this semaphore.
+		def wait
+			@waiting << Fiber.current
+			Task.yield
+		end
+		
+		# Resume any waiting tasks.
+		def signal(task: Task.current)
+			task.reactor << self if @waiting.any?
 		end
 		
 		# Whether this semaphore has work to do when being resumed.
