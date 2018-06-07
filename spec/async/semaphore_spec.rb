@@ -26,23 +26,26 @@ RSpec.describe Async::Semaphore do
 	include_context Async::RSpec::Reactor
 	
 	let(:repeats) {40}
-	let(:limit) {10}
+	let(:limit) {4}
 	
 	it 'should process work in batches' do
 		semaphore = Async::Semaphore.new(limit)
 		current, maximum = 0, 0
 		
 		result = repeats.times.map do |i|
-			reactor.async do |task|
-				semaphore.acquire do
-					current += 1
-					maximum = [current, maximum].max
-					task.sleep(rand * 0.1)
-					current -= 1
-					
-					i
-				end
+			puts "Repeat #{i}"
+			
+			semaphore.async do |task|
+				puts "Semaphore acquire #{i}"
+				current += 1
+				maximum = [current, maximum].max
+				puts "Task sleep #{i}"
+				task.sleep(1)
+				current -= 1
+				puts "Semaphore release #{i}"
+				i
 			end
+			
 		end.collect(&:result)
 		
 		# Verify that the maximum number of concurrent tasks was the specificed limit:
