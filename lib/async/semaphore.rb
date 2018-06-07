@@ -79,7 +79,7 @@ module Async
 		end
 		
 		# Release the semaphore. Must match up with a corresponding call to `acquire`.
-		def release(task: Task.current)
+		def release
 			@count -= 1
 			
 			available = @waiting.pop(@limit - @count)
