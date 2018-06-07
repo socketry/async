@@ -25,6 +25,8 @@ module Async
 			@count = 0
 			@limit = limit
 			@waiting = []
+			
+			@resumed = true
 		end
 		
 		# The current number of tasks that have acquired the semaphore.
@@ -48,7 +50,10 @@ module Async
 		# @yield when the semaphore can be acquired
 		# @return the result of the block if invoked
 		def acquire
-			wait while blocking?
+			while blocking?
+				@waiting << Fiber.current
+				Task.yield
+			end
 			
 			@count += 1
 			
@@ -62,22 +67,24 @@ module Async
 		end
 		
 		# Release the semaphore. Must match up with a corresponding call to `acquire`.
-		def release
+		def release(task: Task.current)
 			@count -= 1
 			
-			resume
+			if @resumed
+				@resumed = false
+				task.reactor << self
+			end
 		end
 		
-		private
-		
-		# Wait on this semaphore.
-		def wait
-			@waiting << Fiber.current
-			Task.yield
+		# Is anyone waiting on this semaphore?
+		def alive?
+			@waiting.any?
 		end
 		
 		# Resume tasks waiting on the semaphore, up to the maximum to the available limit.
 		def resume
+			@resumed = true
+			
 			available = @waiting.pop(@limit - @count)
 			
 			available.each do |fiber|
