@@ -40,4 +40,6 @@ RSpec.describe Async::Semaphore do
 		
 		expect(maximum).to be == 4
 	end
+	
+	it_behaves_like Async::Condition
 end
