@@ -230,13 +230,13 @@ module Async
 		#   complete.
 		def timeout(duration)
 			backtrace = caller
-			task = Fiber.current
+			fiber = Fiber.current
 			
 			timer = self.after(duration) do
-				if task.alive?
+				if fiber.alive?
 					error = TimeoutError.new("execution expired")
 					error.set_backtrace backtrace
-					task.resume error
+					fiber.resume error
 				end
 			end
 			
