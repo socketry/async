@@ -28,7 +28,7 @@ require 'forwardable'
 
 module Async
 	# Raised if a timeout occurs on a specific Fiber. Handled gracefully by {Task}.
-	class TimeoutError < RuntimeError
+	class TimeoutError < Exception
 	end
 	
 	# An asynchronous, cooperatively scheduled event reactor.

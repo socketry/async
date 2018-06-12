@@ -156,16 +156,20 @@ RSpec.describe Async::Task do
 			state = nil
 			
 			task = reactor.async do |task|
-				task.timeout(0.01) do
-					state = :started
-					task.sleep(10)
-					state = :finished
-				end rescue nil
+				begin
+					task.timeout(0.01) do
+						state = :started
+						task.sleep(10)
+						state = :finished
+					end
+				rescue Async::TimeoutError
+					state = :timeout
+				end
 			end
 			
 			reactor.run
 			
-			expect(state).to be == :started
+			expect(state).to be == :timeout
 		end
 		
 		it "won't timeout if execution completes in time" do
