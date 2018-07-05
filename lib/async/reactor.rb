@@ -65,6 +65,7 @@ module Async
 			@timers = Timers::Group.new
 			
 			@ready = []
+			@running = []
 			
 			@stopped = true
 		end
@@ -135,7 +136,7 @@ module Async
 		end
 		
 		def finished?
-			super && @ready.empty?
+			super && @ready.empty? && @running.empty?
 		end
 		
 		# Run the reactor until either all tasks complete or {#stop} is invoked.
@@ -149,15 +150,21 @@ module Async
 			initial_task = async(*args, &block) if block_given?
 			
 			@timers.wait do |interval|
-				if @ready.any?
-					@ready.each do |fiber|
+				# running used to correctly answer on `finished?`, and to reuse Array object.
+				@running, @ready = @ready, @running
+				if @running.any?
+					@running.each do |fiber|
 						fiber.resume if fiber.alive?
 					end
-					
-					@ready.clear
-					
-					# The above tasks may schedule, cancel or affect timers in some way. We need to compute a new wait interval for the blocking selector call below:
-					interval = @timers.wait_interval
+					@running.clear
+
+					# if there are tasks ready to execute, don't sleep.
+					if @ready.any?
+						interval = 0
+					else
+						# The above tasks may schedule, cancel or affect timers in some way. We need to compute a new wait interval for the blocking selector call below:
+						interval = @timers.wait_interval
+					end
 				end
 				
 				# - nil: no timers
