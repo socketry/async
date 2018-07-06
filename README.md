@@ -105,28 +105,11 @@ end
 
 As tasks run synchronously until they yield back to the reactor, you can guarantee this model works correctly. While in theory `IO#autoclose` allows you to automatically close file descriptors when they go out of scope via the GC, it may produce unpredictable behavour (exhaustion of file descriptors, flushing data at odd times), so it's not recommended.
 
-## Supported Ruby Versions
+## Caveats
 
-This library aims to support and is [tested against][travis] the following Ruby
-versions:
+### Enumerators
 
-* Ruby 2.2+
-* JRuby 9.1.6.0+
-
-If something doesn't work on one of these versions, it's a bug.
-
-This library may inadvertently work (or seem to work) on other Ruby versions,
-however support will only be provided for the versions listed above.
-
-If you would like this library to support another Ruby version or
-implementation, you may volunteer to be a maintainer. Being a maintainer
-entails making sure all tests run and pass on that implementation. When
-something breaks on your implementation, you will be responsible for providing
-patches in a timely fashion. If critical issues for a particular implementation
-exist at the time of a major release, support for that Ruby version may be
-dropped.
-
-[travis]: http://travis-ci.org/socketry/async
+Due to limitations within Ruby and the nature of this library, it is not possible to use `to_enum` on methods which invoke asynchronous behavior. We hope to [fix this issue in the future](https://github.com/socketry/async/issues/23).
 
 ## Contributing
 
