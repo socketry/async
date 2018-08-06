@@ -78,6 +78,18 @@ RSpec.describe Async::Wrapper do
 			expect(input.wait_writable).to be_truthy
 		end
 		
+		it "can be cancelled while waiting to be readable" do
+			reactor.async do
+				expect do
+					output.wait_readable
+				end.to raise_error(Async::Wrapper::Cancelled)
+			end
+			
+			reactor.async do
+				input.close
+			end
+		end
+		
 		it "can be cancelled" do
 			reactor.async do
 				expect do
