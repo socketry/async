@@ -81,13 +81,19 @@ RSpec.describe Async::Wrapper do
 		it "can be cancelled while waiting to be readable" do
 			reactor.async do
 				expect do
-					output.wait_readable
+					input.wait_readable
 				end.to raise_error(Async::Wrapper::Cancelled)
 			end
 			
-			reactor.async do
-				input.close
-			end
+			# This reproduces the race condition that can occur if two tasks are resumed in sequence.
+			
+			# Resume task 1 which closes IO:
+			output.close
+			
+			# Resume task 2:
+			expect do
+				output.resume
+			end.to_not raise_error
 		end
 		
 		it "can be cancelled" do

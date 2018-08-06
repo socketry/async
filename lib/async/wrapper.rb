@@ -50,6 +50,9 @@ module Async
 		end
 		
 		def resume(*args)
+			# It's possible that the monitor was closed before calling resume.
+			return unless @monitor
+			
 			readiness = @monitor.readiness
 			
 			if @readable and (readiness == :r or readiness == :rw)
