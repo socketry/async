@@ -167,6 +167,18 @@ RSpec.describe Async::Wrapper do
 		end
 	end
 	
+	describe '#dup' do
+		let(:dup) {input.dup}
+		
+		it 'dups the underlying io' do
+			expect(dup.io).to_not eq input.io
+			
+			dup.close
+			
+			expect(input).to_not be_closed
+		end
+	end
+	
 	describe '#close' do
 		it "closes monitor when closing wrapper" do
 			input.wait_writable

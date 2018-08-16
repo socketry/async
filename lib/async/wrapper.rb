@@ -49,6 +49,10 @@ module Async
 			@any = nil
 		end
 		
+		def dup
+			self.class.new(@io.dup, @reactor)
+		end
+		
 		def resume(*args)
 			# It's possible that the monitor was closed before calling resume.
 			return unless @monitor
