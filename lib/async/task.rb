@@ -77,10 +77,11 @@ module Async
 				rescue Stop
 					@status = :stop
 					# Async.logger.debug("Task #{self} stopped: #{$!}")
+					Async.logger.debug(self) {$!}
 				rescue Exception => error
 					@result = error
 					@status = :failed
-					# Async.logger.debug("Task #{self} failed: #{$!}")
+					Async.logger.debug(self) {$!}
 					raise
 				ensure
 					# Async.logger.debug("Task #{self} closing: #{$!}")
