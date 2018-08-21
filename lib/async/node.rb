@@ -89,7 +89,7 @@ module Async
 			
 			return self
 		end
-	
+		
 		# Whether the node can be consumed safely. By default, checks if the
 		# children set is empty.
 		# @return [Boolean]
