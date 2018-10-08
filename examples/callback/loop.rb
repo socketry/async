@@ -25,15 +25,19 @@ end
 
 callback = Callback.new
 
-callback.run do |task|
-	while true
-		task.sleep(2)
-		puts "Hello from task!"
+begin
+	callback.run do |task|
+		while true
+			task.sleep(2)
+			puts "Hello from task!"
+		end
 	end
-end
-
-while true
-	callback.run(0)
-	puts "Sleeping for 1 second"
-	sleep(1)
+	
+	while true
+		callback.run(0)
+		puts "Sleeping for 1 second"
+		sleep(1)
+	end
+ensure
+	callback.close
 end
