@@ -130,6 +130,10 @@ Due to limitations within Ruby and the nature of this library, it is not possibl
 - [async-rspec](https://github.com/socketry/async-rspec) — Shared contexts for running async specs.
 - [rubydns](https://github.com/ioquatix/rubydns) — A easy to use Ruby DNS server.
 
+## Projects using async
+
+- [ciri](https://github.com/ciri-ethereum/ciri) - An Ethereum implementation written in Ruby.
+
 ## License
 
 Released under the MIT license.
