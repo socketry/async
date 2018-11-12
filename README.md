@@ -123,16 +123,16 @@ Due to limitations within Ruby and the nature of this library, it is not possibl
 
 - [async-io](https://github.com/socketry/async-io) — Asynchronous networking and sockets.
 - [async-http](https://github.com/socketry/async-http) — Asynchronous HTTP client/server.
-- [falcon](https://github.com/socketry/falcon) — A rack compatible server built on top of `async-http`.
 - [async-process](https://github.com/socketry/async-process) — Asynchronous process spawning/waiting.
 - [async-websocket](https://github.com/socketry/async-websocket) — Asynchronous client and server websockets.
 - [async-dns](https://github.com/socketry/async-dns) — Asynchronous DNS resolver and server.
 - [async-rspec](https://github.com/socketry/async-rspec) — Shared contexts for running async specs.
-- [rubydns](https://github.com/ioquatix/rubydns) — A easy to use Ruby DNS server.
 
-## Projects using async
+### Projects Using Async
 
 - [ciri](https://github.com/ciri-ethereum/ciri) - An Ethereum implementation written in Ruby.
+- [falcon](https://github.com/socketry/falcon) — A rack compatible server built on top of `async-http`.
+- [rubydns](https://github.com/ioquatix/rubydns) — A easy to use Ruby DNS server.
 
 ## License
 
