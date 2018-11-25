@@ -144,6 +144,18 @@ RSpec.describe Async::Reactor do
 			
 			expect(duration).to be < 0.1
 		end
+		
+		let(:timeout_class) {Class.new(RuntimeError)}
+		
+		it "raises specified exception" do
+			expect do
+				described_class.run do |task|
+					task.timeout(0.0, timeout_class) do
+						task.sleep(1.0)
+					end
+				end
+			end.to raise_error(timeout_class)
+		end
 	end
 	
 	describe '#to_s' do
