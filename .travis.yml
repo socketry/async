@@ -1,7 +1,7 @@
 language: ruby
-sudo: false
-dist: trusty
+dist: xenial
 cache: bundler
+
 addons:
   apt:
     packages:
