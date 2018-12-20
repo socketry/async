@@ -45,4 +45,34 @@ module Async
 			@items.shift
 		end
 	end
+	
+	class LimitedQueue < Queue
+		def initialize(limit = 1)
+			super()
+			
+			@limit = limit
+			@full = Async::Condition.new
+		end
+		
+		# @return [Boolean] Whether trying to enqueue an item would block.
+		def limited?
+			@items.size >= @limit
+		end
+		
+		def enqueue item
+			if limited?
+				@full.wait
+			end
+			
+			super
+		end
+		
+		def dequeue
+			item = super
+			
+			@full.signal unless @full.empty?
+			
+			return item
+		end
+	end
 end

@@ -22,9 +22,7 @@ require 'async/queue'
 
 require_relative 'condition_examples'
 
-RSpec.describe Async::Queue do
-	include_context Async::RSpec::Reactor
-	
+RSpec.shared_context Async::Queue do
 	it 'should process items in order' do
 		reactor.async do |task|
 			10.times do |i|
@@ -36,5 +34,23 @@ RSpec.describe Async::Queue do
 		10.times do |j|
 			expect(subject.dequeue).to be == j
 		end
+	end
+end
+
+RSpec.describe Async::Queue do
+	include_context Async::RSpec::Reactor
+	
+	it_behaves_like Async::Queue
+end
+
+RSpec.describe Async::LimitedQueue do
+	include_context Async::RSpec::Reactor
+	
+	it_behaves_like Async::Queue
+	
+	it 'should become limited' do
+		expect(subject).to_not be_limited
+		subject.enqueue(10)
+		expect(subject).to be_limited
 	end
 end
