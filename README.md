@@ -62,7 +62,7 @@ def run_server
 end
 ```
 
-If `Async::Reactor.run(&block)` happens within an existing reactor, it will schedule an asynchronous task and return. If `Async::Reactor.run(&block)` happens outside of an existing reactor, it will create a reactor, schedule the asynchronous task, and block until it completes. The task is scheduled by calling `Async::Reactor.async(&block)`.
+If `Async::Reactor.run(&block)` happens within an existing reactor, it will schedule an asynchronous task and return. If `Async::Reactor.run(&block)` happens outside of an existing reactor, it will create a reactor, schedule the asynchronous task, and block until it completes. The task is scheduled by calling `Async::Reactor#async(&block)`.
 
 This puts the power into the hands of the client, who can either have blocking or non-blocking behaviour by explicitly wrapping the call in a reactor (or not). The cost of using `Async::Reactor.run` is minimal for initialization/server setup, but is not ideal for per-connection tasks.
 
