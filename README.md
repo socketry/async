@@ -52,7 +52,7 @@ The design of this core library is deliberately simple in scope. Additional libr
 
 #### `Async::Reactor.run`
 
-The highest level entry point is `Async::Reactor.run`. It's useful if you are building a library and you want well defined asynchronous semantics.
+The highest level entry point is `Async::Reactor.run`. It's useful if you are building a library and you want well defined asynchronous semantics. This is aliased to `Async.run`.
 
 ```ruby
 def run_server
