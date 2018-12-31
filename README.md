@@ -105,6 +105,19 @@ end
 
 As tasks run synchronously until they yield back to the reactor, you can guarantee this model works correctly. While in theory `IO#autoclose` allows you to automatically close file descriptors when they go out of scope via the GC, it may produce unpredictable behavour (exhaustion of file descriptors, flushing data at odd times), so it's not recommended.
 
+### Examples
+
+#### Reoccurring Timer
+
+```ruby
+Async.run do |task|
+  while true
+    puts Time.now
+    task.sleep 10
+  end
+end
+```
+
 ## Caveats
 
 ### Enumerators
