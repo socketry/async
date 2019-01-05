@@ -152,6 +152,22 @@ RSpec.describe Async::Task do
 	end
 	
 	describe '#timeout' do
+		it "can extend timeout" do
+			task = reactor.async do |task|
+				task.timeout(0.2) do |timer|
+					task.sleep(0.1)
+					
+					expect(timer.fires_in).to be_within(5).percent_of(0.1)
+					
+					timer.reset
+					
+					expect(timer.fires_in).to be_within(5).percent_of(0.2)
+				end
+			end
+			
+			reactor.run
+		end
+		
 		it "will timeout if execution takes too long" do
 			state = nil
 			
