@@ -230,6 +230,20 @@ RSpec.describe Async::Task do
 			expect(result).to be == [:apples, :oranges]
 		end
 		
+		it "won't raise exceptions to caller unless checking result" do
+			error_task = nil
+			
+			expect do
+				error_task = reactor.async do |task|
+					raise ArgumentError.new("brain not provided")
+				end
+			end.to_not raise_exception
+			
+			expect do
+				error_task.result
+			end.to raise_exception(ArgumentError, /brain/)
+		end
+		
 		it "will propagate exceptions" do
 			error_task = nil
 			
