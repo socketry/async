@@ -96,7 +96,7 @@ module Async
 		def finished?
 			@children.empty?
 		end
-	
+		
 		# If the node has a parent, and is {finished?}, then remove this node from
 		# the parent.
 		def consume
@@ -106,7 +106,7 @@ module Async
 				@parent = nil
 			end
 		end
-	
+		
 		# Remove a given child node.
 		# @param child [Node]
 		def reap(child)
