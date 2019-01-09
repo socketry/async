@@ -74,14 +74,20 @@ module Async
 					@result = yield(self, *args)
 					@status = :complete
 					# Async.logger.debug("Task #{self} completed normally.")
+				rescue StandardError => error
+					# General errors cause the task to enter the failed state.
+					@result = error
+					@status = :failed
+					Async.logger.debug(self) {$!}
 				rescue Stop
 					@status = :stop
 					# Async.logger.debug("Task #{self} stopped: #{$!}")
 					Async.logger.debug(self) {$!}
-				rescue Exception => error
-					@result = error
-					@status = :failed
+				rescue Exception
+					# Exceptions (like SignalError) immediately terminate the task/run-loop.
+					@status = :exception
 					Async.logger.debug(self) {$!}
+					raise
 				ensure
 					# Async.logger.debug("Task #{self} closing: #{$!}")
 					finish!

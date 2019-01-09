@@ -244,7 +244,7 @@ RSpec.describe Async::Task do
 			end.to raise_exception(ArgumentError, /brain/)
 		end
 		
-		it "will propagate exceptions" do
+		it "will propagate standard errors" do
 			error_task = nil
 			
 			error_task = reactor.async do |task|
@@ -254,12 +254,33 @@ RSpec.describe Async::Task do
 			end
 			
 			innocent_task = reactor.async do |task|
-				expect{error_task.result}.to raise_error(ArgumentError, /can has error/)
+				expect{error_task.result}.to raise_error(ArgumentError, /can haz error/)
 			end
 			
 			expect do
 				reactor.run
 			end.to_not raise_exception
+			
+			expect(error_task).to be_finished
+			expect(innocent_task).to be_finished
+		end
+		
+		it "immediately fails on exceptions" do
+			error_task = nil
+		
+			error_task = reactor.async do |task|
+				task.sleep 0.1
+				
+				raise SignalException.new(:TERM)
+			end
+		
+			innocent_task = reactor.async do |task|
+				expect{error_task.result}.to_not raise_error
+			end
+			
+			expect do
+				reactor.run
+			end.to raise_exception(SignalException, /TERM/)
 			
 			expect(error_task).to be_finished
 			expect(innocent_task).to be_finished
