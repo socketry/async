@@ -100,7 +100,7 @@ module Async
 		# If the node has a parent, and is {finished?}, then remove this node from
 		# the parent.
 		def consume
-			if @parent && finished?
+			if @parent and finished?
 				@parent.reap(self)
 				@parent.consume
 				@parent = nil
