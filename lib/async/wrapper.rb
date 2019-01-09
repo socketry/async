@@ -205,11 +205,7 @@ module Async
 			# If the user requested an explicit timeout for this operation:
 			if duration
 				@reactor.timeout(duration) do
-					begin
-						Task.yield
-					rescue Async::TimeoutError
-						return false
-					end
+					Task.yield
 				end
 			else
 				Task.yield
