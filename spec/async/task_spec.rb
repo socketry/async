@@ -240,7 +240,7 @@ RSpec.describe Async::Task do
 			end.to_not raise_exception
 			
 			expect do
-				error_task.result
+				error_task.wait
 			end.to raise_exception(ArgumentError, /brain/)
 		end
 		
@@ -250,18 +250,16 @@ RSpec.describe Async::Task do
 			error_task = reactor.async do |task|
 				task.sleep(0.1)
 				
-				raise ArgumentError.new("It simply wasn't good enough")
+				raise ArgumentError.new("can haz error")
 			end
 			
 			innocent_task = reactor.async do |task|
-				expect{error_task.result}.to raise_error(ArgumentError, /wasn't good enough/)
+				expect{error_task.result}.to raise_error(ArgumentError, /can has error/)
 			end
 			
-			begin
+			expect do
 				reactor.run
-			rescue Exception
-				retry
-			end
+			end.to_not raise_exception
 			
 			expect(error_task).to be_finished
 			expect(innocent_task).to be_finished
