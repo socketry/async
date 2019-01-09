@@ -82,7 +82,6 @@ module Async
 					@result = error
 					@status = :failed
 					Async.logger.debug(self) {$!}
-					raise
 				ensure
 					# Async.logger.debug("Task #{self} closing: #{$!}")
 					finish!
@@ -180,7 +179,7 @@ module Async
 		end
 	
 		private
-	
+		
 		# Finish the current task, and all bound bound IO objects.
 		def finish!
 			# Attempt to remove this node from the task tree.

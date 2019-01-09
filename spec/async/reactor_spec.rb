@@ -77,7 +77,7 @@ RSpec.describe Async::Reactor do
 		expect do
 			Async::Reactor.run do |task|
 				return
-			end
+			end.wait
 		end.to raise_error(LocalJumpError)
 	end
 	
@@ -153,7 +153,7 @@ RSpec.describe Async::Reactor do
 					task.timeout(0.0, timeout_class) do
 						task.sleep(1.0)
 					end
-				end
+				end.wait
 			end.to raise_error(timeout_class)
 		end
 	end

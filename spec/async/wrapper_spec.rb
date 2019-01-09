@@ -46,7 +46,9 @@ RSpec.describe Async::Wrapper do
 		end
 		
 		it "can timeout if no event occurs" do
-			expect(output.wait_readable(0.1)).to be_falsey
+			expect do
+				output.wait_readable(0.1)
+			end.to raise_error(Async::TimeoutError)
 		end
 		
 		it "can wait for readability in sequential tasks" do

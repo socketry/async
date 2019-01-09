@@ -57,7 +57,7 @@ RSpec.describe Enumerator do
 		Async::Reactor.run do |task|
 			ar = [:a, :b, :c, :d].each.zip(enum(task))
 			expect(ar).to be == [[:a, 1], [:b, 2], [:c, nil], [:d, nil]]
-		end
+		end.wait
 	end
 
 	it "should play with explicit Fiber usage", pending: "expected failure" do
