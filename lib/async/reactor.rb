@@ -233,7 +233,7 @@ module Async
 		
 		# Invoke the block, but after the timeout, raise {TimeoutError} in any
 		# currenly blocking operation.
-		# @param duration [Integer] The time in seconds, in which the task should 
+		# @param duration [Numeric] The time in seconds, in which the task should 
 		#   complete.
 		def timeout(duration, exception = TimeoutError)
 			backtrace = caller
