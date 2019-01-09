@@ -157,11 +157,11 @@ RSpec.describe Async::Task do
 				task.timeout(0.2) do |timer|
 					task.sleep(0.1)
 					
-					expect(timer.fires_in).to be_within(5).percent_of(0.1)
+					expect(timer.fires_in).to be_within(10).percent_of(0.1)
 					
 					timer.reset
 					
-					expect(timer.fires_in).to be_within(5).percent_of(0.2)
+					expect(timer.fires_in).to be_within(10).percent_of(0.2)
 				end
 			end
 			
