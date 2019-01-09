@@ -54,6 +54,8 @@ module Async
 			@full = Async::Condition.new
 		end
 		
+		attr :limit
+		
 		# @return [Boolean] Whether trying to enqueue an item would block.
 		def limited?
 			@items.size >= @limit
