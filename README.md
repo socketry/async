@@ -105,16 +105,48 @@ end
 
 As tasks run synchronously until they yield back to the reactor, you can guarantee this model works correctly. While in theory `IO#autoclose` allows you to automatically close file descriptors when they go out of scope via the GC, it may produce unpredictable behavour (exhaustion of file descriptors, flushing data at odd times), so it's not recommended.
 
+### Exception Handling
+
+`Async::Task` is a kind of promise. You can call `Task#wait` and this will block the caller until the task completes. If the task finished successfully, the last expression evaluated will be returned (aliased as `Task#result` if you prefer it).
+
+If an `Async::Failure` (or derived class) is raised within a task, that task will be marked as `:failed` and `Task#wait` will result in that exception being raised. Task failure is explicitly opt-in because otherwise unexpected exceptions might be missed.
+
+```ruby
+require 'async'
+
+task = Async.run do
+	[].last("apples") # raise TypeError
+rescue StandardError
+	raise Async::Failure
+end
+
+task.result
+```
+
+All other exceptions will propagate directly up the call tree.
+
+```ruby
+require 'async'
+
+task = Async.run do
+	[].last("apples") # raise TypeError
+end # TypeError: no implicit conversion of String into Integer
+```
+
+If you invoke `Task#stop`, that method is invoked on all children tasks followed an `Async::Stop` exception being raised on the task. You generally shouldn't handle this exception directly, but instead use `ensure` blocks.
+
 ### Examples
 
 #### Reoccurring Timer
 
 ```ruby
+require 'async'
+
 Async.run do |task|
-  while true
-    puts Time.now
-    task.sleep 10
-  end
+	while true
+		puts Time.now
+		task.sleep 10
+	end
 end
 ```
 

@@ -235,13 +235,13 @@ RSpec.describe Async::Task do
 			
 			expect do
 				error_task = reactor.async do |task|
-					raise ArgumentError.new("brain not provided")
+					raise Async::Failure.new("brain not provided")
 				end
 			end.to_not raise_exception
 			
 			expect do
 				error_task.wait
-			end.to raise_exception(ArgumentError, /brain/)
+			end.to raise_exception(Async::Failure, /brain/)
 		end
 		
 		it "will propagate standard errors" do
@@ -250,11 +250,11 @@ RSpec.describe Async::Task do
 			error_task = reactor.async do |task|
 				task.sleep(0.1)
 				
-				raise ArgumentError.new("can haz error")
+				raise Async::Failure.new("can haz error")
 			end
 			
 			innocent_task = reactor.async do |task|
-				expect{error_task.result}.to raise_error(ArgumentError, /can haz error/)
+				expect{error_task.result}.to raise_error(Async::Failure, /can haz error/)
 			end
 			
 			expect do

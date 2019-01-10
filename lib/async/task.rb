@@ -28,6 +28,9 @@ module Async
 	# Raised when a task is explicitly stopped.
 	class Stop < Exception
 	end
+	
+	class Failure < Exception
+	end
 
 	# A task represents the state associated with the execution of an asynchronous
 	# block.
@@ -74,7 +77,7 @@ module Async
 					@result = yield(self, *args)
 					@status = :complete
 					# Async.logger.debug("Task #{self} completed normally.")
-				rescue StandardError => error
+				rescue Failure => error
 					# General errors cause the task to enter the failed state.
 					@result = error
 					@status = :failed
@@ -112,7 +115,7 @@ module Async
 		attr :fiber
 		def_delegators :@fiber, :alive?
 		
-		# @attr status [Symbol] The status of the execution of the fiber, one of `:running`, `:complete`, `:stopped`, or `:failed`.
+		# @attr status [Symbol] The status of the execution of the fiber, one of `:running`, `:complete`, `:stopped`, `:failed` or `:exception`.
 		attr :status
 		
 		# Resume the execution of the task.
