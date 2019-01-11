@@ -31,7 +31,7 @@ module Async
 	
 	class Failure < Exception
 	end
-
+	
 	# A task represents the state associated with the execution of an asynchronous
 	# block.
 	class Task < Node
@@ -60,42 +60,16 @@ module Async
 		# Create a new task.
 		# @param reactor [Async::Reactor] the reactor this task will run within.
 		# @param parent [Async::Task] the parent task.
-		def initialize(reactor, parent = Task.current?)
+		def initialize(reactor, parent = Task.current?, &block)
 			super(parent || reactor)
 			
 			@reactor = reactor
 			
 			@status = :initialized
 			@result = nil
-			
 			@finished = nil
 			
-			@fiber = Fiber.new do |*args|
-				set!
-				
-				begin
-					@result = yield(self, *args)
-					@status = :complete
-					# Async.logger.debug("Task #{self} completed normally.")
-				rescue Failure => error
-					# General errors cause the task to enter the failed state.
-					@result = error
-					@status = :failed
-					Async.logger.debug(self) {$!}
-				rescue Stop
-					@status = :stop
-					# Async.logger.debug("Task #{self} stopped: #{$!}")
-					Async.logger.debug(self) {$!}
-				rescue Exception
-					# Exceptions (like SignalError) immediately terminate the task/run-loop.
-					@status = :exception
-					Async.logger.debug(self) {$!}
-					raise
-				ensure
-					# Async.logger.debug("Task #{self} closing: #{$!}")
-					finish!
-				end
-			end
+			@fiber = make_fiber(&block)
 		end
 		
 		def to_s
@@ -186,8 +160,45 @@ module Async
 		def finished?
 			super && @status != :running
 		end
-	
+		
+		def failed?
+			@status == :failed or @status == :exception
+		end
+		
+		def stopped?
+			@status == :stopped
+		end
+		
 		private
+		
+		def make_fiber(&block)
+			Fiber.new do |*args|
+				set!
+				
+				begin
+					@result = yield(self, *args)
+					@status = :complete
+					# Async.logger.debug("Task #{self} completed normally.")
+				rescue Failure => error
+					# General errors cause the task to enter the failed state.
+					@result = error
+					@status = :failed
+					Async.logger.debug(self) {$!}
+				rescue Stop
+					@status = :stopped
+					# Async.logger.debug("Task #{self} stopped: #{$!}")
+					Async.logger.debug(self) {$!}
+				rescue Exception
+					# Exceptions (like SignalError) immediately terminate the task/run-loop.
+					@status = :exception
+					Async.logger.debug(self) {$!}
+					raise
+				ensure
+					# Async.logger.debug("Task #{self} closing: #{$!}")
+					finish!
+				end
+			end
+		end
 		
 		# Finish the current task, and all bound bound IO objects.
 		def finish!
