@@ -28,3 +28,9 @@ module Async
 		Reactor.run(*args, &block)
 	end
 end
+
+module Kernel
+	def Async(*args, &block)
+		Async::Reactor.run(*args, &block)
+	end
+end

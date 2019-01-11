@@ -50,31 +50,67 @@ The design of this core library is deliberately simple in scope. Additional libr
 
 ### Main Entry Points
 
-#### `Async::Reactor.run`
+#### `Async{...}`
 
-The highest level entry point is `Async::Reactor.run`. It's useful if you are building a library and you want well defined asynchronous semantics. This is aliased to `Async.run`.
+The highest level entry point is `Async{...}`. It's useful if you are building a library and you want well defined asynchronous semantics. This internally invokes `Async::Reactor.run{...}`.
 
 ```ruby
 def run_server
-	Async::Reactor.run do |task|
+	Async do |task|
 		# ... acccept connections
 	end
 end
 ```
 
-If `Async::Reactor.run(&block)` happens within an existing reactor, it will schedule an asynchronous task and return. If `Async::Reactor.run(&block)` happens outside of an existing reactor, it will create a reactor, schedule the asynchronous task, and block until it completes. The task is scheduled by calling `Async::Reactor#async(&block)`.
+If `Async(&block)` happens within an existing reactor, it will schedule an asynchronous task and return. If `Async(&block)` happens outside of an existing reactor, it will create a reactor, schedule the asynchronous task, and block until it completes. The task is scheduled by calling `Async::Reactor#async(&block)`.
 
-This puts the power into the hands of the client, who can either have blocking or non-blocking behaviour by explicitly wrapping the call in a reactor (or not). The cost of using `Async::Reactor.run` is minimal for initialization/server setup, but is not ideal for per-connection tasks.
+This allows the caller to have either blocking or non-blocking behaviour. 
+
+```ruby
+require 'async'
+
+def sleepy(duration = 1)
+	Async do |task|
+		task.sleep duration
+		puts "I'm done sleeping, time for action!"
+	end
+end
+
+# Synchronous operation:
+sleepy
+
+# Asynchronous operation:
+Async do
+	# These two functions will sleep simultaneously.
+	sleepy
+	sleepy
+end
+```
+
+The cost of using `Async{...}` is minimal for initialization/server setup, but is not ideal for per-connection tasks.
 
 #### `Async::Task#async`
 
 If you can guarantee you are running within a task, and have access to it (e.g. via an argument), you can efficiently schedule new tasks using the `Async::Task#async(&block)` method.
 
 ```ruby
-def do_request(task: Task.current)
-	task.async do
-		# ... do some actual work
+require 'async'
+
+def nested_sleepy(task: Async::Task.current)
+	# Block caller
+	task.sleep 0.1
+	
+	# Schedule nested task:
+	subtask = task.async do |subtask|
+		puts "I'm going to sleep..."
+		subtask.sleep 1.0
+	ensure
+		puts "I'm waking up!"
 	end
+end
+
+Async do |task|
+	subtask = nested_sleepy
 end
 ```
 
@@ -83,6 +119,40 @@ This method effectively creates a child task. It's the most efficient way to sch
 ### Reactor Tree
 
 `Async::Reactor` and `Async::Task` form nodes in a tree. Reactors and tasks can spawn children tasks. When you invoke `Async::Reactor#async`, the parent task is determined by calling `Async::Task.current?` which uses fiber local storage. A slightly more efficient method is to use `Async::Task#async`, which uses `self` as the parent task.
+
+
+```ruby
+require 'async'
+
+def sleepy(duration, task: Async::Task.current)
+	task.async do |subtask|
+		subtask.annotate "I'm going to sleep #{duration}s..."
+		subtask.sleep duration
+		puts "I'm done sleeping!"
+	end
+end
+
+def nested_sleepy(task: Async::Task.current)
+	task.async do |subtask|
+		subtask.annotate "Invoking sleepy 5 times..."
+		5.times do |index|
+			sleepy(index, task: subtask)
+		end
+	end
+end
+
+Async do |task|
+	task.annotate "Invoking nested_sleepy..."
+	subtask = nested_sleepy
+	
+	task.print_hierarchy($stderr)
+	
+	# Kill the subtask
+	subtask.stop
+end
+```
+
+#### Stopping Tasks
 
 When invoking `Async::Reactor#stop`, you will stop *all* children tasks of that reactor. Tasks will raise `Async::Stop` if they are in a blocking operation. In addition, it's possible to only stop a sub-tree by issuing `Async::Task#stop`, which will stop that task and all it's children (recursively). When you design a server, you should return the task back to the caller. They can use this task to stop the server if needed, independently of any other unrelated tasks within the reactor, and it will correctly clean up all related tasks.
 
@@ -109,6 +179,8 @@ As tasks run synchronously until they yield back to the reactor, you can guarant
 
 `Async::Task` is a kind of promise. You can call `Task#wait` and this will block the caller until the task completes. If the task finished successfully, the last expression evaluated will be returned (aliased as `Task#result` if you prefer it).
 
+#### Task Failure
+
 If an `Async::Failure` (or derived class) is raised within a task, that task will be marked as `:failed` and `Task#wait` will result in that exception being raised. Task failure is explicitly opt-in because otherwise unexpected exceptions might be missed.
 
 ```ruby
@@ -122,6 +194,8 @@ end
 
 task.result
 ```
+
+#### General Exceptions
 
 All other exceptions will propagate directly up the call tree.
 
