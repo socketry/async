@@ -10,7 +10,7 @@ RSpec.describe Async::Wrapper do
 	it "should be fast to wait until readable" do
 		Benchmark.ips do |x|
 			x.report('Wrapper#wait_readable') do |repeats|
-				Async::Reactor.run do |task|
+				Async do |task|
 					input = Async::Wrapper.new(pipe.first, task.reactor)
 					output = pipe.last
 					
@@ -25,7 +25,7 @@ RSpec.describe Async::Wrapper do
 			end
 			
 			x.report('Reactor#register') do |repeats|
-				Async::Reactor.run do |task|
+				Async do |task|
 					input = pipe.first
 					monitor = task.reactor.register(input, :r)
 					output = pipe.last

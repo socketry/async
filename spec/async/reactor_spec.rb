@@ -75,7 +75,7 @@ RSpec.describe Async::Reactor do
 	end
 	it "can't return" do
 		expect do
-			Async::Reactor.run do |task|
+			Async do |task|
 				return
 			end.wait
 		end.to raise_error(LocalJumpError)
@@ -84,7 +84,7 @@ RSpec.describe Async::Reactor do
 	it "is closed after running" do
 		reactor = nil
 		
-		Async::Reactor.run do |task|
+		Async do |task|
 			reactor = task.reactor
 		end
 		
@@ -94,7 +94,7 @@ RSpec.describe Async::Reactor do
 	end
 	
 	it "should return a task" do
-		result = Async::Reactor.run do |task|
+		result = Async do |task|
 		end
 		
 		expect(result).to be_kind_of(Async::Task)

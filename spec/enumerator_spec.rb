@@ -34,7 +34,7 @@ RSpec.describe Enumerator do
 		# no fiber really used in internal iterator,
 		# but let this test be here for completness
 		ar = nil
-		Async::Reactor.run do |task|
+		Async do |task|
 			ar = enum(task).to_a
 		end
 		expect(ar).to be == [1, 2]
@@ -42,7 +42,7 @@ RSpec.describe Enumerator do
 
 	it "should play well with Enumerator as external iterator", pending: "expected failure" do
 		ar = []
-		Async::Reactor.run do |task|
+		Async do |task|
 			en = enum(task)
 			ar << en.next
 			ar << en.next
@@ -54,7 +54,7 @@ RSpec.describe Enumerator do
 	end
 
 	it "should play well with Enumerator.zip(Enumerator) method", pending: "expected failure" do
-		Async::Reactor.run do |task|
+		Async do |task|
 			ar = [:a, :b, :c, :d].each.zip(enum(task))
 			expect(ar).to be == [[:a, 1], [:b, 2], [:c, nil], [:d, nil]]
 		end.wait
@@ -62,7 +62,7 @@ RSpec.describe Enumerator do
 
 	it "should play with explicit Fiber usage", pending: "expected failure" do
 		ar = []
-		Async::Reactor.run do |task|
+		Async do |task|
 			fib = Fiber.new {
 				Fiber.yield 1
 				task.sleep(0.002)
