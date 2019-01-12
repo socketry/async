@@ -78,7 +78,7 @@ RSpec.describe Async::Reactor do
 			Async do |task|
 				return
 			end.wait
-		end.to raise_error(LocalJumpError)
+		end.to raise_exception(LocalJumpError)
 	end
 	
 	it "is closed after running" do
@@ -90,7 +90,7 @@ RSpec.describe Async::Reactor do
 		
 		expect(reactor).to be_closed
 		
-		expect{reactor.run}.to raise_error(RuntimeError, /closed/)
+		expect{reactor.run}.to raise_exception(RuntimeError, /closed/)
 	end
 	
 	it "should return a task" do
@@ -154,7 +154,7 @@ RSpec.describe Async::Reactor do
 						task.sleep(1.0)
 					end
 				end.wait
-			end.to raise_error(timeout_class)
+			end.to raise_exception(timeout_class)
 		end
 	end
 	

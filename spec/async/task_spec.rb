@@ -28,7 +28,7 @@ RSpec.describe Async::Task do
 			task = reactor.async do |task|
 			end
 			
-			expect{task.run}.to raise_error(RuntimeError, /already running/)
+			expect{task.run}.to raise_exception(RuntimeError, /already running/)
 		end
 	end
 	

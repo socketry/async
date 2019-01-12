@@ -48,7 +48,7 @@ RSpec.describe Async::Wrapper do
 		it "can timeout if no event occurs" do
 			expect do
 				output.wait_readable(0.1)
-			end.to raise_error(Async::TimeoutError)
+			end.to raise_exception(Async::TimeoutError)
 		end
 		
 		it "can wait for readability in sequential tasks" do
@@ -68,7 +68,7 @@ RSpec.describe Async::Wrapper do
 			reactor.async do
 				expect do
 					output.wait_readable
-				end.to raise_error(Async::Wrapper::Cancelled)
+				end.to raise_exception(Async::Wrapper::Cancelled)
 			end
 			
 			expect(output.monitor).to_not be_nil
@@ -84,7 +84,7 @@ RSpec.describe Async::Wrapper do
 			reactor.async do
 				expect do
 					input.wait_readable
-				end.to raise_error(Async::Wrapper::Cancelled)
+				end.to raise_exception(Async::Wrapper::Cancelled)
 			end
 			
 			# This reproduces the race condition that can occur if two tasks are resumed in sequence.
@@ -95,14 +95,14 @@ RSpec.describe Async::Wrapper do
 			# Resume task 2:
 			expect do
 				output.resume
-			end.to_not raise_error
+			end.to_not raise_exception
 		end
 		
 		it "can be cancelled" do
 			reactor.async do
 				expect do
 					input.wait_readable
-				end.to raise_error(Async::Wrapper::Cancelled)
+				end.to raise_exception(Async::Wrapper::Cancelled)
 			end
 			
 			expect(input.monitor).to_not be_nil
@@ -123,7 +123,7 @@ RSpec.describe Async::Wrapper do
 			reactor.async do
 				expect do
 					input.wait_readable(1)
-				end.to raise_error(Async::Wrapper::Cancelled)
+				end.to raise_exception(Async::Wrapper::Cancelled)
 			end
 			
 			expect(input.monitor.interests).to be == :r
@@ -142,7 +142,7 @@ RSpec.describe Async::Wrapper do
 			reactor.async do
 				expect do
 					input.wait_readable
-				end.to raise_error(Async::Wrapper::Cancelled)
+				end.to raise_exception(Async::Wrapper::Cancelled)
 			end
 			
 			expect(input.monitor.interests).to be == :r
@@ -150,7 +150,7 @@ RSpec.describe Async::Wrapper do
 			reactor.async do
 				expect do
 					input.wait_readable
-				end.to raise_error(Async::Wrapper::WaitError)
+				end.to raise_exception(Async::Wrapper::WaitError)
 			end
 		end
 	end
@@ -195,7 +195,7 @@ RSpec.describe Async::Wrapper do
 			
 			expect do
 				output.wait_readable
-			end.to raise_error(IOError, /closed stream/)
+			end.to raise_exception(IOError, /closed stream/)
 		end
 	end
 end
