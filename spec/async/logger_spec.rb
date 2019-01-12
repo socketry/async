@@ -30,20 +30,20 @@ RSpec.describe Async.logger do
 			$DEBUG = false
 			$VERBOSE = false
 			
-			expect(Async.default_log_level).to be == Logger::WARN
+			expect(Async.default_log_level).to be == Async::Logger::WARN
 		end
 		
 		it 'should set default log level based on $DEBUG' do
 			$DEBUG = true
 			
-			expect(Async.default_log_level).to be == Logger::DEBUG
+			expect(Async.default_log_level).to be == Async::Logger::DEBUG
 		end
 		
 		it 'should set default log level based on $VERBOSE' do
 			$DEBUG = false
 			$VERBOSE = true
 			
-			expect(Async.default_log_level).to be == Logger::INFO
+			expect(Async.default_log_level).to be == Async::Logger::INFO
 		end
 	end
 end
