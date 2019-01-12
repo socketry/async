@@ -10,6 +10,9 @@ addons:
 before_script:
   - sudo sh -c 'echo 0 > /proc/sys/net/ipv6/conf/all/disable_ipv6'
 
+after_success:
+  - bundle exec rake external
+
 matrix:
   include:
     - rvm: 2.3

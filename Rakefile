@@ -27,6 +27,7 @@ task :external do
 		clone_and_test("async-dns")
 		clone_and_test("async-http")
 		clone_and_test("falcon")
+		clone_and_test("async-rest")
 	end
 end
 
