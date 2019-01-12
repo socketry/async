@@ -147,8 +147,7 @@ module Async
 			
 			@stopped = false
 			
-			# Allow the user to kick of the initial async tasks.
-			initial_task = async(*args, &block) if block_given?
+			initial_task = self.async(*args, &block) if block_given?
 			
 			@timers.wait do |interval|
 				# running used to correctly answer on `finished?`, and to reuse Array object.
