@@ -58,7 +58,7 @@ module Async
 		# @param reactor [Async::Reactor] the reactor this task will run within.
 		# @param parent [Async::Task] the parent task.
 		# @param propagate_exceptions [Boolean] whether exceptions raised in the task will propagate up the reactor stack.
-		def initialize(reactor, parent = Task.current?, propagate_exceptions: true, &block)
+		def initialize(reactor, parent = Task.current?, &block)
 			super(parent || reactor)
 			
 			@reactor = reactor
@@ -67,7 +67,7 @@ module Async
 			@result = nil
 			@finished = nil
 			
-			@fiber = make_fiber(propagate_exceptions, &block)
+			@fiber = make_fiber(&block)
 		end
 		
 		def to_s
@@ -100,8 +100,8 @@ module Async
 			end
 		end
 		
-		def async(*args, **options, &block)
-			task = Task.new(@reactor, self, **options, &block)
+		def async(*args, &block)
+			task = Task.new(@reactor, self, &block)
 			
 			task.run(*args)
 			
@@ -175,16 +175,21 @@ module Async
 			@status = :failed
 			@result = exception
 			
-			Async.logger.debug(self) {$!}
-			raise if propagate
+			if propagate
+				raise
+			elsif @finished.nil?
+				# If no one has called wait, we log this as an error:
+				Async.logger.error(self) {$!}
+			else
+				Async.logger.debug(self) {$!}
+			end
 		end
 		
 		def stop!
 			@status = :stopped
-			# Async.logger.debug(self) {$!}
 		end
 		
-		def make_fiber(propagate_exceptions, &block)
+		def make_fiber(&block)
 			Fiber.new do |*args|
 				set!
 				
@@ -195,9 +200,9 @@ module Async
 				rescue Stop
 					stop!
 				rescue StandardError => error
-					fail!(error, propagate_exceptions)
+					fail!(error, false)
 				rescue Exception => exception
-					fail!(exception)
+					fail!(exception, true)
 				ensure
 					# Async.logger.debug("Task #{self} closing: #{$!}")
 					finish!

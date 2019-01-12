@@ -59,22 +59,26 @@ RSpec.describe Async::Task do
 			expect do
 				reactor.async do |task|
 					raise "boom"
-				end
+				end.wait
 			end.to raise_exception RuntimeError, /boom/
 		end
 		
 		it "can raise exception after asynchronous operation" do
+			task = nil
+			
 			expect do
-				reactor.async do |task|
+				task = reactor.async do |task|
 					task.sleep 0.1
 					
 					raise "boom"
 				end
-			end.to_not raise_exception RuntimeError, /boom/
+			end.to_not raise_exception
 			
-			expect do
-				reactor.run
-			end.to raise_exception RuntimeError, /boom/
+			reactor.run do
+				expect do
+					task.wait
+				end.to raise_exception RuntimeError, /boom/
+			end
 		end
 		
 		it "can consume exceptions" do

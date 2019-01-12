@@ -91,8 +91,8 @@ module Async
 		#
 		# @yield [Task] Executed within the task.
 		# @return [Task] The task that was scheduled into the reactor.
-		def async(*args, **options, &block)
-			task = Task.new(self, **options, &block)
+		def async(*args, &block)
+			task = Task.new(self, &block)
 			
 			# I want to take a moment to explain the logic of this.
 			# When calling an async block, we deterministically execute it until the
