@@ -179,6 +179,11 @@ module Async
 			raise if propagate
 		end
 		
+		def stop!
+			@status = :stopped
+			# Async.logger.debug(self) {$!}
+		end
+		
 		def make_fiber(propagate_exceptions, &block)
 			Fiber.new do |*args|
 				set!
@@ -188,8 +193,7 @@ module Async
 					@status = :complete
 					# Async.logger.debug("Task #{self} completed normally.")
 				rescue Stop
-					@status = :stopped
-					# Async.logger.debug(self) {$!}
+					stop!
 				rescue StandardError => error
 					fail!(error, propagate_exceptions)
 				rescue Exception => exception
