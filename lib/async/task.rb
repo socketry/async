@@ -87,7 +87,7 @@ module Async
 		attr :fiber
 		def_delegators :@fiber, :alive?
 		
-		# @attr status [Symbol] The status of the execution of the fiber, one of `:running`, `:complete`, `:stopped`, `:failed` or `:exception`.
+		# @attr status [Symbol] The status of the execution of the fiber, one of `:initialized`, `:running`, `:complete`, `:stopped` or `:failed`.
 		attr :status
 		
 		# Resume the execution of the task.
@@ -110,7 +110,7 @@ module Async
 		
 		# Retrieve the current result of the task. Will cause the caller to wait until result is available.
 		# @raise [RuntimeError] if the task's fiber is the current fiber.
-		# @return [Object]
+		# @return [Object] the final expression/result of the task's block.
 		def result
 			raise RuntimeError.new("Cannot wait on own fiber") if Fiber.current.equal?(@fiber)
 			

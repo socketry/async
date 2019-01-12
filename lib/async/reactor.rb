@@ -27,7 +27,7 @@ require 'timers'
 require 'forwardable'
 
 module Async
-	# Raised if a timeout occurs on a specific Fiber. Handled gracefully by {Task}.
+	# Raised if a timeout occurs on a specific Fiber. Handled gracefully by `Task`.
 	class TimeoutError < Exception
 	end
 	
@@ -89,8 +89,8 @@ module Async
 		#
 		# This is the main entry point for scheduling asynchronus tasks.
 		#
-		# @yield [Task] Executed within the asynchronous task.
-		# @return [Task] The task that was 
+		# @yield [Task] Executed within the task.
+		# @return [Task] The task that was scheduled into the reactor.
 		def async(*args, **options, &block)
 			task = Task.new(self, **options, &block)
 			
@@ -124,6 +124,7 @@ module Async
 		end
 		
 		# Schedule a fiber (or equivalent object) to be resumed on the next loop through the reactor.
+		# @param fiber [#resume] The object to be resumed on the next iteration of the run-loop.
 		def << fiber
 			@ready << fiber
 		end
