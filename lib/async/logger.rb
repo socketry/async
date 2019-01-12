@@ -23,9 +23,9 @@ module Async
 		LEVELS = {debug: 0, info: 1, warn: 2, error: 3, fatal: 4}
 		
 		LEVELS.each do |name, level|
-			self.const_set(name.to_s.upcase, level)
+			const_set(name.to_s.upcase, level)
 			
-			self.define_method(name) do |*arguments, &block|
+			define_method(name) do |*arguments, &block|
 				if level >= @level
 					self.format(*arguments, &block)
 				end
