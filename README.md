@@ -145,6 +145,7 @@ Async do |task|
 	task.annotate "Invoking nested_sleepy..."
 	subtask = nested_sleepy
 	
+	# Print out all running tasks in a tree:
 	task.print_hierarchy($stderr)
 	
 	# Kill the subtask
@@ -177,37 +178,33 @@ As tasks run synchronously until they yield back to the reactor, you can guarant
 
 ### Exception Handling
 
-`Async::Task` is a kind of promise. You can call `Task#wait` and this will block the caller until the task completes. If the task finished successfully, the last expression evaluated will be returned (aliased as `Task#result` if you prefer it).
-
-#### Task Failure
-
-If an `Async::Failure` (or derived class) is raised within a task, that task will be marked as `:failed` and `Task#wait` will result in that exception being raised. Task failure is explicitly opt-in because otherwise unexpected exceptions might be missed.
+By default `Async::Task` captures exceptions and re-raises them. This ensures that exceptions will always be visible and cause the program to fail appropriately. Additionally, if a task captures an exception, calling `Task#result` will re-raise the exception.
 
 ```ruby
 require 'async'
 
-task = Async.run do
-	[].last("apples") # raise TypeError
-rescue StandardError
-	raise Async::Failure
-end
+task = Async do
+	raise "Boom"
+end # raises Boom (RuntimeError)
 
-task.result
+task.result # raises previously captured exception.
 ```
 
-#### General Exceptions
+#### Propagating Exceptions **Experimental Feature**
 
-All other exceptions will propagate directly up the call tree.
+It is possible to stop a task from re-raising exceptions. This makes a task behave more like a promise:
 
 ```ruby
 require 'async'
 
-task = Async.run do
-	[].last("apples") # raise TypeError
-end # TypeError: no implicit conversion of String into Integer
+task = Async(propagate_exceptions: false) do
+	raise "Boom"
+end # nothing raised
+
+task.result # raises captured exception: Boom (RuntimeError)
 ```
 
-If you invoke `Task#stop`, that method is invoked on all children tasks followed an `Async::Stop` exception being raised on the task. You generally shouldn't handle this exception directly, but instead use `ensure` blocks.
+This only applies to `StandardError` and derived exceptions. Because exceptions are *not* propagated up the call stack, it's possible that exceptions in your code might go unnoticed.
 
 ### Examples
 
@@ -216,7 +213,7 @@ If you invoke `Task#stop`, that method is invoked on all children tasks followed
 ```ruby
 require 'async'
 
-Async.run do |task|
+Async do |task|
 	while true
 		puts Time.now
 		task.sleep 10

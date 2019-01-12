@@ -54,6 +54,50 @@ RSpec.describe Async::Task do
 				end.wait
 			end.wait
 		end
+		
+		it "can raise exceptions" do
+			expect do
+				reactor.async do |task|
+					raise "boom"
+				end
+			end.to raise_exception RuntimeError, /boom/
+		end
+		
+		it "can raise exception after asynchronous operation" do
+			expect do
+				reactor.async do |task|
+					task.sleep 0.1
+					
+					raise "boom"
+				end
+			end.to_not raise_exception RuntimeError, /boom/
+			
+			expect do
+				reactor.run
+			end.to raise_exception RuntimeError, /boom/
+		end
+		
+		it "can consume exceptions" do
+			task = nil
+			
+			expect do
+				task = reactor.async(propagate_exceptions: false) do |task|
+					raise "boom"
+				end
+			end.to_not raise_exception
+			
+			expect do
+				task.result
+			end.to raise_exception RuntimeError, /boom/
+		end
+		
+		it "won't consume non-StandardError exceptions" do
+			expect do
+				reactor.async(propagate_exceptions: false) do |task|
+					raise SignalException.new(:TERM)
+				end
+			end.to raise_exception(SignalException, /TERM/)
+		end
 	end
 	
 	describe '#yield' do
@@ -230,57 +274,34 @@ RSpec.describe Async::Task do
 			expect(result).to be == [:apples, :oranges]
 		end
 		
-		it "won't raise exceptions to caller unless checking result" do
+		it "will raise exceptions when checking result" do
 			error_task = nil
 			
-			expect do
-				error_task = reactor.async do |task|
-					raise Async::Failure.new("brain not provided")
-				end
-			end.to_not raise_exception
+			error_task = reactor.async(propagate_exceptions: false) do |task|
+				raise RuntimeError, "brain not provided"
+			end
 			
 			expect do
 				error_task.wait
-			end.to raise_exception(Async::Failure, /brain/)
+			end.to raise_exception(RuntimeError, /brain/)
 		end
 		
-		it "will propagate standard errors" do
+		it "will propagate exceptions after async operation" do
 			error_task = nil
 			
-			error_task = reactor.async do |task|
+			error_task = reactor.async(propagate_exceptions: false) do |task|
 				task.sleep(0.1)
 				
-				raise Async::Failure.new("can haz error")
+				raise "boom"
 			end
 			
 			innocent_task = reactor.async do |task|
-				expect{error_task.result}.to raise_error(Async::Failure, /can haz error/)
+				expect{error_task.wait}.to raise_exception RuntimeError, /boom/
 			end
 			
 			expect do
 				reactor.run
 			end.to_not raise_exception
-			
-			expect(error_task).to be_finished
-			expect(innocent_task).to be_finished
-		end
-		
-		it "immediately fails on exceptions" do
-			error_task = nil
-		
-			error_task = reactor.async do |task|
-				task.sleep 0.1
-				
-				raise SignalException.new(:TERM)
-			end
-		
-			innocent_task = reactor.async do |task|
-				expect{error_task.result}.to_not raise_error
-			end
-			
-			expect do
-				reactor.run
-			end.to raise_exception(SignalException, /TERM/)
 			
 			expect(error_task).to be_finished
 			expect(innocent_task).to be_finished

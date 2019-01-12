@@ -29,9 +29,6 @@ module Async
 	class Stop < Exception
 	end
 	
-	class Failure < Exception
-	end
-	
 	# A task represents the state associated with the execution of an asynchronous
 	# block.
 	class Task < Node
@@ -60,7 +57,8 @@ module Async
 		# Create a new task.
 		# @param reactor [Async::Reactor] the reactor this task will run within.
 		# @param parent [Async::Task] the parent task.
-		def initialize(reactor, parent = Task.current?, &block)
+		# @param propagate_exceptions [Boolean] whether exceptions raised in the task will propagate up the reactor stack.
+		def initialize(reactor, parent = Task.current?, propagate_exceptions: true, &block)
 			super(parent || reactor)
 			
 			@reactor = reactor
@@ -69,7 +67,7 @@ module Async
 			@result = nil
 			@finished = nil
 			
-			@fiber = make_fiber(&block)
+			@fiber = make_fiber(propagate_exceptions, &block)
 		end
 		
 		def to_s
@@ -102,8 +100,8 @@ module Async
 			end
 		end
 		
-		def async(*args, &block)
-			task = Task.new(@reactor, self, &block)
+		def async(*args, **options, &block)
+			task = Task.new(@reactor, self, **options, &block)
 			
 			task.run(*args)
 			
@@ -120,7 +118,7 @@ module Async
 				@finished ||= Condition.new
 				@finished.wait
 			else
-				Task.yield {@result}
+				Task.yield{@result}
 			end
 		end
 		
@@ -162,7 +160,7 @@ module Async
 		end
 		
 		def failed?
-			@status == :failed or @status == :exception
+			@status == :failed
 		end
 		
 		def stopped?
@@ -171,7 +169,17 @@ module Async
 		
 		private
 		
-		def make_fiber(&block)
+		# This is a very tricky aspect of tasks to get right. I've modelled it after `Thread` but it's slightly different in that the exception can propagate back up through the reactor. If the user writes code which raises an exception, that exception should always be visible, i.e. cause a failure. If it's not visible, such code fails silently and can be very difficult to debug.
+		# As an explcit choice, the user can start a task which doesn't propagate exceptions. This only applies to `StandardError` and derived tasks. This allows tasks to internally capture their error state which is raised when invoking `Task#result` similar to how `Thread#join` works. This mode makes `Async::Task` behave more like a promise, and you would need to ensure that someone calls `Task#result` otherwise you might miss important errors.
+		def fail!(exception = nil, propagate = true)
+			@status = :failed
+			@result = exception
+			
+			Async.logger.debug(self) {$!}
+			raise if propagate
+		end
+		
+		def make_fiber(propagate_exceptions, &block)
 			Fiber.new do |*args|
 				set!
 				
@@ -179,20 +187,13 @@ module Async
 					@result = yield(self, *args)
 					@status = :complete
 					# Async.logger.debug("Task #{self} completed normally.")
-				rescue Failure => error
-					# General errors cause the task to enter the failed state.
-					@result = error
-					@status = :failed
-					Async.logger.debug(self) {$!}
 				rescue Stop
 					@status = :stopped
-					# Async.logger.debug("Task #{self} stopped: #{$!}")
-					Async.logger.debug(self) {$!}
-				rescue Exception
-					# Exceptions (like SignalError) immediately terminate the task/run-loop.
-					@status = :exception
-					Async.logger.debug(self) {$!}
-					raise
+					# Async.logger.debug(self) {$!}
+				rescue StandardError => error
+					fail!(error, propagate_exceptions)
+				rescue Exception => exception
+					fail!(exception)
 				ensure
 					# Async.logger.debug("Task #{self} closing: #{$!}")
 					finish!
