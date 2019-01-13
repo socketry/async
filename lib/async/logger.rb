@@ -27,7 +27,7 @@ module Async
 		LEVELS.each do |name, level|
 			const_set(name.to_s.upcase, level)
 			
-			define_method(name) do |subject, *arguments, &block|
+			define_method(name) do |subject = nil, *arguments, &block|
 				enabled = @subjects[subject]
 				
 				if enabled == true or (enabled != false and level >= @level)
@@ -73,7 +73,7 @@ module Async
 			@subjects[subject.class] = false
 		end
 		
-		def format(subject, *arguments, &block)
+		def format(subject = nil, *arguments, &block)
 			prefix = time_offset_prefix
 			indent = " " * prefix.size
 			
@@ -81,7 +81,9 @@ module Async
 				arguments << yield
 			end
 			
-			format_subject(prefix, subject)
+			if subject
+				format_subject(prefix, subject)
+			end
 			
 			arguments.each do |argument|
 				format_argument(indent, argument)
