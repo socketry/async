@@ -108,7 +108,7 @@ RSpec.describe Async::Task do
 		it "can yield back to reactor" do
 			state = nil
 			
-			task = reactor.async do |task|
+			reactor.async do |task|
 				state = :started
 				task.yield
 				state = :finished
@@ -138,7 +138,7 @@ RSpec.describe Async::Task do
 		it "should kill direct child" do
 			parent_task = child_task = nil
 			
-			task = reactor.async do |task|
+			reactor.async do |task|
 				parent_task = task
 				reactor.async do |task|
 					child_task = task
@@ -183,7 +183,7 @@ RSpec.describe Async::Task do
 		it "can sleep for the requested duration" do
 			state = nil
 			
-			task = reactor.async do |task|
+			reactor.async do |task|
 				task.sleep(duration)
 				state = :finished
 			end
@@ -201,7 +201,7 @@ RSpec.describe Async::Task do
 	
 	describe '#timeout' do
 		it "can extend timeout" do
-			task = reactor.async do |task|
+			reactor.async do |task|
 				task.timeout(0.2) do |timer|
 					task.sleep(0.1)
 					
@@ -219,7 +219,7 @@ RSpec.describe Async::Task do
 		it "will timeout if execution takes too long" do
 			state = nil
 			
-			task = reactor.async do |task|
+			reactor.async do |task|
 				begin
 					task.timeout(0.01) do
 						state = :started
@@ -239,7 +239,7 @@ RSpec.describe Async::Task do
 		it "won't timeout if execution completes in time" do
 			state = nil
 			
-			task = reactor.async do |task|
+			reactor.async do |task|
 				state = :started
 				task.timeout(0.01) do
 					task.sleep(0.001)
@@ -269,7 +269,7 @@ RSpec.describe Async::Task do
 				:oranges
 			end
 			
-			fruit_salad_task = reactor.async do |task|
+			reactor.async do |task|
 				result = [apples_task.result, oranges_task.result]
 			end
 			

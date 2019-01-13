@@ -26,9 +26,9 @@ RSpec.describe Async::Reactor do
 			outer_reactor = Async::Task.current.reactor
 			inner_reactor = nil
 			
-			task = described_class.run do |task|
+			described_class.run do |task|
 				inner_reactor = task.reactor
-			end 
+			end
 			
 			expect(outer_reactor).to be_kind_of(described_class)
 			expect(outer_reactor).to be_eql(inner_reactor)
@@ -40,9 +40,9 @@ RSpec.describe Async::Reactor do
 			expect(Async::Task.current?).to be_nil
 			inner_reactor = nil
 			
-			task = described_class.run do |task|
+			described_class.run do |task|
 				inner_reactor = task.reactor
-			end 
+			end
 			
 			expect(inner_reactor).to be_kind_of(described_class)
 		end

@@ -22,7 +22,7 @@ RSpec.shared_examples Async::Condition do
 	it 'can signal waiting task' do
 		state = nil
 		
-		task = reactor.async do
+		reactor.async do
 			state = :waiting
 			subject.wait
 			state = :resumed
