@@ -71,7 +71,7 @@ module Async
 		end
 		
 		def to_s
-			"<#{self.description} status=#{@status}>"
+			"<#{self.description} #{@status}>"
 		end
 		
 		# @attr ios [Reactor] The reactor the task was created within.

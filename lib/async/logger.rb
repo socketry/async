@@ -18,6 +18,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
+require_relative 'terminal'
+
 module Async
 	class Logger
 		LEVELS = {debug: 0, info: 1, warn: 2, error: 3, fatal: 4}
@@ -25,9 +27,11 @@ module Async
 		LEVELS.each do |name, level|
 			const_set(name.to_s.upcase, level)
 			
-			define_method(name) do |*arguments, &block|
-				if level >= @level
-					self.format(*arguments, &block)
+			define_method(name) do |subject, *arguments, &block|
+				enabled = @subjects[subject]
+				
+				if enabled == true or (enabled != false and level >= @level)
+					self.format(subject, *arguments, &block)
 				end
 			end
 		end
@@ -37,28 +41,50 @@ module Async
 			@level = level
 			@start = Time.now
 			
+			@terminal = Terminal.new(output)
+			@reset_style = @terminal.reset
+			@prefix_style = @terminal.color(Terminal::Colors::CYAN)
+			@subject_style = @terminal.color(nil, nil, Terminal::Attributes::BOLD)
+			@exception_title_style = @terminal.color(Terminal::Colors::RED, nil, Terminal::Attributes::BOLD)
+			@exception_line_style = @terminal.color(Terminal::Colors::RED)
+			
 			@subjects = {}
 		end
 		
-		attr_accessor :level
+		attr :level
+		
+		def level= value
+			if value.is_a? Symbol
+				@level = LEVELS[value]
+			else
+				@level = value
+			end
+		end
+		
+		def enabled?(subject)
+			@subjects[subject.class] == true
+		end
 		
 		def enable(subject)
-			@subjects[subject] = true
+			@subjects[subject.class] = true
 		end
 		
 		def disable(subject)
-			@subjects[subject] = false
+			@subjects[subject.class] = false
 		end
 		
 		def format(subject, *arguments, &block)
 			prefix = time_offset_prefix
+			indent = " " * prefix.size
 			
 			if block_given?
 				arguments << yield
 			end
 			
+			format_subject(prefix, subject)
+			
 			arguments.each do |argument|
-				format_argument(prefix, argument)
+				format_argument(indent, argument)
 			end
 		end
 		
@@ -70,23 +96,31 @@ module Async
 			end
 		end
 		
-		def format_exception(prefix, exception)
-			@output.puts "#{prefix}: #{exception.class}: #{exception}"
-			indent = (" " * prefix.size) + "| "
+		def format_exception(indent, exception, prefix = nil, pwd: Dir.pwd)
+			@output.puts "#{indent}|  #{prefix}#{@exception_title_style}#{exception.class}#{@reset_style}: #{exception}"
 			
-			exception.backtrace.each do |line|
-				@output.puts "#{indent}\t#{line}"
+			exception.backtrace.each_with_index do |line, index|
+				path, offset, message = line.split(":")
+				
+				# Make the path a bit more readable
+				path.gsub!(/^#{pwd}\//, "./")
+				
+				@output.puts "#{indent}|  #{index == 0 ? "→" : " "} #{@exception_line_style}#{path}:#{offset}#{@reset_style} #{message}"
 			end
 			
 			if exception.cause
-				@output.puts "... caused by:"
+				@output.puts "#{indent}|"
 				
-				format_exception("...".rjust(prefix.size), exception.cause)
+				format_exception(indent, exception.cause, "Caused by ", pwd: pwd)
 			end
 		end
 		
-		def format_value(prefix, value)
-			@output.puts "#{prefix}#{value.inspect}"
+		def format_subject(prefix, subject)
+			@output.puts "#{@prefix_style}#{prefix}: #{@subject_style}#{subject}#{@reset_style}"
+		end
+		
+		def format_value(indent, value)
+			@output.puts "#{indent}: #{value.inspect}"
 		end
 		
 		def time_offset_prefix
