@@ -28,15 +28,19 @@ module Async
 			const_set(name.to_s.upcase, level)
 			
 			define_method(name) do |subject = nil, *arguments, &block|
-				enabled = @subjects[subject]
+				enabled = @subjects[subject.class]
 				
 				if enabled == true or (enabled != false and level >= @level)
 					self.format(subject, *arguments, &block)
 				end
 			end
+			
+			define_method("#{name}!") do
+				@level = level
+			end
 		end
 		
-		def initialize(output, level: 0)
+		def initialize(output, level: 1)
 			@output = output
 			@level = level
 			@start = Time.now
@@ -71,6 +75,14 @@ module Async
 		
 		def disable(subject)
 			@subjects[subject.class] = false
+		end
+		
+		def log(level, *args, &block)
+			unless level.is_a? Symbol
+				level = LEVELS[level]
+			end
+			
+			self.send(level, *args, &block)
 		end
 		
 		def format(subject = nil, *arguments, &block)
@@ -122,7 +134,7 @@ module Async
 		end
 		
 		def format_value(indent, value)
-			@output.puts "#{indent}: #{value.inspect}"
+			@output.puts "#{indent}: #{value}"
 		end
 		
 		def time_offset_prefix

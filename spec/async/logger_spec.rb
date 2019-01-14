@@ -18,8 +18,52 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
+RSpec.describe Async::Logger do
+	let(:output) {StringIO.new}
+	subject{described_class.new(output)}
+	
+	let(:message) {"Hello World"}
+	
+	context "default log level" do
+		it "logs info" do
+			subject.info(message)
+			
+			expect(output.string).to include message
+		end
+		
+		it "doesn't log debug" do
+			subject.debug(message)
+			
+			expect(output.string).to_not include message
+		end
+	end
+	
+	described_class::LEVELS.each do |name, level|
+		it "can log #{name} messages" do
+			subject.level = level
+			subject.log(name, message)
+			
+			expect(output.string).to include message
+		end
+	end
+	
+	describe '#enable' do
+		let(:object) {Async::Node.new}
+		
+		it "can enable specific subjects" do
+			subject.warn!
+			
+			subject.enable(object)
+			expect(subject).to be_enabled(object)
+			
+			subject.debug(object, message)
+			expect(output.string).to include message
+		end
+	end
+end
+
 RSpec.describe Async.logger do
-	describe '::default_log_level' do
+	describe 'default_log_level' do
 		let!(:debug) {$DEBUG}
 		after {$DEBUG = debug}
 		
