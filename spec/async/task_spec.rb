@@ -91,7 +91,7 @@ RSpec.describe Async::Task do
 			end.to_not raise_exception
 			
 			expect do
-				task.result
+				task.wait
 			end.to raise_exception RuntimeError, /boom/
 		end
 		
@@ -255,8 +255,6 @@ RSpec.describe Async::Task do
 	
 	describe '#wait' do
 		it "will wait on another task to complete" do
-			result = nil
-			
 			apples_task = reactor.async do |task|
 				task.sleep(0.1)
 				
@@ -269,13 +267,13 @@ RSpec.describe Async::Task do
 				:oranges
 			end
 			
-			reactor.async do |task|
-				result = [apples_task.result, oranges_task.result]
+			fruit_salad = reactor.async do |task|
+				[apples_task.wait, oranges_task.wait]
 			end
 			
 			reactor.run
 			
-			expect(result).to be == [:apples, :oranges]
+			expect(fruit_salad.wait).to be == [:apples, :oranges]
 		end
 		
 		it "will raise exceptions when checking result" do

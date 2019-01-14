@@ -111,8 +111,8 @@ module Async
 		# Retrieve the current result of the task. Will cause the caller to wait until result is available.
 		# @raise [RuntimeError] if the task's fiber is the current fiber.
 		# @return [Object] the final expression/result of the task's block.
-		def result
-			raise RuntimeError.new("Cannot wait on own fiber") if Fiber.current.equal?(@fiber)
+		def wait
+			raise RuntimeError, "Cannot wait on own fiber" if Fiber.current.equal?(@fiber)
 			
 			if running?
 				@finished ||= Condition.new
@@ -122,8 +122,9 @@ module Async
 			end
 		end
 		
-		alias wait result
-	
+		# Deprecated.
+		alias result wait
+		
 		# Stop the task and all of its children.
 		# @return [void]
 		def stop
