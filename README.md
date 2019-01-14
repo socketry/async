@@ -14,15 +14,18 @@ Async is a composable asynchronous I/O framework for Ruby based on [nio4r] and [
 
 Several years ago, I was hosting websites on a server in my garage. Back then, my ADSL modem was very basic, and I wanted to have a DNS server which would resolve to an internal IP address when the domain itself resolved to my public IP. Thus was born [RubyDNS]. This project [was originally built on](https://github.com/ioquatix/rubydns/tree/v0.8.5) top of [EventMachine], but a lack of support for [IPv6 at the time](https://github.com/ioquatix/rubydns/issues/45) and [other problems](https://github.com/ioquatix/rubydns/issues/14), meant that I started looking for other options. Around that time [Celluloid] was picking up steam. I had not encountered actors before and I wanted to learn more about it. So, [I reimplemented RubyDNS on top of Celluloid](https://github.com/ioquatix/rubydns/tree/v0.9.0) and this eventually became the first stable release.
 
-Moving forward, I refactored the internals of RubyDNS into [Celluloid::DNS]. This rewrite helped solidify the design of RubyDNS and to a certain extent it works. However, [unfixed bugs and design problems](https://github.com/celluloid/celluloid/pull/710) in Celluloid meant that RubyDNS 2.0 was delayed by almost 2 years. I wasn't happy releasing it with known bugs and problems. After sitting on the problem for a while, and thinking about possible solutions, I decided to build a small event reactor using [nio4r] and [timers], the core parts of [Celluloid::IO] which made it work so well. The result is this project.
+Moving forward, I refactored the internals of RubyDNS into [Celluloid::DNS]. This rewrite helped solidify the design of RubyDNS and to a certain extent it works. However, [unfixed bugs and design problems](https://github.com/celluloid/celluloid/pull/710) in Celluloid meant that RubyDNS 2.0 was delayed by almost 2 years. I wasn't happy releasing it with known bugs and problems. After working on the issues for a while, and thinking about possible solutions, I decided to build a small event reactor using [nio4r] and [timers], the core parts of [Celluloid::IO] which made it work so well. The result is this project.
 
-In addition, there is a [similarly designed C++ library of the same name](https://github.com/kurocha/async). These two libraries share similar design principles, but are different in some areas due to the underlying semantic differences of the languages.
+One observation I made when looking at existing gems for asynchronous IO was a tendency to try and do everything within a single code-base. The design of this core library is deliberately simple. Additional libraries provide asynchronous networking, process management, etc. It's likely you will prefer to depend on [async-io] for actual wrappers around `IO` and `Socket`. This helps to ensure a clean separation of concerns.
+
+In designing this library, I also built a [similarly designed C++ library of the same name](https://github.com/kurocha/async). These two libraries share similar design principles.
 
 [Celluloid]: https://github.com/celluloid/celluloid
 [Celluloid::IO]: https://github.com/celluloid/celluloid-io
 [Celluloid::DNS]: https://github.com/celluloid/celluloid-dns
 [EventMachine]: https://github.com/eventmachine/eventmachine
 [RubyDNS]: https://github.com/ioquatix/rubydns
+[async-io]: https://github.com/socketry/async-io
 
 ## Installation
 
@@ -42,13 +45,9 @@ Or install it yourself as:
 
 ## Usage
 
-`Async::Reactor` is the top level IO reactor, and runs multiple tasks asynchronously. The reactor itself is not thread-safe, so you'd typically have [one reactor per thread or process](https://github.com/socketry/async-container).
+### Tasks
 
-An `Async::Task` runs using a `Fiber` and blocking operations e.g. `sleep`, `read`, `write` yield control until the operation can succeed.
-
-The design of this core library is deliberately simple in scope. Additional libraries provide asynchronous networking, process management, etc. It's likely you will prefer to depend on `async-io` for actual wrappers around `IO` and `Socket`.
-
-### Main Entry Points
+An `Async::Task` runs using a `Fiber` and blocking operations e.g. `sleep`, `read`, `write` yield control until the operation can complete. There are two main methods to create tasks.
 
 #### `Async{...}`
 
@@ -116,7 +115,43 @@ end
 
 This method effectively creates a child task. It's the most efficient way to schedule a task. The task is executed until the first blocking operation, at which point it will yield control and `#async` will return. The result of this method is the task itself.
 
-### Reactor Tree
+### Waiting for Results
+
+Like promises, `Async::Task` produces results. In order to wait for these results, you must invoke `Async::Task#wait`:
+
+```ruby
+require 'async'
+
+task = Async do
+	rand
+end
+
+puts task.wait
+```
+
+### Stopping Tasks
+
+Use `Async::Task#stop` to stop tasks. This function raises `Async::Stop` on the target task and all descendent tasks.
+
+```ruby
+require 'async'
+
+Async do
+	sleepy = Async do |task|
+		task.sleep 1000
+	end
+	
+	sleepy.stop
+end
+```
+
+When you design a server, you should return the task back to the caller. They can use this task to stop the server if needed, independently of any other unrelated tasks within the reactor, and it will correctly clean up all related tasks.
+
+### Reactors
+
+`Async::Reactor` is the top level IO reactor, and runs multiple tasks asynchronously. The reactor itself is not thread-safe, so you'd typically have [one reactor per thread or process](https://github.com/socketry/async-container).
+
+#### Hierarchy
 
 `Async::Reactor` and `Async::Task` form nodes in a tree. Reactors and tasks can spawn children tasks. When you invoke `Async::Reactor#async`, the parent task is determined by calling `Async::Task.current?` which uses fiber local storage. A slightly more efficient method is to use `Async::Task#async`, which uses `self` as the parent task.
 
@@ -153,9 +188,24 @@ Async do |task|
 end
 ```
 
-#### Stopping Tasks
+#### Stopping Reactors
 
-When invoking `Async::Reactor#stop`, you will stop *all* children tasks of that reactor. Tasks will raise `Async::Stop` if they are in a blocking operation. In addition, it's possible to only stop a sub-tree by issuing `Async::Task#stop`, which will stop that task and all it's children (recursively). When you design a server, you should return the task back to the caller. They can use this task to stop the server if needed, independently of any other unrelated tasks within the reactor, and it will correctly clean up all related tasks.
+`Async::Reactor#run` will run until the reactor runs out of work to do or is explicitly stopped.
+
+```ruby
+require 'async'
+
+Async.logger.debug!
+reactor = Async::Reactor.new
+
+# Run the reactor for 1 second:
+reactor.run do |task|
+	task.sleep 1
+	reactor.stop
+end
+```
+
+You can use this approach to embed the reactor in another event loop. `Async::Reactor#stop` is can be called safely from a different thread.
 
 ### Resource Management
 
@@ -178,37 +228,59 @@ As tasks run synchronously until they yield back to the reactor, you can guarant
 
 ### Exception Handling
 
-By default `Async::Task` captures exceptions and re-raises them. This ensures that exceptions will always be visible and cause the program to fail appropriately. Additionally, if a task captures an exception, calling `Task#result` will re-raise the exception.
+`Async::Task` captures and logs exceptions. All unhandled exceptions will cause the enclosing task to enter the `:failed` state. Non-`StandardError` exceptions are re-raised immediately and will generally cause the reactor to fail. This ensures that exceptions will always be visible and cause the program to fail appropriately.
 
 ```ruby
 require 'async'
 
 task = Async do
+	# Exception will be logged and task will be failed.
 	raise "Boom"
-end # raises Boom (RuntimeError)
+end
 
-task.result # raises previously captured exception.
+puts task.status # failed
+puts task.result # raises RuntimeError: Boom
 ```
 
-#### Propagating Exceptions **Experimental Feature**
+#### Propagating Exceptions
 
-It is possible to stop a task from re-raising exceptions. This makes a task behave more like a promise:
+If a task has finished due to an exception, calling `Task#wait` will re-raise the exception.
 
 ```ruby
 require 'async'
 
-task = Async(propagate_exceptions: false) do
-	raise "Boom"
-end # nothing raised
-
-task.result # raises captured exception: Boom (RuntimeError)
+Async do
+	task = Async do
+		raise "Boom"
+	end
+	
+	begin
+		task.wait # Re-raises above exception.
+	rescue
+		puts "It went #{$!}!"
+	end
+end
 ```
 
-This only applies to `StandardError` and derived exceptions. Because exceptions are *not* propagated up the call stack, it's possible that exceptions in your code might go unnoticed.
+#### Timeouts
 
-### Examples
+You can wrap asynchronous operations in a timeout. This ensures that malicious services don't cause your code to block indefinitely.
 
-#### Reoccurring Timer
+```ruby
+require 'async'
+
+Async do |task|
+	task.timeout(1) do
+		task.sleep 100
+	rescue Async::TimeoutError
+		puts "I timed out!"
+	end
+end
+```
+
+### Reoccurring Timers
+
+Sometimes you need to do some periodic work in a loop.
 
 ```ruby
 require 'async'
@@ -216,7 +288,7 @@ require 'async'
 Async do |task|
 	while true
 		puts Time.now
-		task.sleep 10
+		task.sleep 1
 	end
 end
 ```
@@ -249,6 +321,7 @@ Due to limitations within Ruby and the nature of this library, it is not possibl
 - [ciri](https://github.com/ciri-ethereum/ciri) - An Ethereum implementation written in Ruby.
 - [falcon](https://github.com/socketry/falcon) — A rack compatible server built on top of `async-http`.
 - [rubydns](https://github.com/ioquatix/rubydns) — A easy to use Ruby DNS server.
+- [slack-ruby-bot](https://github.com/slack-ruby/slack-ruby-bot) — A client for making slack bots.
 
 ## License
 
