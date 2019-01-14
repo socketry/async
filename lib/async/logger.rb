@@ -20,6 +20,9 @@
 
 require_relative 'terminal'
 
+# Downstream gems often use `Logger:::LEVEL` constants, so we pull this in so they are available. That being said, the code should be fixed.
+require 'logger'
+
 module Async
 	class Logger
 		LEVELS = {debug: 0, info: 1, warn: 2, error: 3, fatal: 4}
