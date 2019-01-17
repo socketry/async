@@ -36,6 +36,14 @@ RSpec.describe Async::Logger do
 			
 			expect(output.string).to_not include message
 		end
+		
+		it "can log to buffer" do
+			subject.info do |buffer|
+				buffer << message
+			end
+			
+			expect(output.string).to include message
+		end
 	end
 	
 	described_class::LEVELS.each do |name, level|
