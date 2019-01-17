@@ -89,32 +89,39 @@ module Async
 		end
 		
 		def format(subject = nil, *arguments, &block)
+			buffer = StringIO.new
 			prefix = time_offset_prefix
 			indent = " " * prefix.size
 			
-			if block_given?
-				arguments << yield
-			end
-			
 			if subject
-				format_subject(prefix, subject)
+				format_subject(prefix, subject, output: buffer)
 			end
 			
 			arguments.each do |argument|
-				format_argument(indent, argument)
+				format_argument(indent, argument, output: buffer)
 			end
+			
+			if block_given?
+				if block.arity.zero?
+					format_argument(indent, yield, output: buffer)
+				else
+					yield(buffer, @terminal)
+				end
+			end
+			
+			@output.write buffer.string
 		end
 		
-		def format_argument(prefix, argument)
+		def format_argument(prefix, argument, output: @output)
 			if argument.is_a? Exception
-				format_exception(prefix, argument)
+				format_exception(prefix, argument, output: output)
 			else
-				format_value(prefix, argument)
+				format_value(prefix, argument, output: output)
 			end
 		end
 		
-		def format_exception(indent, exception, prefix = nil, pwd: Dir.pwd)
-			@output.puts "#{indent}|  #{prefix}#{@exception_title_style}#{exception.class}#{@reset_style}: #{exception}"
+		def format_exception(indent, exception, prefix = nil, pwd: Dir.pwd, output: @output)
+			output.puts "#{indent}|  #{prefix}#{@exception_title_style}#{exception.class}#{@reset_style}: #{exception}"
 			
 			exception.backtrace.each_with_index do |line, index|
 				path, offset, message = line.split(":")
@@ -122,22 +129,26 @@ module Async
 				# Make the path a bit more readable
 				path.gsub!(/^#{pwd}\//, "./")
 				
-				@output.puts "#{indent}|  #{index == 0 ? "→" : " "} #{@exception_line_style}#{path}:#{offset}#{@reset_style} #{message}"
+				output.puts "#{indent}|  #{index == 0 ? "→" : " "} #{@exception_line_style}#{path}:#{offset}#{@reset_style} #{message}"
 			end
 			
 			if exception.cause
-				@output.puts "#{indent}|"
+				output.puts "#{indent}|"
 				
-				format_exception(indent, exception.cause, "Caused by ", pwd: pwd)
+				format_exception(indent, exception.cause, "Caused by ", pwd: pwd, output: output)
 			end
 		end
 		
-		def format_subject(prefix, subject)
-			@output.puts "#{@prefix_style}#{prefix}: #{@subject_style}#{subject}#{@reset_style}"
+		def format_subject(prefix, subject, output: @output)
+			output.puts "#{@prefix_style}#{prefix}: #{@subject_style}#{subject}#{@reset_style}"
 		end
 		
-		def format_value(indent, value)
-			@output.puts "#{indent}: #{value}"
+		def format_value(indent, value, output: @output)
+			string = value.to_s
+			
+			string.each_line do |line|
+				output.puts "#{indent}: #{line}"
+			end
 		end
 		
 		def time_offset_prefix
