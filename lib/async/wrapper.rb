@@ -92,14 +92,14 @@ module Async
 		end
 		
 		# Wait for the io to become readable.
-		def wait_readable(duration = nil)
+		def wait_readable(timeout = nil)
 			raise WaitError if @readable
 			
 			self.reactor = Task.current.reactor
 			
 			begin
 				@readable = Fiber.current
-				wait_for(duration)
+				wait_for(timeout)
 			ensure
 				@readable = nil
 				@monitor.interests = interests if @monitor
@@ -107,14 +107,14 @@ module Async
 		end
 		
 		# Wait for the io to become writable.
-		def wait_writable(duration = nil)
+		def wait_writable(timeout = nil)
 			raise WaitError if @writable
 			
 			self.reactor = Task.current.reactor
 			
 			begin
 				@writable = Fiber.current
-				wait_for(duration)
+				wait_for(timeout)
 			ensure
 				@writable = nil
 				@monitor.interests = interests if @monitor
@@ -123,14 +123,14 @@ module Async
 		
 		# Wait fo the io to become either readable or writable.
 		# @param duration [Float] timeout after the given duration if not `nil`.
-		def wait_any(duration = nil)
+		def wait_any(timeout = nil)
 			raise WaitError if @any
 			
 			self.reactor = Task.current.reactor
 			
 			begin
 				@any = Fiber.current
-				wait_for(duration)
+				wait_for(timeout)
 			ensure
 				@any = nil
 				@monitor.interests = interests if @monitor
@@ -195,7 +195,7 @@ module Async
 			end
 		end
 		
-		def wait_for(duration)
+		def wait_for(timeout)
 			if @monitor
 				@monitor.interests = interests
 			else
