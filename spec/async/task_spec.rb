@@ -199,10 +199,10 @@ RSpec.describe Async::Task do
 		end
 	end
 	
-	describe '#timeout' do
+	describe '#with_timeout' do
 		it "can extend timeout" do
 			reactor.async do |task|
-				task.timeout(0.2) do |timer|
+				task.with_timeout(0.2) do |timer|
 					task.sleep(0.1)
 					
 					expect(timer.fires_in).to be_within(10).percent_of(0.1)
@@ -221,7 +221,7 @@ RSpec.describe Async::Task do
 			
 			reactor.async do |task|
 				begin
-					task.timeout(0.01) do
+					task.with_timeout(0.01) do
 						state = :started
 						task.sleep(10)
 						state = :finished
@@ -241,7 +241,7 @@ RSpec.describe Async::Task do
 			
 			reactor.async do |task|
 				state = :started
-				task.timeout(0.01) do
+				task.with_timeout(0.01) do
 					task.sleep(0.001)
 					state = :finished
 				end
@@ -250,6 +250,26 @@ RSpec.describe Async::Task do
 			reactor.run
 			
 			expect(state).to be == :finished
+		end
+		
+		def sleep_forever
+			while true
+				Async::Task.current.sleep(1)
+			end
+		end
+		
+		it "contains useful backtrace" do
+			task = Async do |task|
+				task.with_timeout(1.0) do
+					sleep_forever
+				end
+			end
+			
+			expect{task.wait}.to raise_error(Async::TimeoutError)
+			
+			# TODO replace this with task.result
+			task.wait rescue error = $!
+			expect(error.backtrace).to include(/sleep_forever/)
 		end
 	end
 	

@@ -76,7 +76,7 @@ module Async
 		
 		# @attr ios [Reactor] The reactor the task was created within.
 		attr :reactor
-		def_delegators :@reactor, :timeout, :sleep
+		def_delegators :@reactor, :with_timeout, :timeout, :sleep
 		
 		# Yield back to the reactor and allow other fibers to execute.
 		def yield
@@ -90,7 +90,7 @@ module Async
 		# @attr status [Symbol] The status of the execution of the fiber, one of `:initialized`, `:running`, `:complete`, `:stopped` or `:failed`.
 		attr :status
 		
-		# Resume the execution of the task.
+		# Begin the execution of the task.
 		def run(*args)
 			if @status == :initialized
 				@status = :running
@@ -124,6 +124,7 @@ module Async
 		
 		# Deprecated.
 		alias result wait
+		# Soon to become attr :result
 		
 		# Stop the task and all of its children.
 		# @return [void]

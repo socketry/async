@@ -13,7 +13,7 @@ class IO
 		
 		monitor = reactor.add_io(fiber, descriptor, state)
 		
-		fiber.timeout(duration) do
+		fiber.with_timeout(duration) do
 			result = Fiber.yield
 			raise result if result.is_a? Exception
 		end

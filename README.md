@@ -270,7 +270,7 @@ You can wrap asynchronous operations in a timeout. This ensures that malicious s
 require 'async'
 
 Async do |task|
-	task.timeout(1) do
+	task.with_timeout(1) do
 		task.sleep 100
 	rescue Async::TimeoutError
 		puts "I timed out!"

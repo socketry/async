@@ -204,7 +204,6 @@ module Async
 			@children.each(&:stop)
 			
 			# TODO Should we also clear all timers?
-			
 			@selector.close
 			@selector = nil
 		end
@@ -231,18 +230,15 @@ module Async
 			timer.cancel if timer
 		end
 		
-		# Invoke the block, but after the timeout, raise {TimeoutError} in any
-		# currenly blocking operation.
+		# Invoke the block, but after the specified timeout, raise {TimeoutError} in any currenly blocking operation. If the block runs to completion before the timeout occurs or there are no non-blocking operations after the timeout expires, the code will complete without any exception.
 		# @param duration [Numeric] The time in seconds, in which the task should 
 		#   complete.
-		def timeout(duration, exception = TimeoutError)
-			backtrace = caller
+		def with_timeout(timeout, exception = TimeoutError)
 			fiber = Fiber.current
 			
-			timer = self.after(duration) do
+			timer = self.after(timeout) do
 				if fiber.alive?
 					error = exception.new("execution expired")
-					error.set_backtrace backtrace
 					fiber.resume error
 				end
 			end
@@ -250,6 +246,13 @@ module Async
 			yield timer
 		ensure
 			timer.cancel if timer
+		end
+		
+		# TODO remove
+		def timeout(*args, &block)
+			warn "#{self.class}\#timeout(...) is deprecated, use #{self.class}\#with_timeout(...) instead."
+			
+			with_timeout(*args, &block)
 		end
 	end
 end

@@ -18,6 +18,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
+require 'benchmark/ips'
+
 RSpec.describe Async::Reactor do
 	describe '#run' do
 		it "can run tasks on different fibers" do
@@ -118,7 +120,7 @@ RSpec.describe Async::Reactor do
 		end
 	end
 	
-	describe '#timeout' do
+	describe '#with_timeout' do
 		let(:duration) {1}
 		
 		it "stops immediately" do
@@ -127,7 +129,7 @@ RSpec.describe Async::Reactor do
 			described_class.run do |task|
 				condition = Async::Condition.new
 				
-				task.timeout(duration) do
+				task.with_timeout(duration) do
 					task.async do
 						condition.wait
 					end
@@ -150,11 +152,28 @@ RSpec.describe Async::Reactor do
 		it "raises specified exception" do
 			expect do
 				described_class.run do |task|
-					task.timeout(0.0, timeout_class) do
+					task.with_timeout(0.0, timeout_class) do
 						task.sleep(1.0)
 					end
 				end.wait
 			end.to raise_exception(timeout_class)
+		end
+		
+		it "should be fast to use timeouts" do
+			Benchmark.ips do |x|
+				x.report('Reactor#with_timeout') do |repeats|
+					Async do |task|
+						reactor = task.reactor
+						
+						repeats.times do
+							reactor.with_timeout(1) do
+							end
+						end
+					end
+				end
+				
+				x.compare!
+			end
 		end
 	end
 	

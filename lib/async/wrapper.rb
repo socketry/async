@@ -203,8 +203,8 @@ module Async
 			end
 			
 			# If the user requested an explicit timeout for this operation:
-			if duration
-				@reactor.timeout(duration) do
+			if timeout
+				@reactor.with_timeout(timeout) do
 					Task.yield
 				end
 			else
