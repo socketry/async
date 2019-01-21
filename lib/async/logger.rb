@@ -80,12 +80,12 @@ module Async
 			@subjects[subject.class] = false
 		end
 		
-		def log(level, *args, &block)
+		def log(level, *arguments, &block)
 			unless level.is_a? Symbol
 				level = LEVELS[level]
 			end
 			
-			self.send(level, *args, &block)
+			self.send(level, *arguments, &block)
 		end
 		
 		def format(subject = nil, *arguments, &block)
