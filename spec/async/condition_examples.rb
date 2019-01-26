@@ -59,11 +59,13 @@ RSpec.shared_examples Async::Condition do
 		let!(:task) do
 			reactor.async do |task|
 				task.with_timeout(0.1) do
-					@state = :waiting
-					subject.wait
-					@state = :signalled
-				rescue Async::TimeoutError
-					@state = :timeout
+					begin
+						@state = :waiting
+						subject.wait
+						@state = :signalled
+					rescue Async::TimeoutError
+						@state = :timeout
+					end
 				end
 			end
 		end
