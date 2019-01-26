@@ -32,9 +32,16 @@ module Async
 		# Queue up the current fiber and wait on yielding the task.
 		# @return [Object]
 		def wait
-			@waiting << Fiber.current
+			fiber = Fiber.current
 			
+			@waiting << fiber
 			Task.yield
+			
+			# It would be nice if there was a better construct for this. We only need to invoke #delete if the task was not resumed normally. This can only occur with `raise` and `throw`. But there is no easy way to detect this.
+		# ensure when not return or ensure when raise, throw
+		rescue Exception
+			@waiting.delete(fiber)
+			raise
 		end
 		
 		# Is any fiber waiting on this notification?

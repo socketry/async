@@ -50,4 +50,35 @@ RSpec.shared_examples Async::Condition do
 		
 		subject.signal
 	end
+	
+	context "with timeout" do
+		before do
+			@state = nil
+		end
+		
+		let!(:task) do
+			reactor.async do |task|
+				task.with_timeout(0.1) do
+					@state = :waiting
+					subject.wait
+					@state = :signalled
+				rescue Async::TimeoutError
+					@state = :timeout
+				end
+			end
+		end
+		
+		it 'can timeout while waiting' do
+			task.wait
+			
+			expect(@state).to be == :timeout
+		end
+		
+		it 'can signal while waiting' do
+			subject.signal
+			task.wait
+			
+			expect(@state).to be == :signalled
+		end
+	end
 end

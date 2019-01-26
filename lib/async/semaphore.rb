@@ -93,10 +93,17 @@ module Async
 		
 		# Wait until the semaphore becomes available.
 		def wait
+			fiber = Fiber.current
+			
 			while blocking?
-				@waiting << Fiber.current
+				@waiting << fiber
 				Task.yield
 			end
+		
+		# ensure when raise, throw
+		rescue Exception
+			@waiting.delete(fiber)
+			raise
 		end
 	end
 end
