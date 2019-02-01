@@ -18,7 +18,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-require 'benchmark'
+require "async/rspec"
 
 RSpec.describe Async::Wrapper do
 	include_context Async::RSpec::Reactor

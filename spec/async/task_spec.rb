@@ -18,7 +18,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-require 'benchmark'
+require 'async/reactor'
+require 'async/clock'
 
 RSpec.describe Async::Task do
 	let(:reactor) {Async::Reactor.new}
@@ -188,7 +189,7 @@ RSpec.describe Async::Task do
 				state = :finished
 			end
 			
-			time = Benchmark.realtime do
+			time = Async::Clock.measure do
 				reactor.run
 			end
 			
