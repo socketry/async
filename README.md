@@ -10,6 +10,8 @@ Async is a composable asynchronous I/O framework for Ruby based on [nio4r] and [
 [![Coverage Status](https://coveralls.io/repos/socketry/async/badge.svg)](https://coveralls.io/r/socketry/async)
 [![Gitter](https://badges.gitter.im/join.svg)](https://gitter.im/socketry/async)
 
+> "Lately I've been looking into `async`, as one of my projects – [tus-ruby-server](https://github.com/janko/tus-ruby-server) – would really benefit from `async` I/O. It's really beautifully designed." *– [janko](https://github.com/janko)*
+
 ## Motivation
 
 Several years ago, I was hosting websites on a server in my garage. Back then, my ADSL modem was very basic, and I wanted to have a DNS server which would resolve to an internal IP address when the domain itself resolved to my public IP. Thus was born [RubyDNS]. This project [was originally built on](https://github.com/ioquatix/rubydns/tree/v0.8.5) top of [EventMachine], but a lack of support for [IPv6 at the time](https://github.com/ioquatix/rubydns/issues/45) and [other problems](https://github.com/ioquatix/rubydns/issues/14), meant that I started looking for other options. Around that time [Celluloid] was picking up steam. I had not encountered actors before and I wanted to learn more about it. So, [I reimplemented RubyDNS on top of Celluloid](https://github.com/ioquatix/rubydns/tree/v0.9.0) and this eventually became the first stable release.
