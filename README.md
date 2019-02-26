@@ -111,11 +111,11 @@ def nested_sleepy(task: Async::Task.current)
 end
 
 Async do |task|
-	subtask = nested_sleepy
+	subtask = nested_sleepy(task: task)
 end
 ```
 
-This method effectively creates a child task. It's the most efficient way to schedule a task. The task is executed until the first blocking operation, at which point it will yield control and `#async` will return. The result of this method is the task itself.
+This example creates a child `subtask` from the given parent `task`. It's the most efficient way to schedule a task. The task is executed until the first blocking operation, at which point it will yield control and `#async` will return. The result of this method is the task itself.
 
 ### Waiting for Results
 
