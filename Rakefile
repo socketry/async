@@ -17,7 +17,7 @@ def clone_and_test(name)
 		file.puts('gem "async", path: "../../"')
 	end
 	
-	sh("cd #{path} && bundle install && bundle exec rake test")
+	sh("cd #{path} && bundle install && bundle exec rspec")
 end
 
 task :external do
