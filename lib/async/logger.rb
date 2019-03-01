@@ -25,6 +25,22 @@ require 'logger'
 
 module Async
 	class Logger
+		class Buffer < StringIO
+			def initialize(prefix = nil)
+				@prefix = prefix
+				
+				super()
+			end
+			
+			def puts(*args, prefix: @prefix)
+				args.each do |arg|
+					self.write(prefix) if prefix
+					
+					super(arg)
+				end
+			end
+		end
+		
 		LEVELS = {debug: 0, info: 1, warn: 2, error: 3, fatal: 4}
 		
 		LEVELS.each do |name, level|
@@ -89,21 +105,22 @@ module Async
 		end
 		
 		def format(subject = nil, *arguments, &block)
-			buffer = StringIO.new
 			prefix = time_offset_prefix
 			indent = " " * prefix.size
+			
+			buffer = Buffer.new("#{indent}| ")
 			
 			if subject
 				format_subject(prefix, subject, output: buffer)
 			end
 			
 			arguments.each do |argument|
-				format_argument(indent, argument, output: buffer)
+				format_argument(argument, output: buffer)
 			end
 			
 			if block_given?
 				if block.arity.zero?
-					format_argument(indent, yield, output: buffer)
+					format_argument(yield, output: buffer)
 				else
 					yield(buffer, @terminal)
 				end
@@ -112,16 +129,16 @@ module Async
 			@output.write buffer.string
 		end
 		
-		def format_argument(prefix, argument, output: @output)
+		def format_argument(argument, output: @output)
 			if argument.is_a? Exception
-				format_exception(prefix, argument, output: output)
+				format_exception(argument, output: output)
 			else
-				format_value(prefix, argument, output: output)
+				format_value(argument, output: output)
 			end
 		end
 		
-		def format_exception(indent, exception, prefix = nil, pwd: Dir.pwd, output: @output)
-			output.puts "#{indent}|  #{prefix}#{@exception_title_style}#{exception.class}#{@reset_style}: #{exception}"
+		def format_exception(exception, prefix = nil, pwd: Dir.pwd, output: @output)
+			output.puts " #{prefix}#{@exception_title_style}#{exception.class}#{@reset_style}: #{exception}"
 			
 			exception.backtrace.each_with_index do |line, index|
 				path, offset, message = line.split(":")
@@ -129,25 +146,23 @@ module Async
 				# Make the path a bit more readable
 				path.gsub!(/^#{pwd}\//, "./")
 				
-				output.puts "#{indent}|  #{index == 0 ? "→" : " "} #{@exception_line_style}#{path}:#{offset}#{@reset_style} #{message}"
+				output.puts " #{index == 0 ? "→" : " "} #{@exception_line_style}#{path}:#{offset}#{@reset_style} #{message}"
 			end
 			
 			if exception.cause
-				output.puts "#{indent}|"
-				
-				format_exception(indent, exception.cause, "Caused by ", pwd: pwd, output: output)
+				format_exception(exception.cause, "Caused by ", pwd: pwd, output: output)
 			end
 		end
 		
 		def format_subject(prefix, subject, output: @output)
-			output.puts "#{@prefix_style}#{prefix}: #{@subject_style}#{subject}#{@reset_style}"
+			output.puts "#{@subject_style}#{subject}#{@reset_style}", prefix: "#{@prefix_style}#{prefix}: "
 		end
 		
-		def format_value(indent, value, output: @output)
+		def format_value(value, output: @output)
 			string = value.to_s
 			
 			string.each_line do |line|
-				output.puts "#{indent}: #{line}"
+				output.puts "#{line}"
 			end
 		end
 		
