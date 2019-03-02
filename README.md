@@ -301,6 +301,10 @@ end
 
 Due to limitations within Ruby and the nature of this library, it is not possible to use `to_enum` on methods which invoke asynchronous behavior. We hope to [fix this issue in the future](https://github.com/socketry/async/issues/23).
 
+### Blocking Methods in Standard Library
+
+Blocking Ruby methods such as `pop` in the `Queue` class require access to their own threads and will not yield control back to the reactor which can result in a deadlock.  As a substitute for the standard library `Queue`, the `Async::Queue` class can be used.
+
 ## Contributing
 
 1. Fork it
