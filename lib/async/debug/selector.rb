@@ -26,8 +26,8 @@ require 'nio'
 module Async
 	module Debug
 		class LeakError < RuntimeError
-			def initialize(wrappers)
-				super "Trying to close selector with active monitors: #{wrappers.inspect}! This may cause your socket or file descriptor to leak."
+			def initialize(monitors)
+				super "Trying to close selector with active monitors: #{monitors.inspect}! This may cause your socket or file descriptor to leak."
 			end
 		end
 
