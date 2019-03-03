@@ -69,6 +69,7 @@ module Async
 			@prefix_style = @terminal.color(Terminal::Colors::CYAN)
 			@subject_style = @terminal.color(nil, nil, Terminal::Attributes::BOLD)
 			@exception_title_style = @terminal.color(Terminal::Colors::RED, nil, Terminal::Attributes::BOLD)
+			@exception_details_style = @terminal.color(Terminal::Colors::YELLOW)
 			@exception_line_style = @terminal.color(Terminal::Colors::RED)
 			
 			@subjects = {}
@@ -138,7 +139,13 @@ module Async
 		end
 		
 		def format_exception(exception, prefix = nil, pwd: Dir.pwd, output: @output)
-			output.puts " #{prefix}#{@exception_title_style}#{exception.class}#{@reset_style}: #{exception}"
+			lines = exception.message.lines.map{|line| line.chomp!}
+			
+			output.puts " #{prefix}#{@exception_title_style}#{exception.class}#{@reset_style}: #{lines.shift}"
+			
+			lines.each do |line|
+				output.puts "   #{@exception_details_style}" + line + @reset_style
+			end
 			
 			exception.backtrace.each_with_index do |line, index|
 				path, offset, message = line.split(":")
