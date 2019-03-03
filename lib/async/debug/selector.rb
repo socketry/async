@@ -67,7 +67,7 @@ module Async
 			
 			def close
 				if @monitors.any?
-					raise RuntimeError, "Trying to close selector with active monitors: #{@monitors.values.inspect}!"
+					raise RuntimeError, "Trying to close selector with active monitors: #{@monitors.values.inspect}! This may cause your socket or file descriptor to leak."
 				end
 			ensure
 				@selector.close
