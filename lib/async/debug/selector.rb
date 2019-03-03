@@ -25,6 +25,12 @@ require 'nio'
 
 module Async
 	module Debug
+		class LeakError < RuntimeError
+			def initialize(wrappers)
+				super "Trying to close selector with active monitors: #{wrappers.inspect}! This may cause your socket or file descriptor to leak."
+			end
+		end
+
 		class Selector
 			def initialize(selector = NIO::Selector.new)
 				@selector = selector
@@ -67,7 +73,7 @@ module Async
 			
 			def close
 				if @monitors.any?
-					raise RuntimeError, "Trying to close selector with active monitors: #{@monitors.values.inspect}! This may cause your socket or file descriptor to leak."
+					raise LeakError
 				end
 			ensure
 				@selector.close
