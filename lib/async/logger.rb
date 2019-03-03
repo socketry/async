@@ -139,7 +139,7 @@ module Async
 		end
 		
 		def format_exception(exception, prefix = nil, pwd: Dir.pwd, output: @output)
-			lines = exception.message.lines.map{|line| line.chomp!}
+			lines = exception.message.lines.map(&:chomp)
 			
 			output.puts " #{prefix}#{@exception_title_style}#{exception.class}#{@reset_style}: #{lines.shift}"
 			
