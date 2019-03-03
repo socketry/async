@@ -73,7 +73,7 @@ module Async
 			
 			def close
 				if @monitors.any?
-					raise LeakError
+					raise LeakError, @monitors.values
 				end
 			ensure
 				@selector.close
