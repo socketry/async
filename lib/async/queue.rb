@@ -51,7 +51,7 @@ module Async
 			super()
 			
 			@limit = limit
-			@full = Async::Condition.new
+			@full = Async::Queue.new
 		end
 		
 		attr :limit
@@ -63,7 +63,7 @@ module Async
 		
 		def enqueue item
 			if limited?
-				@full.wait
+				@full.dequeue
 			end
 			
 			super
@@ -72,7 +72,7 @@ module Async
 		def dequeue
 			item = super
 			
-			@full.signal unless @full.empty?
+			@full.enqueue(nil) unless @full.empty?
 			
 			return item
 		end
