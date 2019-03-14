@@ -24,7 +24,7 @@ Gem::Specification.new do |spec|
 	
 	spec.add_runtime_dependency "nio4r", "~> 2.3"
 	spec.add_runtime_dependency "timers", "~> 4.1"
-	spec.add_runtime_dependency "event", "~> 1.0"
+	spec.add_runtime_dependency "event", "~> 1.1"
 	
 	spec.add_development_dependency "async-rspec", "~> 1.1"
 	

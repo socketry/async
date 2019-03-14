@@ -193,7 +193,7 @@ module Async
 			
 			return initial_task
 		ensure
-			Async.debug(self) {"Exiting run-loop because #{$! ? $! : 'finished'}."}
+			Async.logger.debug(self) {"Exiting run-loop because #{$! ? $! : 'finished'}."}
 			
 			@stopped = true
 		end
