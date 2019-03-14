@@ -18,8 +18,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-require 'advise/console'
+require 'event/console'
 
 module Async
-	extend Advise::Console
+	extend Event::Console
 end
