@@ -76,11 +76,7 @@ module Async
 		end
 		
 		def logger
-			@logger || @parent&.logger
-		end
-		
-		def logger=
-			@logger = logger
+			@logger ||= @parent&.logger
 		end
 		
 		# @attr ios [Reactor] The reactor the task was created within.
@@ -109,8 +105,8 @@ module Async
 			end
 		end
 		
-		def async(*args, &block)
-			task = Task.new(@reactor, self, &block)
+		def async(*args, **options, &block)
+			task = Task.new(@reactor, self, **options, &block)
 			
 			task.run(*args)
 			
@@ -190,9 +186,9 @@ module Async
 				raise
 			elsif @finished.nil?
 				# If no one has called wait, we log this as an error:
-				Async.logger.error(self) {$!}
+				logger.error(self) {$!}
 			else
-				Async.logger.debug(self) {$!}
+				logger.debug(self) {$!}
 			end
 		end
 		
@@ -207,7 +203,7 @@ module Async
 				begin
 					@result = yield(self, *args)
 					@status = :complete
-					# Async.logger.debug("Task #{self} completed normally.")
+					# logger.debug("Task #{self} completed normally.")
 				rescue Stop
 					stop!
 				rescue StandardError => error
@@ -215,7 +211,7 @@ module Async
 				rescue Exception => exception
 					fail!(exception, true)
 				ensure
-					# Async.logger.debug("Task #{self} closing: #{$!}")
+					# logger.debug("Task #{self} closing: #{$!}")
 					finish!
 				end
 			end

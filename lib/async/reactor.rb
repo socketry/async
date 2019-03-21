@@ -72,11 +72,7 @@ module Async
 		end
 		
 		def logger
-			@logger || Event::Console.logger
-		end
-		
-		def logger=
-			@logger = logger
+			@logger ||= Event::Console.logger
 		end
 		
 		def to_s

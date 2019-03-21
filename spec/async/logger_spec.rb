@@ -33,7 +33,7 @@ RSpec.describe 'Async.logger' do
 		Async(logger: logger) do |task|
 			expect(task.logger).to be == logger
 			logger.warn message
-		end
+		end.wait
 		
 		expect(capture.events.last).to include({
 			severity: :warn,
@@ -43,12 +43,11 @@ RSpec.describe 'Async.logger' do
 	end
 	
 	it "can change nested logger" do
-		Async(logger: logger) do |task|
-			expect(task.logger).to be == logger
-			
-			task.logger = nil
-			expect(task.logger).to be == task.reactor.logger
-		end
+		Async do |parent|
+			parent.async(logger: logger) do |task|
+				expect(task.logger).to be == logger
+			end.wait
+		end.wait
 	end
 	
 	it "can use parent logger" do
@@ -57,11 +56,6 @@ RSpec.describe 'Async.logger' do
 			
 			expect(parent.logger).to be == logger
 			expect(child.logger).to be == logger
-			
-			parent.logger = nil
-			
-			expect(parent.logger).to be == parent.reactor.logger
-			expect(child.logger).to be == parent.reactor.logger
-		end
+		end.wait
 	end
 end
