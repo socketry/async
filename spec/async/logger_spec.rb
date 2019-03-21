@@ -23,21 +23,45 @@ require 'async/logger'
 require 'event/capture'
 
 RSpec.describe 'Async.logger' do
+	let(:name) {"nested"}
+	let(:message) {"Talk is cheap. Show me the code."}
+	
 	let(:capture) {Event::Capture.new}
-	let(:logger) {Event::Logger.new(capture, name: "Nested")}
+	let(:logger) {Event::Logger.new(capture, name: name)}
 	
 	it "can use nested logger" do
-		logger.verbose!
-		
 		Async(logger: logger) do |task|
 			expect(task.logger).to be == logger
-			logger.warn "Thar be the dragons!"
+			logger.warn message
 		end
 		
 		expect(capture.events.last).to include({
 			severity: :warn,
-			name: "Nested",
-			subject: "Thar be the dragons!",
+			name: name,
+			subject: message,
 		})
+	end
+	
+	it "can change nested logger" do
+		Async(logger: logger) do |task|
+			expect(task.logger).to be == logger
+			
+			task.logger = nil
+			expect(task.logger).to be == task.reactor.logger
+		end
+	end
+	
+	it "can use parent logger" do
+		Async(logger: logger) do |parent|
+			child = parent.async{|task| task.yield}
+			
+			expect(parent.logger).to be == logger
+			expect(child.logger).to be == logger
+			
+			parent.logger = nil
+			
+			expect(parent.logger).to be == parent.reactor.logger
+			expect(child.logger).to be == parent.reactor.logger
+		end
 	end
 end

@@ -76,7 +76,11 @@ module Async
 		end
 		
 		def logger
-			@logger ||= @parent.logger
+			@logger || @parent&.logger
+		end
+		
+		def logger=
+			@logger = logger
 		end
 		
 		# @attr ios [Reactor] The reactor the task was created within.

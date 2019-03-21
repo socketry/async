@@ -75,6 +75,10 @@ module Async
 			@logger || Event::Console.logger
 		end
 		
+		def logger=
+			@logger = logger
+		end
+		
 		def to_s
 			"<#{self.description} stopped=#{@stopped}>"
 		end
