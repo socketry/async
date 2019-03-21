@@ -29,5 +29,5 @@ begin
 	Async.logger = Event::Console.logger
 rescue LoadError
 	require 'logger'
-	Async.logger = Logger.new($stderr, level: Logger::INFO)
+	Async.logger = Logger.new($stderr).tap{|logger| logger.level = Logger::INFO}
 end
