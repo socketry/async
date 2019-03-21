@@ -18,8 +18,16 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-require 'event/console'
-
 module Async
-	extend Event::Console
+	class << self
+		attr_accessor :logger
+	end
+end
+
+begin
+	require 'event/console'
+	Async.logger = Event::Console.logger
+rescue LoadError
+	require 'logger'
+	Async.logger = Logger.new($stderr, level: Logger::INFO)
 end

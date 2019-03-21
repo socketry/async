@@ -86,7 +86,7 @@ RSpec.describe Async::Task do
 			task = nil
 			
 			expect do
-				task = reactor.async(propagate_exceptions: false) do |task|
+				task = reactor.async do |task|
 					raise "boom"
 				end
 			end.to_not raise_exception
@@ -98,7 +98,7 @@ RSpec.describe Async::Task do
 		
 		it "won't consume non-StandardError exceptions" do
 			expect do
-				reactor.async(propagate_exceptions: false) do |task|
+				reactor.async do |task|
 					raise SignalException.new(:TERM)
 				end
 			end.to raise_exception(SignalException, /TERM/)
@@ -300,7 +300,7 @@ RSpec.describe Async::Task do
 		it "will raise exceptions when checking result" do
 			error_task = nil
 			
-			error_task = reactor.async(propagate_exceptions: false) do |task|
+			error_task = reactor.async do |task|
 				raise RuntimeError, "brain not provided"
 			end
 			
@@ -312,7 +312,7 @@ RSpec.describe Async::Task do
 		it "will propagate exceptions after async operation" do
 			error_task = nil
 			
-			error_task = reactor.async(propagate_exceptions: false) do |task|
+			error_task = reactor.async do |task|
 				task.sleep(0.1)
 				
 				raise "boom"

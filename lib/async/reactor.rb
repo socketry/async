@@ -42,13 +42,13 @@ module Async
 		# - When invoked at the top level, will create and run a reactor, and invoke
 		# the block as an asynchronous task. Will block until the reactor finishes
 		# running.
-		def self.run(*args, &block)
+		def self.run(*args, **options, &block)
 			if current = Task.current?
 				reactor = current.reactor
 				
-				return reactor.async(*args, &block)
+				return reactor.async(*args, **options, &block)
 			else
-				reactor = self.new
+				reactor = self.new(**options)
 				
 				begin
 					return reactor.run(*args, &block)
@@ -58,16 +58,21 @@ module Async
 			end
 		end
 		
-		def initialize(parent = nil, selector: NIO::Selector.new)
+		def initialize(parent = nil, selector: NIO::Selector.new, logger: nil)
 			super(parent)
 			
 			@selector = selector
 			@timers = Timers::Group.new
+			@logger = logger
 			
 			@ready = []
 			@running = []
 			
 			@stopped = true
+		end
+		
+		def logger
+			@logger || Async.logger
 		end
 		
 		def to_s
@@ -91,8 +96,8 @@ module Async
 		#
 		# @yield [Task] Executed within the task.
 		# @return [Task] The task that was scheduled into the reactor.
-		def async(*args, &block)
-			task = Task.new(self, &block)
+		def async(*args, **options, &block)
+			task = Task.new(self, **options, &block)
 			
 			# I want to take a moment to explain the logic of this.
 			# When calling an async block, we deterministically execute it until the

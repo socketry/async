@@ -21,6 +21,8 @@ matrix:
     - rvm: 2.5
     - rvm: 2.6
     - rvm: 2.6
+      gemfile: gems/event.gemfile
+    - rvm: 2.6
       env: COVERAGE=PartialSummary,Coveralls
     - rvm: jruby-head
       env: JRUBY_OPTS="--debug -X+O"

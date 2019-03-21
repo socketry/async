@@ -57,8 +57,7 @@ module Async
 		# Create a new task.
 		# @param reactor [Async::Reactor] the reactor this task will run within.
 		# @param parent [Async::Task] the parent task.
-		# @param propagate_exceptions [Boolean] whether exceptions raised in the task will propagate up the reactor stack.
-		def initialize(reactor, parent = Task.current?, &block)
+		def initialize(reactor, parent = Task.current?, logger: nil, &block)
 			super(parent || reactor)
 			
 			@reactor = reactor
@@ -67,11 +66,17 @@ module Async
 			@result = nil
 			@finished = nil
 			
+			@logger = logger
+			
 			@fiber = make_fiber(&block)
 		end
 		
 		def to_s
 			"<#{self.description} #{@status}>"
+		end
+		
+		def logger
+			@logger ||= @parent.logger
 		end
 		
 		# @attr ios [Reactor] The reactor the task was created within.
