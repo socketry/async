@@ -72,7 +72,7 @@ module Async
 		end
 		
 		def logger
-			@logger || Async.logger
+			@logger || Event::Console.logger
 		end
 		
 		def to_s
@@ -108,7 +108,7 @@ module Async
 			# - Avoid overhead if no blocking operation is performed.
 			task.run(*args)
 			
-			# Async.logger.debug "Initial execution of task #{fiber} complete (#{result} -> #{fiber.alive?})..."
+			# logger.debug "Initial execution of task #{fiber} complete (#{result} -> #{fiber.alive?})..."
 			return task
 		end
 		
@@ -180,7 +180,7 @@ module Async
 					interval = 0
 				end
 				
-				# Async.logger.debug(self) {"Updating #{@children.count} children..."}
+				# logger.debug(self) {"Updating #{@children.count} children..."}
 				# As timeouts may have been updated, and caused fibers to complete, we should check this.
 				
 				# If there is nothing to do, then finish:
@@ -188,7 +188,7 @@ module Async
 					return initial_task
 				end
 				
-				# Async.logger.debug(self) {"Selecting with #{@children.count} fibers interval = #{interval.inspect}..."}
+				# logger.debug(self) {"Selecting with #{@children.count} fibers interval = #{interval.inspect}..."}
 				if monitors = @selector.select(interval)
 					monitors.each do |monitor|
 						monitor.value.resume
@@ -198,7 +198,7 @@ module Async
 			
 			return initial_task
 		ensure
-			Async.logger.debug(self) {"Exiting run-loop because #{$! ? $! : 'finished'}."}
+			logger.debug(self) {"Exiting run-loop because #{$! ? $! : 'finished'}."}
 			
 			@stopped = true
 		end

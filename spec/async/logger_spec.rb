@@ -18,13 +18,26 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-require 'event/console'
-require_relative 'task'
+require 'async'
+require 'async/logger'
+require 'event/capture'
 
-module Async
-	def self.logger
-		if task = Task.current?
-			task.logger
-		end || Event::Console.logger
+RSpec.describe 'Async.logger' do
+	let(:capture) {Event::Capture.new}
+	let(:logger) {Event::Logger.new(capture, name: "Nested")}
+	
+	it "can use nested logger" do
+		logger.verbose!
+		
+		Async(logger: logger) do |task|
+			expect(task.logger).to be == logger
+			logger.warn "Thar be the dragons!"
+		end
+		
+		expect(capture.events.last).to include({
+			severity: :warn,
+			name: "Nested",
+			subject: "Thar be the dragons!",
+		})
 	end
 end
