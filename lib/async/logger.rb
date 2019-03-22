@@ -22,6 +22,7 @@ require 'event/console'
 require_relative 'task'
 
 module Async
+	# @return the current logger, either the active tasks logger, or the global event console logger.
 	def self.logger
 		if task = Task.current?
 			task.logger

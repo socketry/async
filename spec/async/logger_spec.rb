@@ -46,6 +46,7 @@ RSpec.describe 'Async.logger' do
 		Async do |parent|
 			parent.async(logger: logger) do |task|
 				expect(task.logger).to be == logger
+				expect(Async.logger).to be == logger
 			end.wait
 		end.wait
 	end
@@ -56,6 +57,7 @@ RSpec.describe 'Async.logger' do
 			
 			expect(parent.logger).to be == logger
 			expect(child.logger).to be == logger
+			expect(Async.logger).to be == logger
 		end.wait
 	end
 end
