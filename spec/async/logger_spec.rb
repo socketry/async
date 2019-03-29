@@ -20,14 +20,14 @@
 
 require 'async'
 require 'async/logger'
-require 'event/capture'
+require 'console/capture'
 
 RSpec.describe 'Async.logger' do
 	let(:name) {"nested"}
 	let(:message) {"Talk is cheap. Show me the code."}
 	
-	let(:capture) {Event::Capture.new}
-	let(:logger) {Event::Logger.new(capture, name: name)}
+	let(:capture) {Console::Capture.new}
+	let(:logger) {Console::Logger.new(capture, name: name)}
 	
 	it "can use nested logger" do
 		Async(logger: logger) do |task|

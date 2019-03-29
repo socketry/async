@@ -18,7 +18,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-require 'event/console'
+require 'console'
 require_relative 'task'
 
 module Async
@@ -26,6 +26,6 @@ module Async
 	def self.logger
 		if task = Task.current?
 			task.logger
-		end || Event::Console.logger
+		end || Console.logger
 	end
 end
