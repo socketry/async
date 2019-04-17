@@ -10,7 +10,7 @@ Async is a composable asynchronous I/O framework for Ruby based on [nio4r] and [
 [![Coverage Status](https://coveralls.io/repos/socketry/async/badge.svg)](https://coveralls.io/r/socketry/async)
 [![Gitter](https://badges.gitter.im/join.svg)](https://gitter.im/socketry/async)
 
-> "Lately I've been looking into `async`, as one of my projects – [tus-ruby-server](https://github.com/janko/tus-ruby-server) – would really benefit from `async` I/O. It's really beautifully designed." *– [janko](https://github.com/janko)*
+> "Lately I've been looking into `async`, as one of my projects – [tus-ruby-server](https://github.com/janko/tus-ruby-server) – would really benefit from non-blocking I/O. It's really beautifully designed." *– [janko](https://github.com/janko)*
 
 ## Motivation
 
@@ -46,6 +46,8 @@ Or install it yourself as:
 	$ gem install async
 
 ## Usage
+
+Please [try the interactive online tutorial](https://katacoda.com/ioquatix/scenarios/async-introduction).
 
 ### Tasks
 
