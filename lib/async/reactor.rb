@@ -58,7 +58,19 @@ module Async
 			end
 		end
 		
-		def initialize(parent = nil, selector: NIO::Selector.new, logger: nil)
+		def self.selector
+			if backend = ENV['ASYNC_BACKEND']&.to_sym
+				if NIO::Selector.backends.include?(backend)
+					return NIO::Selector.new(backend)
+				else
+					warn "Could not find ASYNC_BACKEND=#{backend}!"
+				end
+			end
+			
+			return NIO::Selector.new
+		end
+		
+		def initialize(parent = nil, selector: self.class.selector, logger: nil)
 			super(parent)
 			
 			@selector = selector
@@ -86,6 +98,7 @@ module Async
 			@stopped
 		end
 		
+		# TODO Remove these in next major release. They are too confusing to use correctly.
 		def_delegators :@timers, :every, :after
 		
 		# Start an asynchronous task within the specified reactor. The task will be
