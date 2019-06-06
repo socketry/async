@@ -37,12 +37,22 @@ module Async
 			self.signal unless self.empty?
 		end
 		
+		alias << enqueue
+		
 		def dequeue
 			while @items.empty?
 				self.wait
 			end
 			
 			@items.shift
+		end
+		
+		def async(&block)
+			parent = Task.current
+			
+			while item = self.dequeue
+				parent.async(item, &block)
+			end
 		end
 	end
 	
