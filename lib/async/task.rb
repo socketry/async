@@ -134,7 +134,7 @@ module Async
 		# Stop the task and all of its children.
 		# @return [void]
 		def stop
-			@children.each(&:stop)
+			@children&.each(&:stop)
 			
 			if @fiber.alive?
 				@fiber.resume(Stop.new)

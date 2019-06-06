@@ -26,7 +26,7 @@ module Async
 		# Create a new node in the tree.
 		# @param parent [Node, nil] This node will attach to the given parent.
 		def initialize(parent = nil)
-			@children = Set.new
+			@children = nil
 			@parent = nil
 			
 			@annotation = nil
@@ -40,7 +40,7 @@ module Async
 		# @attr parent [Node, nil]
 		attr :parent
 		
-		# @attr children [Set<Node>]
+		# @attr children [Set<Node>] Optional list of children.
 		attr :children
 		
 		# A useful identifier for the current node.
@@ -84,17 +84,22 @@ module Async
 			
 			if parent
 				@parent = parent
-				@parent.children << self
+				@parent.add_child(self)
 			end
 			
 			return self
+		end
+		
+		protected def add_child child
+			@children ||= Set.new
+			@children << child
 		end
 		
 		# Whether the node can be consumed safely. By default, checks if the
 		# children set is empty.
 		# @return [Boolean]
 		def finished?
-			@children.empty?
+			@children.nil? or @children.empty?
 		end
 		
 		# If the node has a parent, and is {finished?}, then remove this node from
@@ -118,7 +123,7 @@ module Async
 		def traverse(level = 0, &block)
 			yield self, level
 			
-			@children.each do |child|
+			@children&.each do |child|
 				child.traverse(level + 1, &block)
 			end
 		end
