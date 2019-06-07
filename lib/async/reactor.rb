@@ -155,6 +155,7 @@ module Async
 		end
 		
 		def finished?
+			# I'm not sure if checking `@running.empty?` is really required.
 			super && @ready.empty? && @running.empty?
 		end
 		
@@ -189,23 +190,18 @@ module Async
 					end
 				end
 				
-				# - nil: no timers
-				# - -ve: timers expired already
-				# -   0: timers ready to fire
-				# - +ve: timers waiting to fire
-				if interval && interval < 0
+				# As timeouts may have been updated, and caused fibers to complete, we should check this.
+				if interval.nil?
+					if self.finished?
+						# If there is nothing to do, then finish:
+						return initial_task
+					end
+				elsif interval < 0
+					# We have timers ready to fire, don't sleep in the selctor:
 					interval = 0
 				end
 				
-				# logger.debug(self) {"Updating #{@children.count} children..."}
-				# As timeouts may have been updated, and caused fibers to complete, we should check this.
-				
-				# If there is nothing to do, then finish:
-				if !interval && self.finished?
-					return initial_task
-				end
-				
-				# logger.debug(self) {"Selecting with #{@children.count} fibers interval = #{interval.inspect}..."}
+				# logger.debug(self) {"Selecting with #{@children&.count} children with interval = #{interval.inspect}..."}
 				if monitors = @selector.select(interval)
 					monitors.each do |monitor|
 						monitor.value.resume
