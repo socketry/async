@@ -4,9 +4,13 @@ require 'benchmark/ips'
 RSpec.describe Async::Wrapper do
 	let(:pipe) {IO.pipe}
 	
+	after do
+		pipe.each(&:close)
+	end
+	
 	let(:input) {described_class.new(pipe.first)}
 	let(:output) {described_class.new(pipe.last)}
-		
+	
 	it "should be fast to wait until readable" do
 		Benchmark.ips do |x|
 			x.report('Wrapper#wait_readable') do |repeats|
