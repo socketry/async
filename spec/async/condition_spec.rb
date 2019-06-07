@@ -29,7 +29,6 @@ RSpec.describe Async::Condition do
 	it 'should continue after condition is signalled' do
 		task = reactor.async do
 			subject.wait
-			#puts "Got #{value}"
 		end
 		
 		expect(task.status).to be :running
