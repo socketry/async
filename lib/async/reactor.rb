@@ -168,14 +168,18 @@ module Async
 			initial_task = self.async(*args, &block) if block_given?
 			
 			@timers.wait do |interval|
-				# running used to correctly answer on `finished?`, and to reuse Array object.
-				@running, @ready = @ready, @running
-				if @running.any?
+				# logger.debug(self) {"@ready = #{@ready} @running = #{@running}"}
+				
+				if @ready.any?
+					# running used to correctly answer on `finished?`, and to reuse Array object.
+					@running, @ready = @ready, @running
+					
 					@running.each do |fiber|
 						fiber.resume if fiber.alive?
 					end
+					
 					@running.clear
-
+					
 					# if there are tasks ready to execute, don't sleep.
 					if @ready.any?
 						interval = 0
