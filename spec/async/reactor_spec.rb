@@ -37,6 +37,14 @@ RSpec.describe Async::Reactor do
 		end
 	end
 	
+	describe '#close' do
+		it "can close empty reactor" do
+			subject.close
+			
+			expect(subject).to be_closed
+		end
+	end
+	
 	describe '#stop' do
 		it "can be stop reactor" do
 			state = nil
@@ -55,6 +63,8 @@ RSpec.describe Async::Reactor do
 			subject.run
 			
 			expect(state).to be == :started
+			
+			subject.close
 		end
 		
 		it "can stop reactor from different thread" do
@@ -73,9 +83,11 @@ RSpec.describe Async::Reactor do
 			subject.run
 			
 			thread.join
+			
 			expect(subject).to be_stopped
 		end
 	end
+	
 	it "can't return" do
 		expect do
 			Async do |task|

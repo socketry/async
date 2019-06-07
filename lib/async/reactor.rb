@@ -220,7 +220,7 @@ module Async
 		# 
 		# @return [void]
 		def close
-			@children.each(&:stop)
+			@children&.each(&:stop)
 			
 			# TODO Should we also clear all timers?
 			@selector.close
