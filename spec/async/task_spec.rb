@@ -18,7 +18,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-require 'async/reactor'
+require 'async'
 require 'async/clock'
 
 RSpec.describe Async::Task do
@@ -30,6 +30,17 @@ RSpec.describe Async::Task do
 			end
 			
 			expect{task.run}.to raise_exception(RuntimeError, /already running/)
+		end
+	end
+	
+	describe '#current?' do
+		it "can check if it is the currently running task" do
+			task = reactor.async do |task|
+				expect(task).to be_current
+				task.sleep(0.1)
+			end
+			
+			expect(task).to_not be_current
 		end
 	end
 	
@@ -134,6 +145,20 @@ RSpec.describe Async::Task do
 			task.stop
 			
 			expect(state).to be == :started
+			expect(task).to be_stopped
+		end
+		
+		it "can stop current task" do
+			state = nil
+			
+			task = reactor.async do |task|
+				state = :started
+				task.stop
+				state = :finished
+			end
+			
+			expect(state).to be == :started
+			expect(task).to be_stopped
 		end
 		
 		it "should kill direct child" do

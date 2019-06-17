@@ -136,7 +136,9 @@ module Async
 		def stop
 			@children&.each(&:stop)
 			
-			if @fiber.alive?
+			if self.current?
+				raise Stop, "Stopping current fiber!"
+			elsif @fiber.alive?
 				@fiber.resume(Stop.new)
 			end
 		end
@@ -152,6 +154,10 @@ module Async
 		# @return [Async::Task, nil]
 		def self.current?
 			Thread.current[:async_task]
+		end
+		
+		def current?
+			self.equal?(Thread.current[:async_task])
 		end
 		
 		# Check if the task is running.
