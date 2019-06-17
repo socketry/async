@@ -33,6 +33,9 @@ module Async
 		# The maximum number of tasks that can acquire the semaphore.
 		attr :limit
 		
+		# The tasks waiting on this semaphore.
+		attr :waiting
+		
 		# Is the semaphore currently acquired?
 		def empty?
 			@count.zero?
@@ -95,14 +98,12 @@ module Async
 		def wait
 			fiber = Fiber.current
 			
-			while blocking?
+			if blocking?
 				@waiting << fiber
-				Task.yield
+				Task.yield while blocking?
 			end
-		
-		# ensure when raise, throw
 		rescue Exception
-			@waiting.delete(fiber)
+			@waiting.delete(@waiting.first)
 			raise
 		end
 	end

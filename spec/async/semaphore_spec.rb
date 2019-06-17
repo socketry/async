@@ -19,8 +19,7 @@
 # THE SOFTWARE.
 
 require 'async/semaphore'
-
-require_relative 'condition_examples'
+require 'async/rspec'
 
 RSpec.describe Async::Semaphore do
 	include_context Async::RSpec::Reactor
@@ -79,6 +78,20 @@ RSpec.describe Async::Semaphore do
 			end.collect(&:result)
 			
 			expect(order).to be == [0, 1, 2, 0, 1, 2]
+		end
+	end
+	
+	context '#waiting' do
+		subject {Async::Semaphore.new(0)}
+		it 'handles exceptions thrown while waiting' do
+			expect do
+				reactor.with_timeout(0.1) do
+					subject.acquire do
+					end
+				end
+			end.to raise_error(Async::TimeoutError)
+			
+			expect(subject.waiting).to be_empty
 		end
 	end
 	
