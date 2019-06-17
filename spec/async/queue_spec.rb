@@ -18,7 +18,9 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
+require 'async'
 require 'async/queue'
+require 'async/rspec'
 
 require_relative 'condition_examples'
 
@@ -33,6 +35,17 @@ RSpec.shared_context Async::Queue do
 		
 		10.times do |j|
 			expect(subject.dequeue).to be == j
+		end
+	end
+	
+	it 'can dequeue items asynchronously' do
+		reactor.async do |task|
+			subject << 1
+			subject << nil
+		end
+		
+		subject.async do |task, item|
+			expect(item).to be 1
 		end
 	end
 end
