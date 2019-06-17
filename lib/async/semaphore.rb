@@ -103,7 +103,7 @@ module Async
 				Task.yield while blocking?
 			end
 		rescue Exception
-			@waiting.delete(@waiting.first)
+			@waiting.delete(fiber)
 			raise
 		end
 	end
