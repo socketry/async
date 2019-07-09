@@ -134,13 +134,20 @@ module Async
 		# Stop the task and all of its children.
 		# @return [void]
 		def stop
-			@children&.each(&:stop)
-			
-			if self.current?
-				raise Stop, "Stopping current fiber!"
-			elsif @fiber.alive?
-				@fiber.resume(Stop.new)
+			if self.stopping?
+				# If we are already stopping this task... don't try to stop it again.
+				return true
+			elsif self.running?
+				@status = :stopping
+				
+				if self.current?
+					raise Stop, "Stopping current fiber!"
+				elsif @fiber.alive?
+					@fiber.resume(Stop.new)
+				end
 			end
+		ensure
+			@children&.each(&:stop)
 		end
 	
 		# Lookup the {Task} for the current fiber. Raise `RuntimeError` if none is available.
@@ -176,8 +183,16 @@ module Async
 			@status == :failed
 		end
 		
+		def stopping?
+			@status == :stopping
+		end
+		
 		def stopped?
 			@status == :stopped
+		end
+		
+		def complete?
+			@status == :complete
 		end
 		
 		private

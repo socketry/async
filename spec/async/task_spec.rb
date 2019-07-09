@@ -148,6 +148,26 @@ RSpec.describe Async::Task do
 			expect(task).to be_stopped
 		end
 		
+		it "can stop nested tasks with exception handling" do
+			task = reactor.async do |task|
+				child = task.async do |subtask|
+					subtask.sleep(1)
+				end
+				
+				begin
+					child.wait
+				ensure
+					child.stop
+				end
+			end
+			
+			subtask = task.children.first
+			task.stop
+			
+			expect(task.status).to be :stopped
+			expect(subtask.status).to be :stopped
+		end
+		
 		it "can stop current task" do
 			state = nil
 			
