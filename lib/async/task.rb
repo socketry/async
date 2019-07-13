@@ -90,7 +90,10 @@ module Async
 		
 		# @attr fiber [Fiber] The fiber which is being used for the execution of this task.
 		attr :fiber
-		def_delegators :@fiber, :alive?
+		
+		def alive?
+			@fiber&.alive?
+		end
 		
 		# @attr status [Symbol] The status of the execution of the fiber, one of `:initialized`, `:running`, `:complete`, `:stopped` or `:failed`.
 		attr :status
@@ -142,7 +145,7 @@ module Async
 				
 				if self.current?
 					raise Stop, "Stopping current fiber!"
-				elsif @fiber.alive?
+				elsif @fiber&.alive?
 					@fiber.resume(Stop.new)
 				end
 			end
@@ -240,6 +243,9 @@ module Async
 		
 		# Finish the current task, and all bound bound IO objects.
 		def finish!
+			# Allow the fiber to be recycled.
+			@fiber = nil
+			
 			# Attempt to remove this node from the task tree.
 			consume
 			

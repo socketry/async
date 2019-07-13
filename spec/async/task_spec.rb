@@ -201,8 +201,8 @@ RSpec.describe Async::Task do
 			
 			parent_task.stop
 			
-			expect(parent_task.fiber).to_not be_alive
-			expect(child_task.fiber).to_not be_alive
+			expect(parent_task).to_not be_alive
+			expect(child_task).to_not be_alive
 		end
 		
 		it "should not remove running task" do
