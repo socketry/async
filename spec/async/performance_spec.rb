@@ -19,6 +19,7 @@
 # THE SOFTWARE.
 
 require 'benchmark/ips'
+require 'async'
 
 RSpec.describe Async::Wrapper do
 	let(:pipe) {IO.pipe}
