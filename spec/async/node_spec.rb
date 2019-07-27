@@ -54,7 +54,7 @@ RSpec.describe Async::Node do
 		it "can print hierarchy to bufffer" do
 			subject.print_hierarchy(buffer)
 			
-			expect(lines.count).to be 2
+			expect(lines.size).to be 2
 			
 			expect(lines[0]).to be =~ /#<Async::Node:0x\h+>\n/
 			expect(lines[1]).to be =~ /\t#<Async::Node:0x\h+>\n/

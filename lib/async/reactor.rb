@@ -201,7 +201,7 @@ module Async
 					interval = 0
 				end
 				
-				# logger.debug(self) {"Selecting with #{@children&.count} children with interval = #{interval.inspect}..."}
+				# logger.debug(self) {"Selecting with #{@children&.size} children with interval = #{interval.inspect}..."}
 				if monitors = @selector.select(interval)
 					monitors.each do |monitor|
 						monitor.value.resume
