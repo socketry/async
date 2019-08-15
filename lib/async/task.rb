@@ -137,10 +137,12 @@ module Async
 		# Stop the task and all of its children.
 		# @return [void]
 		def stop
-			if self.stopping?
-				# If we are already stopping this task... don't try to stop it again.
-				return true
-			elsif self.running?
+			if self.stopping? || self.stopped?
+				# If we already stopped this task... don't try to stop it again:
+				return
+			end
+			
+			if self.running?
 				@status = :stopping
 				
 				if self.current?
@@ -148,9 +150,10 @@ module Async
 				elsif @fiber&.alive?
 					@fiber.resume(Stop.new)
 				end
+			else
+				# We are not running, but children might be, so transition directly into stopped state:
+				stop!
 			end
-		ensure
-			@children&.each(&:stop)
 		end
 	
 		# Lookup the {Task} for the current fiber. Raise `RuntimeError` if none is available.
@@ -217,7 +220,9 @@ module Async
 		end
 		
 		def stop!
+			# logger.debug(self) {"Task was stopped with #{@children.size} children!"}
 			@status = :stopped
+			@children&.each(&:stop)
 		end
 		
 		def make_fiber(&block)
@@ -227,7 +232,7 @@ module Async
 				begin
 					@result = yield(self, *args)
 					@status = :complete
-					# logger.debug("Task #{self} completed normally.")
+					# logger.debug(self) {"Task was completed with #{@children.size} children!"}
 				rescue Stop
 					stop!
 				rescue StandardError => error
@@ -235,7 +240,7 @@ module Async
 				rescue Exception => exception
 					fail!(exception, true)
 				ensure
-					# logger.debug("Task #{self} closing: #{$!}")
+					# logger.debug(self) {"Task ensure $!=#{$!} with #{@children.size} children!"}
 					finish!
 				end
 			end
