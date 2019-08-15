@@ -24,9 +24,29 @@ module Async
 	# Represents an asynchronous IO within a reactor.
 	class Wrapper
 		class Cancelled < StandardError
+			class From
+				def initialize
+					@backtrace = caller[5..-1]
+				end
+				
+				attr :backtrace
+				
+				def cause
+					nil
+				end
+				
+				def message
+					"Cancelled"
+				end
+			end
+			
 			def initialize
 				super "The operation has been cancelled!"
+				
+				@cause = From.new
 			end
+			
+			attr :cause
 		end
 		
 		# wait_readable, wait_writable and wait_any are not re-entrant, and will raise this failure.
