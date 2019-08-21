@@ -41,5 +41,30 @@ RSpec.describe Async::Condition do
 		task.stop
 	end
 	
+	it 'can stop nested task' do
+		producer = nil
+		
+		consumer = reactor.async do |task|
+			condition = Async::Condition.new
+			
+			producer = task.async do |subtask|
+				subtask.yield
+				condition.signal
+				subtask.sleep(10)
+			end
+			
+			condition.wait
+			expect do
+				producer.stop
+			end.to_not raise_error
+		end
+		
+		consumer.wait
+		producer.wait
+		
+		expect(producer).to be_stopped
+		expect(consumer).to be_complete
+	end
+	
 	it_behaves_like Async::Condition
 end
