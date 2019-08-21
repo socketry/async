@@ -27,6 +27,19 @@ require_relative 'condition'
 module Async
 	# Raised when a task is explicitly stopped.
 	class Stop < Exception
+		class Later
+			def initialize(task)
+				@task = task
+			end
+			
+			def alive?
+				true
+			end
+			
+			def resume
+				@task.stop
+			end
+		end
 	end
 	
 	# A task represents the state associated with the execution of an asynchronous
@@ -143,12 +156,18 @@ module Async
 			end
 			
 			if self.running?
+				previous_status = @status
 				@status = :stopping
 				
 				if self.current?
 					raise Stop, "Stopping current fiber!"
 				elsif @fiber&.alive?
-					@fiber.resume(Stop.new)
+					begin
+						@fiber.resume(Stop.new)
+					rescue FiberError
+						@status = previous_status
+						@reactor << Stop::Later.new(self)
+					end
 				end
 			else
 				# We are not running, but children might be, so transition directly into stopped state:
