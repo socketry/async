@@ -29,6 +29,32 @@ RSpec.describe Async do
 		end
 	end
 	
+	describe '#Sync' do
+		let(:value) {10}
+		
+		it "can run a synchronous task" do
+			result = Sync do
+				expect(Async::Task.current).to_not be nil
+				
+				next value
+			end
+			
+			expect(result).to be == value
+		end
+		
+		it "can run inside reactor" do
+			Async do |task|
+				result = Sync do
+					expect(Async::Task.current).to be task
+					
+					next value
+				end
+				
+				expect(result).to be == value
+			end
+		end
+	end
+	
 	describe '.run' do
 		it "can run an asynchronous task" do
 			Async.run do |task|

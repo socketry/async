@@ -33,4 +33,12 @@ module Kernel
 	def Async(*args, &block)
 		Async::Reactor.run(*args, &block)
 	end
+	
+	def Sync(*args, &block)
+		if task = Async::Task.current?
+			yield
+		else
+			Async::Reactor.run(*args, &block).wait
+		end
+	end
 end
