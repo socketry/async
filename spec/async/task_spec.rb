@@ -221,6 +221,27 @@ RSpec.describe Async::Task do
 			bottom_task.stop
 			expect(top_task.children).to include(middle_task)
 		end
+		
+		it "can stop resumed task" do
+			items = [1, 2, 3]
+			
+			Async do
+				condition = Async::Condition.new
+				
+				producer = Async do |subtask|
+					while item = items.pop
+						subtask.yield # (1) Fiber.yield, (3) Reactor -> producer.resume
+						condition.signal(item) # (4) consumer.resume(value)
+					end
+				end
+				
+				value = condition.wait # (2) value = Fiber.yield
+				expect(value).to be == 3
+				producer.stop # (5) [producer is resumed already] producer.stop
+			end
+			
+			expect(items).to be == [1]
+		end
 	end
 	
 	describe '#sleep' do

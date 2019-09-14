@@ -98,7 +98,7 @@ module Async
 		
 		# Yield back to the reactor and allow other fibers to execute.
 		def yield
-			reactor.yield
+			Task.yield{reactor.yield}
 		end
 		
 		# @attr fiber [Fiber] The fiber which is being used for the execution of this task.
