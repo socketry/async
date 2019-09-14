@@ -34,10 +34,10 @@ def parse(value)
 	end
 end
 
-def strace(pid, duration = 10)
+def strace(pid, duration = 60)
 	input, output = IO.pipe
 	
-	pid = Process.spawn("strace", "-p", pid.to_s, "-cqf", "-w", "-e", "trace=read,write,sendto,recvfrom", err: output)
+	pid = Process.spawn("strace", "-p", pid.to_s, "-cqf", "-w", "-e", "!futex", err: output)
 	
 	output.close
 	
@@ -46,15 +46,21 @@ def strace(pid, duration = 10)
 		Signal.trap(:INT, :DEFAULT)
 	end
 	
+	Thread.new do
+		sleep duration
+		Process.kill(:INT, pid)
+	end
+	
 	summary = {}
 	
-	if line = input.gets
-		rule = input.gets # horizontal separator
-		pattern = Regexp.new(
-			rule.split(/\s/).map{|s| "(.{1,#{s.size}})"}.join(' ')
-		)
-		
-		header = pattern.match(line).captures.map{|key| key.strip.to_sym}
+	if first_line = input.gets
+		if rule = input.gets # horizontal separator
+			pattern = Regexp.new(
+				rule.split(/\s/).map{|s| "(.{1,#{s.size}})"}.join(' ')
+			)
+			
+			header = pattern.match(first_line).captures.map{|key| key.strip.to_sym}
+		end
 		
 		while line = input.gets
 			break if line == rule
@@ -71,7 +77,11 @@ def strace(pid, duration = 10)
 		end
 	end
 	
-	Process.waitpid(pid)
+	_, status = Process.waitpid2(pid)
+	
+	Console.logger.error(status) do |buffer|
+		buffer.puts first_line
+	end unless status.success?
 	
 	return summary
 end
@@ -80,6 +90,7 @@ pids.each do |pid|
 	start_times = getrusage(pid)
 	Console.logger.info("Process #{pid} start times:", start_times)
 	
+	# sleep 60
 	summary = strace(pid)
 	
 	Console.logger.info("strace -p #{pid}") do |buffer|
@@ -94,7 +105,7 @@ pids.each do |pid|
 	if total = summary[:total]
 		process_duration = end_times.utime - start_times.utime
 		wait_duration = summary[:total][:seconds]
-		
+	
 		Console.logger.info("Process Waiting: #{wait_duration.round(4)}s out of #{process_duration.round(4)}s") do |buffer|
 			buffer.puts "Wait percentage: #{(wait_duration / process_duration * 100.0).round(2)}%"
 		end
