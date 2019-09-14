@@ -46,7 +46,7 @@ module Async
 	# block.
 	class Task < Node
 		extend Forwardable
-	
+		
 		# Yield the unerlying `result` for the task. If the result
 		# is an Exception, then that result will be raised an its
 		# exception.
@@ -174,14 +174,14 @@ module Async
 				stop!
 			end
 		end
-	
+		
 		# Lookup the {Task} for the current fiber. Raise `RuntimeError` if none is available.
 		# @return [Async::Task]
 		# @raise [RuntimeError] if task was not {set!} for the current fiber.
 		def self.current
 			Thread.current[:async_task] or raise RuntimeError, "No async task available!"
 		end
-	
+		
 		# Check if there is a task defined for the current fiber.
 		# @return [Async::Task, nil]
 		def self.current?
@@ -197,7 +197,7 @@ module Async
 		def running?
 			@status == :running
 		end
-	
+		
 		# Whether we can remove this node from the reactor graph.
 		# @return [Boolean]
 		def finished?
@@ -278,7 +278,7 @@ module Async
 				@finished.signal(@result)
 			end
 		end
-	
+		
 		# Set the current fiber's `:async_task` to this task.
 		def set!
 			# This is actually fiber-local:
