@@ -181,7 +181,7 @@ RSpec.describe Async::Task do
 			expect(task).to be_stopped
 		end
 		
-		it "should kill direct child" do
+		it "should stop direct child" do
 			parent_task = child_task = nil
 			
 			reactor.async do |task|
