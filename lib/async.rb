@@ -22,23 +22,11 @@ require_relative "async/version"
 require_relative "async/logger"
 require_relative "async/reactor"
 
+require_relative "kernel/async"
+
 module Async
 	# Invoke `Reactor.run` with all arguments/block.
 	def self.run(*args, &block)
 		Reactor.run(*args, &block)
-	end
-end
-
-module Kernel
-	def Async(*args, &block)
-		::Async::Reactor.run(*args, &block)
-	end
-	
-	def Sync(*args, &block)
-		if task = ::Async::Task.current?
-			yield
-		else
-			::Async::Reactor.run(*args, &block).wait
-		end
 	end
 end

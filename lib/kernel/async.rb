@@ -1,4 +1,4 @@
-# Copyright, 2019, by Samuel G. D. Williams. <http://www.codeotaku.com>
+# Copyright, 2017, by Samuel G. D. Williams. <http://www.codeotaku.com>
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -18,14 +18,11 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-require 'async'
+require_relative "../async/reactor"
 
-RSpec.describe Async do
-	describe '.run' do
-		it "can run an asynchronous task" do
-			Async.run do |task|
-				expect(task).to be_a Async::Task
-			end
-		end
+module Kernel
+	# Run the given block of code in a task, asynchronously, creating a reactor if necessary.
+	def Async(*args, &block)
+		::Async::Reactor.run(*args, &block)
 	end
 end

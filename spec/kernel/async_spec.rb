@@ -18,12 +18,12 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-require 'async'
+require 'kernel/async'
 
 RSpec.describe Async do
-	describe '.run' do
+	describe '#Async' do
 		it "can run an asynchronous task" do
-			Async.run do |task|
+			Async do |task|
 				expect(task).to be_a Async::Task
 			end
 		end
