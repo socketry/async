@@ -62,8 +62,8 @@ RSpec.describe Async::Condition do
 		consumer.wait
 		producer.wait
 		
-		expect(producer).to be_stopped
-		expect(consumer).to be_complete
+		expect(producer.status).to be :stopped
+		expect(consumer.status).to be :complete
 	end
 	
 	it_behaves_like Async::Condition

@@ -150,22 +150,18 @@ module Async
 		# Stop the task and all of its children.
 		# @return [void]
 		def stop
-			if self.stopping? || self.stopped?
+			if self.stopped?
 				# If we already stopped this task... don't try to stop it again:
 				return
 			end
 			
 			if self.running?
-				previous_status = @status
-				@status = :stopping
-				
 				if self.current?
 					raise Stop, "Stopping current fiber!"
 				elsif @fiber&.alive?
 					begin
 						@fiber.resume(Stop.new)
 					rescue FiberError
-						@status = previous_status
 						@reactor << Stop::Later.new(self)
 					end
 				end
