@@ -116,9 +116,9 @@ module Async
 			# When calling an async block, we deterministically execute it until the
 			# first blocking operation. We don't *have* to do this - we could schedule
 			# it for later execution, but it's useful to:
-			# - Fail at the point of call where possible.
+			# - Fail at the point of the method call where possible.
 			# - Execute determinstically where possible.
-			# - Avoid overhead if no blocking operation is performed.
+			# - Avoid scheduler overhead if no blocking operation is performed.
 			task.run(*args)
 			
 			# logger.debug "Initial execution of task #{fiber} complete (#{result} -> #{fiber.alive?})..."
@@ -168,7 +168,7 @@ module Async
 			
 			initial_task = self.async(*args, &block) if block_given?
 			
-			@timers.wait do |interval|
+			until @stopped
 				# logger.debug(self) {"@ready = #{@ready} @running = #{@running}"}
 				
 				if @ready.any?
@@ -180,17 +180,16 @@ module Async
 					end
 					
 					@running.clear
-					
-					# if there are tasks ready to execute, don't sleep.
-					if @ready.any?
-						interval = 0
-					else
-						# The above tasks may schedule, cancel or affect timers in some way. We need to compute a new wait interval for the blocking selector call below:
-						interval = @timers.wait_interval
-					end
 				end
 				
-				# As timeouts may have been updated, and caused fibers to complete, we should check this.
+				if @ready.empty?
+					interval = @timers.wait_interval
+				else
+					# if there are tasks ready to execute, don't sleep:
+					interval = 0
+				end
+				
+				# If there is no interval to wait (thus no timers), and no tasks, we could be done:
 				if interval.nil?
 					if self.finished?
 						# If there is nothing to do, then finish:
@@ -207,7 +206,9 @@ module Async
 						monitor.value.resume
 					end
 				end
-			end until @stopped
+				
+				@timers.fire
+			end
 			
 			return initial_task
 		ensure
