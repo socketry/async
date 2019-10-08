@@ -44,12 +44,34 @@ RSpec.describe Async::Barrier do
 				end
 			end
 			
+			expect(subject).to_not be_empty
 			expect(finished).to be < repeats
 			
 			duration = Async::Clock.measure{subject.wait}
 			
 			expect(duration).to be < (delay * 2)
 			expect(finished).to be == repeats
+			expect(subject).to be_empty
+		end
+	end
+	
+	context '#wait' do
+		it 'should wait for tasks even after exceptions' do
+			task1 = subject.async do
+				raise "Boom"
+			end
+			
+			task2 = subject.async do
+			end
+			
+			expect(task1).to be_failed
+			expect(task2).to be_finished
+			
+			expect{subject.wait}.to raise_exception(/Boom/)
+			
+			subject.wait until subject.empty?
+			
+			expect(subject).to be_empty
 		end
 	end
 end

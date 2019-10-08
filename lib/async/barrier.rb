@@ -31,15 +31,20 @@ module Async
 		attr :tasks
 		
 		def async(*args, parent: Task.current, **options, &block)
-			@tasks << parent.async(*args, **options, &block)
+			task = parent.async(*args, **options, &block)
+			
+			@tasks << task
+			
+			return task
+		end
+		
+		def empty?
+			@tasks.empty?
 		end
 		
 		def wait
-			until @tasks.empty?
-				tasks = @tasks
-				@tasks = []
-				
-				tasks.each(&:wait)
+			while task = @tasks.pop
+				task.wait
 			end
 		end
 	end
