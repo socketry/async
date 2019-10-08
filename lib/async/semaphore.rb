@@ -47,12 +47,10 @@ module Async
 		end
 		
 		# Run an async task. Will wait until the semaphore is ready until spawning and running the task.
-		def async(*args)
-			parent = Task.current
-			
+		def async(*args, parent: Task.current, **options)
 			wait
 			
-			parent.async do |task|
+			parent.async(**options) do |task|
 				@count += 1
 				
 				begin
