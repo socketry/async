@@ -6,8 +6,15 @@ jobs:
   build:
     strategy:
       matrix:
-        os: ['ubuntu', 'macos']
-        ruby: ['2.3', '2.4', '2.5', '2.6']
+        os: 
+          - ubuntu
+          # - macos
+        
+        ruby: 
+          - 2.3
+          - 2.4
+          - 2.5
+          - 2.6
         
         include:
           - os: 'ubuntu'
@@ -22,7 +29,9 @@ jobs:
       with:
         ruby-version: ${{matrix.ruby}}
     - name: Install dependencies
-      run: bundle install
+      run: |
+        gem install bundler
+        bundle install
     - name: Run tests
       run: ${{matrix.env}} bundle exec rspec
     - name: Run external tests
