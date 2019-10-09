@@ -22,3 +22,5 @@ jobs:
         bundle install
     - name: Run tests
       run: bundle exec rspec
+    - name: Run external tests
+      run: bundle exec rake external
