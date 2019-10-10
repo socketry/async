@@ -157,7 +157,8 @@ module Async
 			
 			if self.running?
 				if self.current?
-					raise Stop, "Stopping current fiber!"
+					@reactor << Stop::Later.new(self)
+					# raise Stop, "Stopping current fiber!"
 				elsif @fiber&.alive?
 					begin
 						@fiber.resume(Stop.new)
