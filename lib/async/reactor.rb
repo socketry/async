@@ -88,7 +88,7 @@ module Async
 		end
 		
 		def to_s
-			"<#{self.description} stopped=#{@stopped}>"
+			"\#<#{self.description} (#{@stopped ? 'stopped' : 'running'})>"
 		end
 		
 		# @attr stopped [Boolean]

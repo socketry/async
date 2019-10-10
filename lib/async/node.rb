@@ -71,6 +71,10 @@ module Async
 			"\#<#{description}>"
 		end
 		
+		def inspect
+			to_s
+		end
+		
 		# Change the parent of this node.
 		# @param parent [Node, nil] the parent to attach to, or nil to detach.
 		# @return [self]

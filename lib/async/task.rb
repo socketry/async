@@ -85,7 +85,7 @@ module Async
 		end
 		
 		def to_s
-			"<#{self.description} #{@status}>"
+			"\#<#{self.description} (#{@status})>"
 		end
 		
 		def logger
