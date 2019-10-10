@@ -307,6 +307,23 @@ Due to limitations within Ruby and the nature of this library, it is not possibl
 
 Blocking Ruby methods such as `pop` in the `Queue` class require access to their own threads and will not yield control back to the reactor which can result in a deadlock.  As a substitute for the standard library `Queue`, the `Async::Queue` class can be used.
 
+## Conventions
+
+### Nesting Tasks
+
+`Async::Barrier` and `Async::Semaphore` are designed to be compatible with each other, and with other tasks that nest `#async` invocations. There are other similar situations where you may want to pass in a parent task, e.g. `Async::IO::Endpoint#bind`.
+
+```ruby
+barrier = Async::Barrier.new
+semaphore = Async::Semaphore.new(2)
+
+semaphore.async(parent: barrier) do
+	# ...
+end
+```
+
+A `parent:` in this context is anything that responds to `#async` in the same way that `Async::Task` responds to `#async`. In situations where you strictly depend on the interface of `Async::Task`, use the `task: Task.current` pattern.
+
 ## Contributing
 
 1. Fork it
