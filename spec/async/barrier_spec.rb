@@ -22,6 +22,8 @@ require 'async/barrier'
 require 'async/clock'
 require 'async/rspec'
 
+require 'async/semaphore'
+
 RSpec.describe Async::Barrier do
 	include_context Async::RSpec::Reactor
 	
@@ -72,6 +74,23 @@ RSpec.describe Async::Barrier do
 			subject.wait until subject.empty?
 			
 			expect(subject).to be_empty
+		end
+	end
+	
+	context 'with semaphore' do
+		let(:capacity) {2}
+		let(:semaphore) {Async::Semaphore.new(capacity)}
+		let(:repeats) {capacity * 2}
+		
+		it 'should execute several tasks and wait using a barrier' do
+			repeats.times do
+				subject.async(parent: semaphore) do |task|
+					task.sleep 0.1
+				end
+			end
+			
+			expect(subject.size).to be == repeats
+			subject.wait
 		end
 	end
 end

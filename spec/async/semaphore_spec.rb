@@ -19,6 +19,7 @@
 # THE SOFTWARE.
 
 require 'async/semaphore'
+require 'async/barrier'
 require 'async/rspec'
 
 RSpec.describe Async::Semaphore do
@@ -140,6 +141,23 @@ RSpec.describe Async::Semaphore do
 			subject.release
 			
 			expect(subject.count).to be == 0
+		end
+	end
+	
+	context 'with barrier' do
+		let(:capacity) {2}
+		let(:barrier) {Async::Barrier.new}
+		let(:repeats) {capacity * 2}
+		
+		it 'should execute several tasks and wait using a barrier' do
+			repeats.times do
+				subject.async(parent: barrier) do |task|
+					task.sleep 0.1
+				end
+			end
+			
+			expect(barrier.size).to be == repeats
+			barrier.wait
 		end
 	end
 end

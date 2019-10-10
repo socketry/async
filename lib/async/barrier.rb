@@ -30,12 +30,16 @@ module Async
 		# All tasks which have been invoked into the barrier.
 		attr :tasks
 		
-		def async(*args, task: Task.current, **options, &block)
-			subtask = task.async(*args, **options, &block)
+		def size
+			@tasks.size
+		end
+		
+		def async(*args, parent: Task.current, **options, &block)
+			task = parent.async(*args, **options, &block)
 			
-			@tasks << subtask
+			@tasks << task
 			
-			return subtask
+			return task
 		end
 		
 		def empty?
