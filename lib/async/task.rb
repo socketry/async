@@ -149,7 +149,7 @@ module Async
 		
 		# Stop the task and all of its children.
 		# @return [void]
-		def stop
+		def stop(later = false)
 			if self.stopped?
 				# If we already stopped this task... don't try to stop it again:
 				return
@@ -157,8 +157,11 @@ module Async
 			
 			if self.running?
 				if self.current?
-					@reactor << Stop::Later.new(self)
-					# raise Stop, "Stopping current fiber!"
+					if later
+						@reactor << Stop::Later.new(self)
+					else
+						raise Stop, "Stopping current task!"
+					end
 				elsif @fiber&.alive?
 					begin
 						@fiber.resume(Stop.new)
@@ -236,9 +239,12 @@ module Async
 		end
 		
 		def stop!
-			# logger.debug(self) {"Task was stopped with #{@children.size} children!"}
+			# logger.debug(self) {"Task was stopped with #{@children&.size.inspect} children!"}
 			@status = :stopped
-			@children&.each(&:stop)
+			
+			@children&.each do |child|
+				child.stop(false)
+			end
 		end
 		
 		def make_fiber(&block)

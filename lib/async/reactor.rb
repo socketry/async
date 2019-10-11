@@ -131,7 +131,7 @@ module Async
 			
 			return monitor
 		end
-	
+		
 		# Stop the reactor at the earliest convenience. Can be called from a different thread safely.
 		# @return [void]
 		def stop
@@ -169,7 +169,7 @@ module Async
 			initial_task = self.async(*args, &block) if block_given?
 			
 			until @stopped
-				# logger.debug(self) {"@ready = #{@ready} @running = #{@running}"}
+				logger.debug(self) {"@ready = #{@ready} @running = #{@running}"}
 				
 				if @ready.any?
 					# running used to correctly answer on `finished?`, and to reuse Array object.
@@ -200,7 +200,7 @@ module Async
 					interval = 0
 				end
 				
-				# logger.debug(self) {"Selecting with #{@children&.size} children with interval = #{interval.inspect}..."}
+				logger.debug(self) {"Selecting with #{@children&.size} children with interval = #{interval ? interval.round(2) : 'infinite'}..."}
 				if monitors = @selector.select(interval)
 					monitors.each do |monitor|
 						monitor.value.resume

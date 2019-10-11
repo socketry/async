@@ -181,6 +181,19 @@ RSpec.describe Async::Task do
 			expect(task).to be_stopped
 		end
 		
+		it "can stop current task using exception" do
+			state = nil
+			
+			task = reactor.async do |task|
+				state = :started
+				raise Async::Stop, "I'm finished."
+				state = :finished
+			end
+			
+			expect(state).to be == :started
+			expect(task).to be_stopped
+		end
+		
 		it "should stop direct child" do
 			parent_task = child_task = nil
 			
@@ -203,6 +216,35 @@ RSpec.describe Async::Task do
 			
 			expect(parent_task).to_not be_alive
 			expect(child_task).to_not be_alive
+		end
+		
+		it "can stop nested parent" do
+			parent_task = nil
+			children_tasks = []
+			
+			reactor.async do |task|
+				parent_task = task
+				
+				reactor.async do |task|
+					children_tasks << task
+					task.sleep(2)
+				end
+				
+				reactor.async do |task|
+					children_tasks << task
+					task.sleep(1)
+					parent_task.stop
+				end
+				
+				reactor.async do |task|
+					children_tasks << task
+					task.sleep(2)
+				end
+			end
+			
+			reactor.run
+			
+			expect(parent_task).to_not be_alive
 		end
 		
 		it "should not remove running task" do
