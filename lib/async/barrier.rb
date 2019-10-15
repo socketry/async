@@ -46,8 +46,9 @@ module Async
 			@tasks.empty?
 		end
 		
+		# Wait for tasks in FIFO order.
 		def wait
-			while task = @tasks.pop
+			while task = @tasks.shift
 				task.wait
 			end
 		end

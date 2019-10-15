@@ -79,14 +79,14 @@ module Async
 			end
 		end
 		
-		# Release the semaphore. Must match up with a corresponding call to `acquire`.
+		# Release the semaphore. Must match up with a corresponding call to `acquire`. Will release waiting fibers in FIFO order.
 		def release
 			@count -= 1
 			
-			available = @waiting.pop(@limit - @count)
-			
-			available.each do |fiber|
-				fiber.resume if fiber.alive?
+			while (@limit - @count) > 0 and fiber = @waiting.shift
+				if fiber.alive?
+					fiber.resume
+				end
 			end
 		end
 		
