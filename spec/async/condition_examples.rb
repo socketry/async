@@ -51,6 +51,23 @@ RSpec.shared_examples Async::Condition do
 		subject.signal
 	end
 	
+	it 'resumes tasks in order' do
+		order = []
+		
+		5.times do |i|
+			task = reactor.async do
+				subject.wait
+				order << i
+			end
+		end
+		
+		subject.signal
+		
+		reactor.yield
+		
+		expect(order).to be == [0, 1, 2, 3, 4]
+	end
+	
 	context "with timeout" do
 		before do
 			@state = nil

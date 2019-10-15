@@ -75,6 +75,20 @@ RSpec.describe Async::Barrier do
 			
 			expect(subject).to be_empty
 		end
+		
+		it 'waits for tasks in order' do
+			order = []
+			
+			5.times do |i|
+				subject.async do
+					order << i
+				end
+			end
+			
+			subject.wait
+			
+			expect(order).to be == [0, 1, 2, 3, 4]
+		end
 	end
 	
 	context 'with semaphore' do
