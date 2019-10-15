@@ -243,7 +243,7 @@ module Async
 			@status = :stopped
 			
 			@children&.each do |child|
-				child.stop(false)
+				child.stop(true)
 			end
 		end
 		
