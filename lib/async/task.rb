@@ -112,19 +112,20 @@ module Async
 		attr :status
 		
 		# Begin the execution of the task.
-		def run(*args)
+		def run(*arguments)
 			if @status == :initialized
 				@status = :running
-				@fiber.resume(*args)
+				
+				@fiber.resume(*arguments)
 			else
 				raise RuntimeError, "Task already running!"
 			end
 		end
 		
-		def async(*args, **options, &block)
+		def async(*arguments, **options, &block)
 			task = Task.new(@reactor, self, **options, &block)
 			
-			task.run(*args)
+			task.run(*arguments)
 			
 			return task
 		end
@@ -248,11 +249,11 @@ module Async
 		end
 		
 		def make_fiber(&block)
-			Fiber.new do |*args|
+			Fiber.new do |*arguments|
 				set!
 				
 				begin
-					@result = yield(self, *args)
+					@result = yield(self, *arguments)
 					@status = :complete
 					# logger.debug(self) {"Task was completed with #{@children.size} children!"}
 				rescue Stop

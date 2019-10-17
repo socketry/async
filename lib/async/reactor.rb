@@ -109,7 +109,7 @@ module Async
 		#
 		# @yield [Task] Executed within the task.
 		# @return [Task] The task that was scheduled into the reactor.
-		def async(*args, **options, &block)
+		def async(*arguments, **options, &block)
 			task = Task.new(self, **options, &block)
 			
 			# I want to take a moment to explain the logic of this.
@@ -119,7 +119,7 @@ module Async
 			# - Fail at the point of the method call where possible.
 			# - Execute determinstically where possible.
 			# - Avoid scheduler overhead if no blocking operation is performed.
-			task.run(*args)
+			task.run(*arguments)
 			
 			# logger.debug "Initial execution of task #{fiber} complete (#{result} -> #{fiber.alive?})..."
 			return task
