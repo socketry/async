@@ -8,7 +8,7 @@ Async is a composable asynchronous I/O framework for Ruby based on [nio4r] and [
 [![Build Status](https://secure.travis-ci.org/socketry/async.svg)](http://travis-ci.org/socketry/async)
 [![Code Climate](https://codeclimate.com/github/socketry/async.svg)](https://codeclimate.com/github/socketry/async)
 [![Coverage Status](https://coveralls.io/repos/socketry/async/badge.svg)](https://coveralls.io/r/socketry/async)
-[![Gitter](https://badges.gitter.im/join.svg)](https://gitter.im/socketry/async)
+[![Join the community on Spectrum](https://withspectrum.github.io/badge/badge.svg)](https://spectrum.chat/async)
 
 > "Lately I've been looking into `async`, as one of my projects – [tus-ruby-server](https://github.com/janko/tus-ruby-server) – would really benefit from non-blocking I/O. It's really beautifully designed." *– [janko](https://github.com/janko)*
 
