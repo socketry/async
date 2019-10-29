@@ -249,8 +249,10 @@ module Async
 		end
 		
 		def make_fiber(&block)
+			payloads = reactor.call_before_hooks
 			Fiber.new do |*arguments|
 				set!
+				reactor.call_after_hooks(payloads)
 				
 				begin
 					@result = yield(self, *arguments)

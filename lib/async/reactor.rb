@@ -69,6 +69,13 @@ module Async
 			
 			return NIO::Selector.new
 		end
+
+		# Set up a hook pair to be called back when instantiating a task.
+		# @param before_create [Lambda] will be evaluated before a task's fiber is created. Takes 0 params.
+		# @param after_create [Lambda] will be called in the new fiber and passed the return value of before_create. Takes 1 param.
+		def self.hook(before_create: nil, after_create: nil)
+			Task.current.reactor.hook(before_create: before_create, after_create: after_create)
+		end
 		
 		def initialize(parent = nil, selector: self.class.selector, logger: nil)
 			super(parent)
@@ -273,6 +280,34 @@ module Async
 			warn "#{self.class}\#timeout(...) is deprecated, use #{self.class}\#with_timeout(...) instead."
 			
 			with_timeout(*args, &block)
+		end
+
+		# @return [Array] A list of callbacks to be called before and after creating a fiber.
+		# Each is a Hash with keys :before_create (a lambda to be called in the original
+		# fiber) and :after_create (a lambda to receive the value as a parameter).
+		def hooks
+			@hooks ||= []
+		end
+
+		# Before creating an async task's fiber, call all the before_create hooks and return their values.
+		def call_before_hooks
+			hooks.map { |hook| hook[:before_create]&.call }
+		end
+
+		# In a new async task's fiber, pass the return values of the before_create hooks to the
+		# after_create hooks.
+		def call_after_hooks(payloads)
+			hooks.each_with_index do |hook, index|
+				hook[:after_create]&.call(payloads[index])
+			end
+		end
+
+		# Add a hook pair.
+		def hook(before_create:, after_create:)
+			hooks << {
+				before_create: before_create,
+				after_create: after_create,
+			}
 		end
 	end
 end

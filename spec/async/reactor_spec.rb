@@ -19,6 +19,7 @@
 # THE SOFTWARE.
 
 require 'async'
+require 'async/rspec'
 require 'benchmark/ips'
 
 RSpec.describe Async::Reactor do
@@ -188,8 +189,45 @@ RSpec.describe Async::Reactor do
 				x.compare!
 			end
 		end
+  end
+
+	describe '.hook' do
+		it "raises an error when called outside a reactor" do
+			expect do
+				described_class.hook
+			end.to raise_exception(RuntimeError, /No async task/)
+		end
+
+		it "passes the before-hook's return value to the after-hook" do
+			Async do
+				Thread.current[:data] = { value: 123 }
+
+				described_class.hook(
+					before_create: -> { Thread.current[:data] },
+					after_create: ->(payload) { Thread.current[:data] = payload.dup }
+				)
+
+				Async do |inner_task|
+					expect(Thread.current[:data]).to eq({ value: 123 })
+				end.wait
+			end.wait
+		end
+
+		it "allows before_create to be nil" do
+			Async do
+				described_class.hook(after_create: ->(data) {})
+				expect { Async {} }.not_to raise_error
+			end
+		end
+
+		it "allows after_create to be nil" do
+			Async do
+				described_class.hook(before_create: ->() {})
+				expect { Async {} }.not_to raise_error
+			end
+		end
 	end
-	
+
 	describe '#to_s' do
 		it "shows stopped=" do
 			expect(subject.to_s).to include "stopped"
