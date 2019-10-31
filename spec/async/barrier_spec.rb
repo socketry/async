@@ -24,6 +24,8 @@ require 'async/rspec'
 
 require 'async/semaphore'
 
+require_relative 'chainable_async_examples'
+
 RSpec.describe Async::Barrier do
 	include_context Async::RSpec::Reactor
 	
@@ -107,4 +109,6 @@ RSpec.describe Async::Barrier do
 			subject.wait
 		end
 	end
+	
+	it_behaves_like 'chainable async'
 end
