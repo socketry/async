@@ -21,10 +21,12 @@
 module Async
 	# A semaphore is used to control access to a common resource in a concurrent system. A useful way to think of a semaphore as used in the real-world systems is as a record of how many units of a particular resource are available, coupled with operations to adjust that record safely (i.e. to avoid race conditions) as units are required or become free, and, if necessary, wait until a unit of the resource becomes available.
 	class Semaphore
-		def initialize(limit = 1)
+		def initialize(limit = 1, parent: nil)
 			@count = 0
 			@limit = limit
 			@waiting = []
+			
+			@parent = parent
 		end
 		
 		# The current number of tasks that have acquired the semaphore.
@@ -47,7 +49,7 @@ module Async
 		end
 		
 		# Run an async task. Will wait until the semaphore is ready until spawning and running the task.
-		def async(*args, parent: Task.current, **options)
+		def async(*args, parent: (@parent || Task.current), **options)
 			wait
 			
 			parent.async(**options) do |task|
