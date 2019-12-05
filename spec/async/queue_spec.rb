@@ -76,7 +76,14 @@ RSpec.shared_context Async::Queue do
 	end
 	
 	it_behaves_like 'chainable async' do
-		before {subject.enqueue(:item); Async{subject.enqueue(nil)}}
+		before do
+			subject.enqueue(:item)
+			
+			# The limited queue may block.
+			Async do
+				subject.enqueue(nil)
+			end
+		end
 	end
 end
 
