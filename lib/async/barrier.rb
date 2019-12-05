@@ -36,7 +36,7 @@ module Async
 			@tasks.size
 		end
 		
-		def async(*args, parent: (@parent || Task.current), **options, &block)
+		def async(*args, parent: (@parent or Task.current), **options, &block)
 			task = parent.async(*args, **options, &block)
 			
 			@tasks << task

@@ -23,10 +23,11 @@ require_relative 'notification'
 module Async
 	# A queue which allows items to be processed in order.
 	class Queue < Notification
-		def initialize
-			super
+		def initialize(parent: nil)
+			super()
 			
 			@items = []
+			@parent = parent
 		end
 		
 		attr :items
@@ -47,19 +48,26 @@ module Async
 			@items.shift
 		end
 		
-		def async(parent: Task.current, &block)
+		def async(parent: (@parent or Task.current), &block)
 			while item = self.dequeue
 				parent.async(item, &block)
+			end
+		end
+		
+		def each
+			while item = self.dequeue
+				yield item
 			end
 		end
 	end
 	
 	class LimitedQueue < Queue
-		def initialize(limit = 1)
-			super()
+		def initialize(limit = 1, **options)
+			super(**options)
 			
 			@limit = limit
-			@full = Async::Queue.new
+			
+			@full = Notification.new
 		end
 		
 		attr :limit
@@ -70,8 +78,8 @@ module Async
 		end
 		
 		def enqueue item
-			if limited?
-				@full.dequeue
+			while limited?
+				@full.wait
 			end
 			
 			super
@@ -80,7 +88,7 @@ module Async
 		def dequeue
 			item = super
 			
-			@full.enqueue(nil) unless @full.empty?
+			@full.signal
 			
 			return item
 		end

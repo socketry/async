@@ -21,8 +21,10 @@
 require 'async'
 require 'async/queue'
 require 'async/rspec'
+require 'async/semaphore'
 
 require_relative 'condition_examples'
+require_relative 'chainable_async_examples'
 
 RSpec.shared_context Async::Queue do
 	it 'should process items in order' do
@@ -47,6 +49,34 @@ RSpec.shared_context Async::Queue do
 		subject.async do |task, item|
 			expect(item).to be 1
 		end
+	end
+	
+	context 'with semaphore' do
+		let(:capacity) {2}
+		let(:semaphore) {Async::Semaphore.new(capacity)}
+		let(:repeats) {capacity * 2}
+		
+		it 'should process several items limited by a semaphore' do
+			count = 0
+			
+			Async do
+				repeats.times do
+					subject.enqueue :item
+				end
+				
+				subject.enqueue nil
+			end
+			
+			subject.async(parent: semaphore) do |task|
+				count += 1
+			end
+			
+			expect(count).to be == repeats
+		end
+	end
+	
+	it_behaves_like 'chainable async' do
+		before {subject.enqueue(:item); Async{subject.enqueue(nil)}}
 	end
 end
 
