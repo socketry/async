@@ -133,11 +133,19 @@ module Async
 		end
 		
 		# Stop the reactor at the earliest convenience. Can be called from a different thread safely.
+		# TODO Behaviour like `Task#stop` - stopping all children.
 		# @return [void]
 		def stop
 			unless @stopped
 				@stopped = true
 				@selector.wakeup
+			end
+		end
+		
+		# Stops the reactor event, causing it to exit. It can be resumed by calling `#run`.
+		def pause
+			unless @stopped
+				@stopped = true
 			end
 		end
 		
@@ -159,8 +167,9 @@ module Async
 			super && @ready.empty? && @running.empty?
 		end
 		
-		# Run the reactor until either all tasks complete or {#stop} is invoked.
-		# Proxies arguments to {#async} immediately before entering the loop.
+		# Run the reactor until either all tasks complete or {#pause} or {#stop} is
+		# invoked. Proxies arguments to {#async} immediately before entering the
+		# loop, if a block is provided.
 		def run(*args, &block)
 			raise RuntimeError, 'Reactor has been closed' if @selector.nil?
 			

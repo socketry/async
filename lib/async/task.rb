@@ -101,6 +101,13 @@ module Async
 			Task.yield{reactor.yield}
 		end
 		
+		# Pause the reactor and yield the current task. It can be resumed by calling `#run`.
+		# @see Reactor#pause
+		def pause
+			@reactor.pause
+			self.yield
+		end
+		
 		# @attr fiber [Fiber] The fiber which is being used for the execution of this task.
 		attr :fiber
 		

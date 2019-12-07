@@ -132,6 +132,23 @@ RSpec.describe Async::Task do
 		end
 	end
 	
+	describe '#pause' do
+		it "can pause the reactor" do
+			state = nil
+			
+			reactor.async do |task|
+				state = :started
+				task.pause
+				state = :finished
+			end
+			
+			expect(state).to be :started
+			
+			reactor.run
+			expect(state).to be :finished
+		end
+	end
+	
 	describe '#stop' do
 		it "can be stopped" do
 			state = nil

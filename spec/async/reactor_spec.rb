@@ -19,6 +19,8 @@
 # THE SOFTWARE.
 
 require 'async'
+require 'async/rspec/reactor'
+
 require 'benchmark/ips'
 
 RSpec.describe Async::Reactor do
@@ -45,8 +47,26 @@ RSpec.describe Async::Reactor do
 		end
 	end
 	
+	describe '#pause' do
+		it "can pause the reactor" do
+			state = nil
+			
+			subject.async do |task|
+				state = :started
+				task.reactor.pause
+				task.yield
+				state = :finished
+			end
+			
+			expect(state).to be :started
+			
+			subject.run
+			expect(state).to be :finished
+		end
+	end
+	
 	describe '#stop' do
-		it "can be stop reactor" do
+		it "can stop the reactor" do
 			state = nil
 			
 			subject.async do |task|
