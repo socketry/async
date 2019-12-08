@@ -208,8 +208,8 @@ reactor.async do |task|
 	puts "Finished!"
 end
 
-until reactor.stopped?
-	break unless reactor.run_once
+while reactor.run_once
+	# Round and round we go!
 end
 ```
 
