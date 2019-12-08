@@ -288,12 +288,5 @@ module Async
 		ensure
 			timer.cancel if timer
 		end
-		
-		# TODO remove
-		def timeout(*args, &block)
-			warn "#{self.class}\#timeout(...) is deprecated, use #{self.class}\#with_timeout(...) instead."
-			
-			with_timeout(*args, &block)
-		end
 	end
 end
