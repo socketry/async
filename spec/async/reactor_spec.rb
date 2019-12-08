@@ -51,15 +51,12 @@ RSpec.describe Async::Reactor do
 		it "can run the reactor" do
 			# Run the reactor for 1 second:
 			task = subject.async do |task|
-				task.sleep 0.1
+				task.yield
 			end
 			
 			expect(task).to be_running
 			
-			# This will wait for the timeout duration and fire the timers:
-			expect(subject.run_once).to be true
-			
-			# This will ensure that all work is completed:
+			# This will resume the task, and then the reactor will be finished.
 			expect(subject.run_once).to be false
 			
 			expect(task).to be_finished
