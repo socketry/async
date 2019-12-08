@@ -31,12 +31,12 @@ module Async
 				@monitor.close
 			end
 			
-			def method_missing(*args, &block)
-				@monitor.send(*args)
+			def method_missing(*arguments, &block)
+				@monitor.send(*arguments)
 			end
 			
-			def respond_to?(*args)
-				@monitor.respond_to?(*args)
+			def respond_to?(*arguments)
+				@monitor.respond_to?(*arguments)
 			end
 			
 			def inspect

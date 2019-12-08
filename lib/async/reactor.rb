@@ -42,16 +42,16 @@ module Async
 		# - When invoked at the top level, will create and run a reactor, and invoke
 		# the block as an asynchronous task. Will block until the reactor finishes
 		# running.
-		def self.run(*args, **options, &block)
+		def self.run(*arguments, **options, &block)
 			if current = Task.current?
 				reactor = current.reactor
 				
-				return reactor.async(*args, **options, &block)
+				return reactor.async(*arguments, **options, &block)
 			else
 				reactor = self.new(**options)
 				
 				begin
-					return reactor.run(*args, &block)
+					return reactor.run(*arguments, &block)
 				ensure
 					reactor.close
 				end
@@ -224,10 +224,10 @@ module Async
 		# Run the reactor until either all tasks complete or {#pause} or {#stop} is
 		# invoked. Proxies arguments to {#async} immediately before entering the
 		# loop, if a block is provided.
-		def run(*args, &block)
+		def run(*arguments, &block)
 			raise RuntimeError, 'Reactor has been closed' if @selector.nil?
 			
-			initial_task = self.async(*args, &block) if block_given?
+			initial_task = self.async(*arguments, &block) if block_given?
 			
 			while self.run_once
 				# Round and round we go!

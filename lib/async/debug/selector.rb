@@ -79,8 +79,8 @@ module Async
 				@selector.close
 			end
 			
-			def select(*args)
-				@selector.select(*args)
+			def select(*arguments)
+				@selector.select(*arguments)
 			end
 		end
 	end

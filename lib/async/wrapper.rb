@@ -73,22 +73,22 @@ module Async
 			self.class.new(@io.dup, @reactor)
 		end
 		
-		def resume(*args)
+		def resume(*arguments)
 			# It's possible that the monitor was closed before calling resume.
 			return unless @monitor
 			
 			readiness = @monitor.readiness
 			
 			if @readable and (readiness == :r or readiness == :rw)
-				@readable.resume(*args)
+				@readable.resume(*arguments)
 			end
 			
 			if @writable and (readiness == :w or readiness == :rw)
-				@writable.resume(*args)
+				@writable.resume(*arguments)
 			end
 			
 			if @any
-				@any.resume(*args)
+				@any.resume(*arguments)
 			end
 		end
 		
