@@ -47,20 +47,36 @@ RSpec.describe Async::Reactor do
 		end
 	end
 	
-	describe '#pause' do
-		it "can pause the reactor" do
-			state = nil
+	describe '#run_once' do
+		it "can run the reactor" do
+			# Run the reactor for 1 second:
+			task = subject.async do |task|
+				task.sleep 0.1
+			end
 			
+			expect(task).to be_running
+			
+			# This will wait for the timeout duration and fire the timers:
+			expect(subject.run_once).to be true
+			
+			# This will ensure that all work is completed:
+			expect(subject.run_once).to be false
+			
+			expect(task).to be_finished
+		end
+		
+		it "can run one iteration" do
+			state = nil
+	
 			subject.async do |task|
 				state = :started
-				task.reactor.pause
 				task.yield
 				state = :finished
 			end
-			
+	
 			expect(state).to be :started
-			
-			subject.run
+	
+			subject.run_once
 			expect(state).to be :finished
 		end
 	end

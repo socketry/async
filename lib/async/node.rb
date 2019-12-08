@@ -132,6 +132,10 @@ module Async
 			end
 		end
 		
+		def stop
+			@children&.each(&:stop)
+		end
+		
 		def print_hierarchy(out = $stdout)
 			self.traverse do |node, level|
 				out.puts "#{"\t" * level}#{node}"

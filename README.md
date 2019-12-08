@@ -192,9 +192,9 @@ Async do |task|
 end
 ```
 
-#### Stopping Reactors
+#### Embedding Reactors
 
-`Async::Reactor#run` will run until the reactor runs out of work to do or is explicitly stopped.
+`Async::Reactor#run` will run until the reactor runs out of work to do. To run a single iteration of the reactor, use `Async::Reactor#run_once`
 
 ```ruby
 require 'async'
@@ -203,13 +203,25 @@ Async.logger.debug!
 reactor = Async::Reactor.new
 
 # Run the reactor for 1 second:
-reactor.run do |task|
+reactor.async do |task|
 	task.sleep 1
-	reactor.stop
+	puts "Finished!"
+end
+
+until reactor.stopped?
+	break unless reactor.run_once
 end
 ```
 
-You can use this approach to embed the reactor in another event loop. `Async::Reactor#stop` is can be called safely from a different thread.
+You can use this approach to embed the reactor in another event loop.
+
+#### Stopping Reactors
+
+`Async::Reactor#stop` will stop the current reactor and all children tasks.
+
+#### Interrupting Reactors
+
+`Async::Reactor#interrupt` can be called safely from a different thread (or signal handler) and will cause the reactor to invoke `#stop`.
 
 ### Resource Management
 

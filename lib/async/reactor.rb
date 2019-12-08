@@ -80,7 +80,8 @@ module Async
 			@ready = []
 			@running = []
 			
-			@stopped = true
+			@interrupted = false
+			@guard = Mutex.new
 		end
 		
 		def logger
@@ -88,14 +89,11 @@ module Async
 		end
 		
 		def to_s
-			"\#<#{self.description} (#{@stopped ? 'stopped' : 'running'})>"
+			"\#<#{self.description} #{@children&.size || 0} children #{stopped? ? 'stopped' : 'running'}>"
 		end
 		
-		# @attr stopped [Boolean]
-		attr :stopped
-		
 		def stopped?
-			@stopped
+			@children.nil? || @children.empty?
 		end
 		
 		# TODO Remove these in next major release. They are too confusing to use correctly.
@@ -132,20 +130,13 @@ module Async
 			return monitor
 		end
 		
-		# Stop the reactor at the earliest convenience. Can be called from a different thread safely.
-		# TODO Behaviour like `Task#stop` - stopping all children.
-		# @return [void]
-		def stop
-			unless @stopped
-				@stopped = true
-				@selector.wakeup
-			end
-		end
-		
-		# Stops the reactor event, causing it to exit. It can be resumed by calling `#run`.
-		def pause
-			unless @stopped
-				@stopped = true
+		# Interrupt the reactor at the earliest convenience. Can be called from a different thread safely.
+		def interrupt
+			@guard.synchronize do
+				unless @interrupted
+					@interrupted = true
+					@selector.wakeup
+				end
 			end
 		end
 		
@@ -163,8 +154,71 @@ module Async
 		end
 		
 		def finished?
-			# I'm not sure if checking `@running.empty?` is really required.
+			# TODO I'm not sure if checking `@running.empty?` is really required.
 			super && @ready.empty? && @running.empty?
+		end
+		
+		# Run one iteration of the event loop.
+		# @param timeout [Float | nil] the maximum timeout, or if nil, indefinite.
+		# @return [Boolean] whether there is more work to do.
+		def run_once(timeout = nil)
+			logger.debug(self) {"@ready = #{@ready} @running = #{@running}"}
+			
+			if @ready.any?
+				# running used to correctly answer on `finished?`, and to reuse Array object.
+				@running, @ready = @ready, @running
+				
+				@running.each do |fiber|
+					fiber.resume if fiber.alive?
+				end
+				
+				@running.clear
+			end
+			
+			if @ready.empty?
+				interval = @timers.wait_interval
+			else
+				# if there are tasks ready to execute, don't sleep:
+				interval = 0
+			end
+			
+			# If there is no interval to wait (thus no timers), and no tasks, we could be done:
+			if interval.nil?
+				if self.finished?
+					# If there is nothing to do, then finish:
+					return false
+				end
+				
+				# Allow the user to specify a maximum interval if we would otherwise be sleeping indefinitely:
+				interval = timeout
+			elsif interval < 0
+				# We have timers ready to fire, don't sleep in the selctor:
+				interval = 0
+			elsif timeout and interval > timeout
+				interval = timeout
+			end
+			
+			logger.debug(self) {"Selecting with #{@children&.size} children with interval = #{interval ? interval.round(2) : 'infinite'}..."}
+			if monitors = @selector.select(interval)
+				monitors.each do |monitor|
+					monitor.value.resume
+				end
+			end
+			
+			@timers.fire
+			
+			# We check and clear the interrupted flag here:
+			if @interrupted
+				@guard.synchronize do
+					@interrupted = false
+				end
+				
+				self.stop
+				
+				return false
+			end
+			
+			return true
 		end
 		
 		# Run the reactor until either all tasks complete or {#pause} or {#stop} is
@@ -173,64 +227,22 @@ module Async
 		def run(*args, &block)
 			raise RuntimeError, 'Reactor has been closed' if @selector.nil?
 			
-			@stopped = false
-			
 			initial_task = self.async(*args, &block) if block_given?
 			
-			until @stopped
-				logger.debug(self) {"@ready = #{@ready} @running = #{@running}"}
-				
-				if @ready.any?
-					# running used to correctly answer on `finished?`, and to reuse Array object.
-					@running, @ready = @ready, @running
-					
-					@running.each do |fiber|
-						fiber.resume if fiber.alive?
-					end
-					
-					@running.clear
-				end
-				
-				if @ready.empty?
-					interval = @timers.wait_interval
-				else
-					# if there are tasks ready to execute, don't sleep:
-					interval = 0
-				end
-				
-				# If there is no interval to wait (thus no timers), and no tasks, we could be done:
-				if interval.nil?
-					if self.finished?
-						# If there is nothing to do, then finish:
-						return initial_task
-					end
-				elsif interval < 0
-					# We have timers ready to fire, don't sleep in the selctor:
-					interval = 0
-				end
-				
-				logger.debug(self) {"Selecting with #{@children&.size} children with interval = #{interval ? interval.round(2) : 'infinite'}..."}
-				if monitors = @selector.select(interval)
-					monitors.each do |monitor|
-						monitor.value.resume
-					end
-				end
-				
-				@timers.fire
+			while self.run_once
+				# Round and round we go!
 			end
 			
 			return initial_task
 		ensure
 			logger.debug(self) {"Exiting run-loop because #{$! ? $! : 'finished'}."}
-			
-			@stopped = true
 		end
-	
+		
 		# Stop each of the children tasks and close the selector.
 		# 
 		# @return [void]
 		def close
-			@children&.each(&:stop)
+			self.stop
 			
 			# TODO Should we also clear all timers?
 			@selector.close
