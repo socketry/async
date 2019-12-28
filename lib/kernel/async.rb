@@ -22,7 +22,7 @@ require_relative "../async/reactor"
 
 module Kernel
 	# Run the given block of code in a task, asynchronously, creating a reactor if necessary.
-	def Async(*arguments, &block)
-		::Async::Reactor.run(*arguments, &block)
+	def Async(*arguments, **options, &block)
+		::Async::Reactor.run(*arguments, **options, &block)
 	end
 end
