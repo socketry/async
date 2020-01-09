@@ -23,6 +23,12 @@ require 'set'
 module Async
 	# Represents a node in a tree, used for nested {Task} instances.
 	class Node
+		HIERARCHY_FORMAT = ->(node, level) { {level: level, node: node} }
+		private_constant :HIERARCHY_FORMAT
+		
+		HIERARCHY_PRINT_FORMAT = ->(node, level) { "#{"\t" * level}#{node}" }
+		private_constant :HIERARCHY_PRINT_FORMAT
+		
 		# Create a new node in the tree.
 		# @param parent [Node, nil] This node will attach to the given parent.
 		def initialize(parent = nil)
@@ -136,10 +142,16 @@ module Async
 			@children&.each(&:stop)
 		end
 		
-		def print_hierarchy(out = $stdout)
-			self.traverse do |node, level|
-				out.puts "#{"\t" * level}#{node}"
+		def hierarchy(out: [], reducer: :<<, format: HIERARCHY_FORMAT)
+			traverse do |node, level|
+				out.public_send reducer, format.call(node, level)
 			end
+			
+			out
+		end
+		
+		def print_hierarchy(out = $stdout)
+			hierarchy(out: out, reducer: :puts, format: HIERARCHY_PRINT_FORMAT)
 		end
 	end
 end
