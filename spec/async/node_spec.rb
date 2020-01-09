@@ -61,6 +61,29 @@ RSpec.describe Async::Node do
 		end
 	end
 	
+	describe '#hierarchy' do
+		let!(:child) {Async::Node.new(subject)}
+		
+		it 'can list the hierarchy' do
+			list = subject.hierarchy
+			
+			expect(list.size).to be 2
+			expect(list).to be_a Array
+			
+			expect(list.dig(0, :node)).to be_a Async::Node
+			expect(list.dig(1, :node)).to be_a Async::Node
+		end
+		
+		it 'can use a collection other than Array' do
+			queue = subject.hierarchy(out: Async::Queue.new, reducer: :<<)
+			
+			expect(queue).to be_a Async::Queue
+			
+			expect(queue.dequeue.fetch(:node)).to be_a Async::Node
+			expect(queue.dequeue.fetch(:node)).to be_a Async::Node
+		end
+	end
+
 	describe '#consume' do
 		let(:middle) {Async::Node.new(subject)}
 		let(:bottom) {Async::Node.new(middle)}
