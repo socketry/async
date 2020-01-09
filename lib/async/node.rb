@@ -58,7 +58,7 @@ module Async
 		end
 		
 		def description
-			@object_name ||= "#{self.class}:0x#{object_id.to_s(16)}"
+			@object_name ||= "#{self.class}:#{format '%#018x', object_id}"
 			
 			if @annotation
 				"#{@object_name} #{@annotation}"

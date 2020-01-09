@@ -60,6 +60,30 @@ RSpec.describe Async::Node do
 			expect(lines[1]).to be =~ /\t#<Async::Node:0x\h+>\n/
 		end
 	end
+
+	describe '#inspect' do
+		let(:node) {Async::Node.new}
+		
+		it 'should begin with the class name' do
+			expect(node.inspect).to start_with "#<#{node.class.name}"
+		end
+		
+		it 'should end with hex digits' do
+			expect(node.inspect).to match(/\h>\z/)
+		end
+		
+		it 'should have a standard number of hex digits' do
+			expect(node.inspect).to match(/:0x\h{16}>/)
+		end
+		
+		it 'should have a colon in the middle' do
+			name, middle, hex = node.inspect.rpartition(':')
+			
+			expect(name).to end_with node.class.name
+			expect(middle).to eq ':'
+			expect(hex).to match(/\A\h+/)
+		end
+	end
 	
 	describe '#consume' do
 		let(:middle) {Async::Node.new(subject)}
