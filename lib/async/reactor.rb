@@ -23,6 +23,7 @@
 require_relative 'logger'
 require_relative 'task'
 require_relative 'wrapper'
+require_relative 'scheduler'
 
 require 'nio'
 require 'timers'
@@ -82,8 +83,56 @@ module Async
 			@ready = []
 			@running = []
 			
+			if Scheduler.supported?
+				@scheduler = Scheduler.new(self)
+			else
+				@scheduler = nil
+			end
+			
 			@interrupted = false
 			@guard = Mutex.new
+			@blocked = 0
+			@unblocked = []
+		end
+		
+		attr :scheduler
+		
+		# @reentrant Not thread safe.
+		def block(blocker, timeout)
+			fiber = Fiber.current
+			
+			if timeout
+				timer = self.after(timeout) do
+					if fiber.alive?
+						fiber.resume(false)
+					end
+				end
+			end
+			
+			begin
+				@blocked += 1
+				Fiber.yield
+			ensure
+				@blocked -= 1
+			end
+		ensure
+			timer&.cancel
+		end
+		
+		# @reentrant Thread safe.
+		def unblock(blocker, fiber)
+			@guard.synchronize do
+				@unblocked << fiber
+				@selector.wakeup
+			end
+		end
+		
+		def fiber(&block)
+			if @scheduler
+				Fiber.new(blocking: false, &block)
+			else
+				Fiber.new(&block)
+			end
 		end
 		
 		def logger
@@ -154,7 +203,7 @@ module Async
 		
 		def finished?
 			# TODO I'm not sure if checking `@running.empty?` is really required.
-			super && @ready.empty? && @running.empty?
+			super && @ready.empty? && @running.empty? && @blocked.zero?
 		end
 		
 		# Run one iteration of the event loop.
@@ -172,6 +221,18 @@ module Async
 				end
 				
 				@running.clear
+			end
+			
+			unless @blocked.zero?
+				unblocked = Array.new
+				
+				@guard.synchronize do
+					unblocked, @unblocked = @unblocked, unblocked
+				end
+				
+				while fiber = unblocked.pop
+					fiber.resume if fiber.alive?
+				end
 			end
 			
 			if @ready.empty?
@@ -197,7 +258,7 @@ module Async
 				interval = timeout
 			end
 			
-			# logger.debug(self) {"Selecting with #{@children&.size} children with interval = #{interval ? interval.round(2) : 'infinite'}..."}
+			# logger.info(self) {"Selecting with #{@children&.size} children with interval = #{interval ? interval.round(2) : 'infinite'}..."}
 			if monitors = @selector.select(interval)
 				monitors.each do |monitor|
 					monitor.value.resume
@@ -223,6 +284,8 @@ module Async
 		def run(*arguments, **options, &block)
 			raise RuntimeError, 'Reactor has been closed' if @selector.nil?
 			
+			@scheduler&.set!
+			
 			initial_task = self.async(*arguments, **options, &block) if block_given?
 			
 			while self.run_once
@@ -231,6 +294,7 @@ module Async
 			
 			return initial_task
 		ensure
+			@scheduler&.clear!
 			logger.debug(self) {"Exiting run-loop because #{$! ? $! : 'finished'}."}
 		end
 		
