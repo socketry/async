@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
-require "covered/rspec"
+require 'async/rspec'
+require 'covered/rspec'
 
 if RUBY_PLATFORM =~ /darwin/
 	Q = 20
