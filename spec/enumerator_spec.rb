@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Copyright, 2018, by Samuel G. D. Williams. <http://www.codeotaku.com>
 # Copyright, 2018, by Sokolov Yura aka funny-falcon
 # 

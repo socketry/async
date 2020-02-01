@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 
 RSpec.shared_examples 'chainable async' do
 	let(:parent) {double}
