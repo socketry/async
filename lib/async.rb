@@ -25,6 +25,7 @@ require_relative "async/logger"
 require_relative "async/reactor"
 
 require_relative "kernel/async"
+require_relative "kernel/sync"
 
 module Async
 	# Invoke `Reactor.run` with all arguments/block.
