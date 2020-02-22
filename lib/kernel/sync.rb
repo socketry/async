@@ -26,7 +26,7 @@ module Kernel
 	# Run the given block of code synchronously, but within a reactor if not already in one.
 	def Sync(&block)
 		if task = ::Async::Task.current?
-			yield
+			yield task
 		else
 			::Async::Reactor.run(&block).wait
 		end

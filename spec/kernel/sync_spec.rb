@@ -20,6 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
+require 'kernel/async'
 require 'kernel/sync'
 
 RSpec.describe Kernel do
@@ -27,8 +28,9 @@ RSpec.describe Kernel do
 		let(:value) {10}
 		
 		it "can run a synchronous task" do
-			result = Sync do
+			result = Sync do |task|
 				expect(Async::Task.current).to_not be nil
+				expect(Async::Task.current).to be task
 				
 				next value
 			end
@@ -38,9 +40,10 @@ RSpec.describe Kernel do
 		
 		it "can run inside reactor" do
 			Async do |task|
-				result = Sync do
+				result = Sync do |sync_task|
 					expect(Async::Task.current).to be task
-					
+					expect(sync_task).to be task
+
 					next value
 				end
 				
