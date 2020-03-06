@@ -15,6 +15,8 @@ def clone_and_test(name)
 	sh("git clone https://git@github.com/socketry/#{name} #{path}")
 	
 	# I tried using `bundle config --local local.async ../` but it simply doesn't work.
+	# system("bundle", "config", "--local", "local.async", __dir__, chdir: path)
+	
 	File.open("#{path}/Gemfile", "a") do |file| 
 		file.puts('gem "async", path: "../../"')
 	end
