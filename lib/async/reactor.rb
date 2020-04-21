@@ -184,13 +184,16 @@ module Async
 				interval = 0
 			end
 			
+			# If we are finished, we stop the task tree and exit.
+			if self.finished?
+				# If there is nothing to do, then finish:
+				self.stop
+				
+				return false
+			end
+			
 			# If there is no interval to wait (thus no timers), and no tasks, we could be done:
 			if interval.nil?
-				if self.finished?
-					# If there is nothing to do, then finish:
-					return false
-				end
-				
 				# Allow the user to specify a maximum interval if we would otherwise be sleeping indefinitely:
 				interval = timeout
 			elsif interval < 0

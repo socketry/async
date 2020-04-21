@@ -95,4 +95,24 @@ RSpec.describe Async::Node do
 			expect(subject.annotation).to be == annotation
 		end
 	end
+	
+	describe '#transient' do
+		let!(:middle) {Async::Node.new(subject)}
+		let!(:child) {Async::Node.new(middle, transient: true)}
+		
+		it 'can move transient child to parent' do
+			expect(child).to be_transient
+			expect(middle).to be_finished
+			
+			allow(child).to receive(:finished?).and_return(false)
+			
+			middle.consume
+			
+			expect(child).to_not be_finished
+			expect(subject).to be_finished
+			
+			expect(child).to receive(:stop)
+			subject.stop
+		end
+	end
 end

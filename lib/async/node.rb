@@ -27,12 +27,17 @@ module Async
 	class Node
 		# Create a new node in the tree.
 		# @param parent [Node, nil] This node will attach to the given parent.
-		def initialize(parent = nil, annotation: nil)
+		def initialize(parent = nil, annotation: nil, transient: false)
 			@children = nil
 			@parent = nil
 			
+			# The number of transient children:
+			@transients = 0
+			
 			@annotation = annotation
 			@object_name = nil
+			
+			@transient = transient
 			
 			if parent
 				self.parent = parent
@@ -48,6 +53,16 @@ module Async
 		# A useful identifier for the current node.
 		attr :annotation
 		
+		# Is this node transient?
+		def transient?
+			@transient
+		end
+		
+		# Does this node have transient children?
+		def transients?
+			@transients > 0
+		end
+		
 		def annotate(annotation)
 			if block_given?
 				previous_annotation = @annotation
@@ -60,7 +75,7 @@ module Async
 		end
 		
 		def description
-			@object_name ||= "#{self.class}:0x#{object_id.to_s(16)}"
+			@object_name ||= "#{self.class}:0x#{object_id.to_s(16)}#{@transient ? ' transient' : nil}"
 			
 			if @annotation
 				"#{@object_name} #{@annotation}"
@@ -71,10 +86,6 @@ module Async
 		
 		def to_s
 			"\#<#{description}>"
-		end
-		
-		def inspect
-			to_s
 		end
 		
 		# Change the parent of this node.
@@ -96,22 +107,30 @@ module Async
 			return self
 		end
 		
+		protected def set_parent parent
+			@parent = parent
+		end
+		
 		protected def add_child child
 			@children ||= Set.new
 			@children << child
+			
+			if child.transient?
+				@transients += 1
+			end
 		end
 		
 		# Whether the node can be consumed safely. By default, checks if the
 		# children set is empty.
 		# @return [Boolean]
 		def finished?
-			@children.nil? or @children.empty?
+			@children.nil? || @children.empty? || (@children.size == @transients)
 		end
 		
 		# If the node has a parent, and is {finished?}, then remove this node from
 		# the parent.
 		def consume
-			if @parent and finished?
+			if @parent && finished?
 				@parent.reap(self)
 				@parent.consume
 				@parent = nil
@@ -122,6 +141,17 @@ module Async
 		# @param child [Node]
 		def reap(child)
 			@children.delete(child)
+			
+			if child.transient?
+				@transients -= 1
+			end
+			
+			child.children&.each do |grand_child|
+				unless grand_child.finished?
+					grand_child.set_parent(self)
+					add_child(grand_child)
+				end
+			end
 		end
 		
 		# Traverse the tree.
