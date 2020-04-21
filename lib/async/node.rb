@@ -27,11 +27,11 @@ module Async
 	class Node
 		# Create a new node in the tree.
 		# @param parent [Node, nil] This node will attach to the given parent.
-		def initialize(parent = nil)
+		def initialize(parent = nil, annotation: nil)
 			@children = nil
 			@parent = nil
 			
-			@annotation = nil
+			@annotation = annotation
 			@object_name = nil
 			
 			if parent

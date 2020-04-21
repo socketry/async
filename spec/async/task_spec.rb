@@ -69,6 +69,12 @@ RSpec.describe Async::Task do
 			end.wait
 		end
 		
+		it "can set initial annotation" do
+			reactor.async(annotation: "Hello World") do |task|
+				expect(task.annotation).to be == "Hello World"
+			end.wait
+		end
+		
 		it "can raise exceptions" do
 			expect do
 				reactor.async do |task|
