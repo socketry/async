@@ -28,7 +28,7 @@ RSpec.describe Async::Clock do
 			sleep 0.1
 		end
 		
-		expect(duration).to be_within(0.1).of(0.1)
+		expect(duration).to be_within(0.01 * Q).of(0.1)
 	end
 	
 	it "can get current offset" do
