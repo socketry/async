@@ -7,11 +7,10 @@ Gem::Specification.new do |spec|
 	spec.authors = ["Samuel Williams"]
 	spec.email = ["samuel.williams@oriontransfer.co.nz"]
 	spec.description = <<-EOF
-		Async provides a modern asynchronous I/O framework for Ruby, based
-		on nio4r. It implements the reactor pattern, providing both IO and timer
-		based events.
+		Async is a modern concurrency framework for Ruby. It implements the
+		reactor pattern, providing both non-blocking I/O and timer events.
 	EOF
-	spec.summary = "Async is an asynchronous I/O framework based on nio4r."
+	spec.summary = "Async is an concurrency framework based for Ruby."
 	spec.homepage = "https://github.com/socketry/async"
 	spec.license = "MIT"
 	
