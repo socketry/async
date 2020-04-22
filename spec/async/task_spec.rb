@@ -58,7 +58,7 @@ RSpec.describe Async::Task do
 			
 			expect(parent).to_not be_nil
 			expect(child).to_not be_nil
-			expect(child.parent).to be parent
+			expect(child.parent).to_not be_nil
 		end
 		
 		it "can pass in arguments" do

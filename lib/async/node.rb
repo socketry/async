@@ -58,7 +58,7 @@ module Async
 			@transient
 		end
 		
-		# Does this node have transient children?
+		# Does this node have (direct) transient children?
 		def transients?
 			@transients > 0
 		end
@@ -132,6 +132,11 @@ module Async
 		def consume
 			if @parent && finished?
 				@parent.reap(self)
+				
+				# After reaping self, children are all moved elsewhere.
+				@children = nil
+				@transients = 0
+				
 				@parent.consume
 				@parent = nil
 			end
@@ -147,7 +152,9 @@ module Async
 			end
 			
 			child.children&.each do |grand_child|
-				unless grand_child.finished?
+				if grand_child.finished?
+					grand_child.set_parent(nil)
+				else
 					grand_child.set_parent(self)
 					add_child(grand_child)
 				end

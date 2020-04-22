@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-require 'benchmark'
+require 'async/node'
 
 RSpec.describe Async::Node do
 	describe '#parent=' do
@@ -97,10 +97,14 @@ RSpec.describe Async::Node do
 	end
 	
 	describe '#transient' do
-		let!(:middle) {Async::Node.new(subject)}
-		let!(:child) {Async::Node.new(middle, transient: true)}
-		
 		it 'can move transient child to parent' do
+			# This example represents a persistent web connection (middle) with a background reader (child). We look at how when that connection goes out of scope, what happens to the child.
+			
+			# subject -> middle -> child (transient)
+			
+			middle = Async::Node.new(subject)
+			child = Async::Node.new(middle, transient: true)
+			
 			expect(child).to be_transient
 			expect(middle).to be_finished
 			
@@ -108,11 +112,64 @@ RSpec.describe Async::Node do
 			
 			middle.consume
 			
+			# subject -> child (transient)
+			expect(child.parent).to be subject
+			expect(subject.children).to include(child)
+			expect(subject.children).to_not include(middle)
+			
 			expect(child).to_not be_finished
 			expect(subject).to be_finished
 			
 			expect(child).to receive(:stop)
 			subject.stop
+		end
+		
+		it 'can move transient sibling to parent' do
+			# This example represents a server task (middle) which has a single task listening on incoming connections (child2), and a transient task which is monitoring those connections/some shared resource (child1). We look at what happens when the server listener finishes.
+			
+			# subject -> middle -> child1 (transient)
+			#                   -> child2
+			middle = Async::Node.new(subject)
+			child1 = Async::Node.new(middle, transient: true)
+			child2 = Async::Node.new(middle)
+			
+			allow(child1).to receive(:finished?).and_return(false)
+			
+			middle.consume
+			
+			# subject -> middle -> child1 (transient)
+			#                   -> child2
+			expect(child1.parent).to be middle
+			expect(child2.parent).to be middle
+			expect(middle.parent).to be subject
+			expect(subject.children).to include(middle)
+			expect(middle.children).to include(child1)
+			expect(middle.children).to include(child2)
+			
+			child2.consume
+			
+			# subject -> child1 (transient)
+			expect(child1.parent).to be subject
+			expect(child2.parent).to be_nil
+			expect(middle.parent).to be_nil
+			expect(subject.children).to include(child1)
+			expect(middle.children).to be_nil
+		end
+		
+		it 'ignores non-transient children of transient parent' do
+			# subject -> middle (transient) -> child
+			middle = Async::Node.new(subject, transient: true)
+			child = Async::Node.new(middle)
+			
+			allow(middle).to receive(:finished?).and_return(false)
+			
+			child.consume
+			
+			# subject -> middle (transient)
+			expect(child.parent).to be_nil
+			expect(middle.parent).to be subject
+			expect(subject.children).to include(middle)
+			expect(middle.children).to be_empty
 		end
 	end
 end

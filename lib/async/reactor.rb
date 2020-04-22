@@ -164,7 +164,7 @@ module Async
 		# @param timeout [Float | nil] the maximum timeout, or if nil, indefinite.
 		# @return [Boolean] whether there is more work to do.
 		def run_once(timeout = nil)
-			logger.debug(self) {"@ready = #{@ready} @running = #{@running}"}
+			# logger.debug(self) {"@ready = #{@ready} @running = #{@running}"}
 			
 			if @ready.any?
 				# running used to correctly answer on `finished?`, and to reuse Array object.
@@ -184,11 +184,8 @@ module Async
 				interval = 0
 			end
 			
-			# If we are finished, we stop the task tree and exit.
+			# If we are finished, we stop the task tree and exit:
 			if self.finished?
-				# If there is nothing to do, then finish:
-				self.stop
-				
 				return false
 			end
 			
@@ -203,7 +200,7 @@ module Async
 				interval = timeout
 			end
 			
-			logger.debug(self) {"Selecting with #{@children&.size} children with interval = #{interval ? interval.round(2) : 'infinite'}..."}
+			# logger.debug(self) {"Selecting with #{@children&.size} children with interval = #{interval ? interval.round(2) : 'infinite'}..."}
 			if monitors = @selector.select(interval)
 				monitors.each do |monitor|
 					monitor.value.resume
@@ -218,11 +215,10 @@ module Async
 					@interrupted = false
 				end
 				
-				self.stop
-				
 				return false
 			end
 			
+			# The reactor still has work to do:
 			return true
 		end
 		
@@ -247,9 +243,9 @@ module Async
 		# 
 		# @return [void]
 		def close
+			# This is a critical step. Because tasks could be stored as instance variables, and since the reactor is (probably) going out of scope, we need to ensure they are stopped. Otherwise, the tasks will belong to a reactor that will never run again and are not stopped.
 			self.stop
 			
-			# TODO Should we also clear all timers?
 			@selector.close
 			@selector = nil
 		end
