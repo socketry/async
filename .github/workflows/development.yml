@@ -49,5 +49,5 @@ jobs:
       run: ${{matrix.env}} bundle exec rspec
     
     - name: Run external tests
-      if: matrix.experimental == false
+      if: matrix.experimental == false && matrix.os == 'ubuntu'
       run: ${{matrix.env}} bundle exec rake external
