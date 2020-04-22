@@ -55,7 +55,7 @@ RSpec.describe Async::Barrier do
 			
 			duration = Async::Clock.measure{subject.wait}
 			
-			expect(duration).to be < (delay * 2)
+			expect(duration).to be < (delay * 2 * Q)
 			expect(finished).to be == repeats
 			expect(subject).to be_empty
 		end
