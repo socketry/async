@@ -52,4 +52,4 @@ jobs:
     - name: Run external tests
       timeout-minutes: 5
       if: matrix.experimental == false && matrix.os == 'ubuntu'
-      run: ${{matrix.env}} bundle exec rake external
+      run: ${{matrix.env}} bundle exec bake external
