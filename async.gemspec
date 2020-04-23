@@ -10,7 +10,7 @@ Gem::Specification.new do |spec|
 		Async is a modern concurrency framework for Ruby. It implements the
 		reactor pattern, providing both non-blocking I/O and timer events.
 	EOF
-	spec.summary = "Async is an concurrency framework based for Ruby."
+	spec.summary = "Async is a concurrency framework for Ruby."
 	spec.homepage = "https://github.com/socketry/async"
 	spec.license = "MIT"
 	
