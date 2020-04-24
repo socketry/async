@@ -91,11 +91,11 @@ module Async
 		end
 		
 		def to_s
-			"\#<#{self.description} #{@children&.size || 0} children #{stopped? ? 'stopped' : 'running'}>"
+			"\#<#{self.description} #{@children&.size || 0} children (#{stopped? ? 'stopped' : 'running'})>"
 		end
 		
 		def stopped?
-			@children.nil? || @children.empty?
+			@children.nil?
 		end
 		
 		# TODO Remove these in next major release. They are too confusing to use correctly.
@@ -222,9 +222,7 @@ module Async
 			return true
 		end
 		
-		# Run the reactor until either all tasks complete or {#pause} or {#stop} is
-		# invoked. Proxies arguments to {#async} immediately before entering the
-		# loop, if a block is provided.
+		# Run the reactor until all tasks are finished. Proxies arguments to {#async} immediately before entering the loop, if a block is provided.
 		def run(*arguments, &block)
 			raise RuntimeError, 'Reactor has been closed' if @selector.nil?
 			
@@ -239,12 +237,19 @@ module Async
 			logger.debug(self) {"Exiting run-loop because #{$! ? $! : 'finished'}."}
 		end
 		
+		def stop(later = true)
+			@children&.each do |child|
+				# We don't want this process to propagate `Async::Stop` exceptions, so we schedule tasks to stop later.
+				child.stop(later)
+			end
+		end
+		
 		# Stop each of the children tasks and close the selector.
 		# 
 		# @return [void]
 		def close
 			# This is a critical step. Because tasks could be stored as instance variables, and since the reactor is (probably) going out of scope, we need to ensure they are stopped. Otherwise, the tasks will belong to a reactor that will never run again and are not stopped.
-			self.stop
+			self.stop(false)
 			
 			@selector.close
 			@selector = nil
@@ -255,7 +260,7 @@ module Async
 		def closed?
 			@selector.nil?
 		end
-	
+		
 		# Put the calling fiber to sleep for a given ammount of time.
 		# @param duration [Numeric] The time in seconds, to sleep for.
 		def sleep(duration)

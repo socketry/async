@@ -109,6 +109,7 @@ RSpec.describe Async::LimitedQueue do
 	it 'should resume waiting tasks in order' do
 		total_resumed = 0
 		total_dequeued = 0
+		
 		Async do |producer|
 			10.times do
 				producer.async do
@@ -117,13 +118,12 @@ RSpec.describe Async::LimitedQueue do
 				end
 			end
 		end
-		Async do |consumer|
-			10.times do
-				subject.dequeue
-				total_dequeued += 1
-
-				expect(total_resumed).to be == total_dequeued
-			end
+		
+		10.times do
+			item = subject.dequeue
+			total_dequeued += 1
+			
+			expect(total_resumed).to be == total_dequeued
 		end
 	end
 end

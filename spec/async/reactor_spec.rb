@@ -80,17 +80,37 @@ RSpec.describe Async::Reactor do
 		end
 	end
 	
+	describe '#print_hierarchy' do
+		it "can print hierarchy" do
+			subject.async do |parent|
+				parent.async do |child|
+					child.sleep 1
+				end
+				
+				parent.sleep 1
+			end
+			
+			output = StringIO.new
+			subject.print_hierarchy(output)
+			lines = output.string.lines
+			
+			expect(lines[0]).to be =~ /#<Async::Reactor.*(running)/
+			expect(lines[1]).to be =~ /\t#<Async::Task.*(running)/
+			expect(lines[2]).to be =~ /\t\t#<Async::Task.*(running)/
+		end
+	end
+	
 	describe '#stop' do
 		it "can stop the reactor" do
 			state = nil
 			
-			subject.async do |task|
+			subject.async(annotation: "sleep(10)") do |task|
 				state = :started
 				task.sleep(10)
 				state = :stopped
 			end
 			
-			subject.async do |task|
+			subject.async(annotation: "reactor.stop") do |task|
 				task.sleep(0.1)
 				task.reactor.stop
 			end

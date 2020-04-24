@@ -35,14 +35,14 @@ RSpec.describe Async::Node do
 			child.parent = nil
 			
 			expect(child.parent).to be_nil
-			expect(subject.children).to be_empty
+			expect(subject.children).to be_nil
 		end
 		
 		it "can consume bottom to top" do
 			child.consume
 			
 			expect(child.parent).to be_nil
-			expect(subject.children).to be_empty
+			expect(subject.children).to be_nil
 		end
 	end
 	
@@ -64,15 +64,33 @@ RSpec.describe Async::Node do
 	end
 	
 	describe '#consume' do
-		let(:middle) {Async::Node.new(subject)}
-		let(:bottom) {Async::Node.new(middle)}
-		
 		it "can't consume middle node" do
+			middle = Async::Node.new(subject)
+			bottom = Async::Node.new(middle)
+			
 			expect(bottom.parent).to be middle
 			
 			middle.consume
 			
 			expect(bottom.parent).to be middle
+		end
+		
+		it "can consume node while enumerating children" do
+			3.times do
+				Async::Node.new(subject)
+			end
+			
+			children = subject.children.each.to_a
+			expect(subject.children.size).to be 3
+			
+			enumerated = []
+			
+			subject.children.each do |child|
+				child.consume
+				enumerated << child
+			end
+			
+			expect(enumerated).to be == children
 		end
 	end
 	
@@ -129,9 +147,9 @@ RSpec.describe Async::Node do
 			
 			# subject -> middle -> child1 (transient)
 			#                   -> child2
-			middle = Async::Node.new(subject)
-			child1 = Async::Node.new(middle, transient: true)
-			child2 = Async::Node.new(middle)
+			middle = Async::Node.new(subject, annotation: "middle")
+			child1 = Async::Node.new(middle, transient: true, annotation: "child1")
+			child2 = Async::Node.new(middle, annotation: "child2")
 			
 			allow(child1).to receive(:finished?).and_return(false)
 			
@@ -169,7 +187,7 @@ RSpec.describe Async::Node do
 			expect(child.parent).to be_nil
 			expect(middle.parent).to be subject
 			expect(subject.children).to include(middle)
-			expect(middle.children).to be_empty
+			expect(middle.children).to be_nil
 		end
 	end
 end

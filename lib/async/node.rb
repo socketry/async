@@ -20,47 +20,179 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-require 'set'
-
 module Async
+	# A double linked list.
+	class List
+		def initialize
+			@head = nil
+			@tail = nil
+			@size = 0
+		end
+		
+		attr :size
+		
+		attr_accessor :head
+		attr_accessor :tail
+		
+		# Inserts an item at the end of the list.
+		def insert(item)
+			unless @head
+				@head = item
+				@tail = item
+				
+				# Consistency:
+				item.head = nil
+				item.tail = nil
+			else
+				@tail.tail = item
+				item.head = @tail
+				
+				# Consistency:
+				item.tail = nil
+				
+				@tail = item
+			end
+			
+			@size += 1
+			
+			return self
+		end
+		
+		def delete(item)
+			if @head.equal?(item)
+				@head = @head.tail
+			else
+				item.head.tail = item.tail
+			end
+			
+			if @tail.equal?(item)
+				@tail = @tail.head
+			else
+				item.tail.head = item.head
+			end
+			
+			item.head = nil
+			# Don't do this, because it will break enumeration.
+			# item.tail = nil
+			
+			@size -= 1
+			
+			return self
+		end
+		
+		def each
+			return to_enum unless block_given?
+			
+			item = @head
+			while item
+				yield item
+				item = item.tail
+			end
+		end
+		
+		def include?(needle)
+			self.each do |item|
+				return true if needle.equal?(item)
+			end
+			
+			return false
+		end
+		
+		def first
+			@head
+		end
+		
+		def last
+			@tail
+		end
+		
+		def empty?
+			@head.nil?
+		end
+		
+		def nil?
+			@head.nil?
+		end
+	end
+	
+	private_constant :List
+	
+	class Children < List
+		def initialize
+			super
+			
+			@transient_count = 0
+		end
+		
+		# Does this node have (direct) transient children?
+		def transients?
+			@transient_count > 0
+		end
+		
+		def insert(item)
+			if item.transient?
+				@transient_count += 1
+			end
+			
+			super
+		end
+		
+		def delete(item)
+			if item.transient?
+				@transient_count -= 1
+			end
+			
+			super
+		end
+		
+		def finished?
+			@size == @transient_count
+		end
+	end
+	
 	# Represents a node in a tree, used for nested {Task} instances.
 	class Node
 		# Create a new node in the tree.
 		# @param parent [Node, nil] This node will attach to the given parent.
 		def initialize(parent = nil, annotation: nil, transient: false)
-			@children = nil
 			@parent = nil
-			
-			# The number of transient children:
-			@transients = 0
+			@children = nil
 			
 			@annotation = annotation
 			@object_name = nil
 			
 			@transient = transient
 			
+			@head = nil
+			@tail = nil
+			
 			if parent
-				self.parent = parent
+				parent.add_child(self)
 			end
 		end
+		
+		# You should not directly rely on these pointers but instead use `#children`.
+		# List pointers:
+		attr_accessor :head
+		attr_accessor :tail
 		
 		# @attr parent [Node, nil]
 		attr :parent
 		
-		# @attr children [Set<Node>] Optional list of children.
+		# @attr children [List<Node>] Optional list of children.
 		attr :children
 		
 		# A useful identifier for the current node.
 		attr :annotation
 		
+		# Whether there are children?
+		def children?
+			@children != nil && !@children.empty?
+		end
+		
 		# Is this node transient?
 		def transient?
 			@transient
-		end
-		
-		# Does this node have (direct) transient children?
-		def transients?
-			@transients > 0
 		end
 		
 		def annotate(annotation)
@@ -95,13 +227,12 @@ module Async
 			return if @parent.equal?(parent)
 			
 			if @parent
-				@parent.reap(self)
+				@parent.delete_child(self)
 				@parent = nil
 			end
 			
 			if parent
-				@parent = parent
-				@parent.add_child(self)
+				parent.add_child(self)
 			end
 			
 			return self
@@ -112,52 +243,42 @@ module Async
 		end
 		
 		protected def add_child child
-			@children ||= Set.new
-			@children << child
-			
-			if child.transient?
-				@transients += 1
-			end
+			@children ||= Children.new
+			@children.insert(child)
+			child.set_parent(self)
+		end
+		
+		protected def delete_child(child)
+			@children.delete(child)
+			child.set_parent(nil)
 		end
 		
 		# Whether the node can be consumed safely. By default, checks if the
 		# children set is empty.
 		# @return [Boolean]
 		def finished?
-			@children.nil? || @children.empty? || (@children.size == @transients)
+			@children.nil? || @children.finished?
 		end
 		
 		# If the node has a parent, and is {finished?}, then remove this node from
 		# the parent.
 		def consume
-			if @parent && finished?
-				@parent.reap(self)
+			if parent = @parent and finished?
+				parent.delete_child(self)
 				
-				# After reaping self, children are all moved elsewhere.
-				@children = nil
-				@transients = 0
-				
-				@parent.consume
-				@parent = nil
-			end
-		end
-		
-		# Remove a given child node.
-		# @param child [Node]
-		def reap(child)
-			@children.delete(child)
-			
-			if child.transient?
-				@transients -= 1
-			end
-			
-			child.children&.each do |grand_child|
-				if grand_child.finished?
-					grand_child.set_parent(nil)
-				else
-					grand_child.set_parent(self)
-					add_child(grand_child)
+				if @children
+					@children.each do |child|
+						if child.finished?
+							delete_child(child)
+						else
+							parent.add_child(child)
+						end
+					end
+					
+					@children = nil
 				end
+				
+				parent.consume
 			end
 		end
 		

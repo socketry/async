@@ -447,6 +447,16 @@ RSpec.describe Async::Task do
 		end
 	end
 	
+	describe '#children' do
+		it "enumerates children in same order they are created" do
+			tasks = 10.times.map do |i|
+				reactor.async(annotation: "Task #{i}") {|task| task.sleep(1)}
+			end
+			
+			expect(reactor.children.each.to_a).to be == tasks
+		end
+	end
+	
 	describe '#to_s' do
 		it "should show running" do
 			apples_task = reactor.async do |task|
