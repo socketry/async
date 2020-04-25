@@ -3,7 +3,7 @@
 require "covered/rspec"
 
 if RUBY_PLATFORM =~ /darwin/
-	Q = 10
+	Q = 20
 else
 	Q = 1
 end
