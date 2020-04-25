@@ -72,8 +72,7 @@ module Async
 			end
 			
 			item.head = nil
-			# Don't do this, because it will break enumeration.
-			# item.tail = nil
+			item.tail = nil
 			
 			@size -= 1
 			
@@ -85,8 +84,10 @@ module Async
 			
 			item = @head
 			while item
+				# We store the tail pointer so we can remove the current item from the linked list:
+				tail = item.tail
 				yield item
-				item = item.tail
+				item = tail
 			end
 		end
 		
