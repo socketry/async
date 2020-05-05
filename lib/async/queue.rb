@@ -34,7 +34,11 @@ module Async
 		
 		attr :items
 		
-		def enqueue item
+		def empty?
+			@items.empty?
+		end
+		
+		def enqueue(item)
 			@items.push(item)
 			
 			self.signal unless self.empty?

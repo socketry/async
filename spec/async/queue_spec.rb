@@ -53,6 +53,10 @@ RSpec.shared_context Async::Queue do
 		end
 	end
 	
+	context 'with an empty queue' do
+		it {is_expected.to be_empty}
+	end
+	
 	context 'with semaphore' do
 		let(:capacity) {2}
 		let(:semaphore) {Async::Semaphore.new(capacity)}
