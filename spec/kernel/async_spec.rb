@@ -29,5 +29,11 @@ RSpec.describe Async do
 				expect(task).to be_a Async::Task
 			end
 		end
+		
+		it "passes options through to initial task" do
+			Async(transient: true) do |task|
+				expect(task).to be_transient
+			end
+		end
 	end
 end

@@ -50,10 +50,10 @@ module Async
 				
 				return reactor.async(*arguments, **options, &block)
 			else
-				reactor = self.new(**options)
+				reactor = self.new
 				
 				begin
-					return reactor.run(*arguments, &block)
+					return reactor.run(*arguments, **options, &block)
 				ensure
 					reactor.close
 				end
@@ -223,10 +223,10 @@ module Async
 		end
 		
 		# Run the reactor until all tasks are finished. Proxies arguments to {#async} immediately before entering the loop, if a block is provided.
-		def run(*arguments, &block)
+		def run(*arguments, **options, &block)
 			raise RuntimeError, 'Reactor has been closed' if @selector.nil?
 			
-			initial_task = self.async(*arguments, &block) if block_given?
+			initial_task = self.async(*arguments, **options, &block) if block_given?
 			
 			while self.run_once
 				# Round and round we go!
