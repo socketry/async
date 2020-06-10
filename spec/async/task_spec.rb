@@ -315,6 +315,47 @@ RSpec.describe Async::Task do
 			expect(state).to be == :finished
 		end
 	end
+
+	describe '#add_timer' do
+		let(:duration) {0.01}
+
+		it "will fire a single use timer after the requested duration" do
+			state = nil
+
+			time = Async::Clock.measure do
+
+				reactor.async do |task|
+					task.add_timer(interval: 2, periodic: false) { state = :finished }
+					task.sleep(duration * 2)
+				end
+
+				reactor.run
+			end
+
+			expect(state).to be == :finished
+			expect(time).to be >= duration
+		end
+
+		it "will fire a periodic use timer after the requested duration" do
+			state = 0
+
+			time = Async::Clock.measure do
+
+				reactor.async do |task|
+					task.add_timer(interval: duration) do
+						state += 1
+						break if state > 1
+					end
+					task.sleep(duration * 4)
+				end
+
+				reactor.run
+			end
+
+			expect(state).to be == 2
+			expect(time).to be >= duration * 2
+		end
+	end
 	
 	describe '#with_timeout' do
 		it "can extend timeout" do
@@ -329,7 +370,7 @@ RSpec.describe Async::Task do
 					expect(timer.fires_in).to be_within(10 * Q).percent_of(0.2)
 				end
 			end
-			
+
 			reactor.run
 		end
 		
@@ -347,7 +388,7 @@ RSpec.describe Async::Task do
 					state = :timeout
 				end
 			end
-			
+
 			reactor.run
 			
 			expect(state).to be == :timeout

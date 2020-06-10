@@ -178,6 +178,17 @@ module Async
 			end
 		end
 		
+		# Syntactic sugar to create a timer.
+		def add_timer(interval: 0, periodic: true)
+			async do |subtask|
+				loop do
+					subtask.sleep(interval)
+					yield
+					break unless periodic
+				end
+			end
+		end
+
 		# Lookup the {Task} for the current fiber. Raise `RuntimeError` if none is available.
 		# @return [Async::Task]
 		# @raise [RuntimeError] if task was not {set!} for the current fiber.
