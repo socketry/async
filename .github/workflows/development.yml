@@ -24,10 +24,10 @@ jobs:
           - experimental: true
             os: ubuntu
             ruby: truffleruby
-            env: JRUBY_OPTS="--debug -X+O"
           - experimental: true
             os: ubuntu
             ruby: jruby
+            env: JRUBY_OPTS="--debug -X+O"
           - experimental: true
             os: ubuntu
             ruby: head
