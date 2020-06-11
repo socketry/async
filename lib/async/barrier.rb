@@ -23,7 +23,7 @@
 require_relative 'task'
 
 module Async
-	# A semaphore is used to control access to a common resource in a concurrent system. A useful way to think of a semaphore as used in the real-world systems is as a record of how many units of a particular resource are available, coupled with operations to adjust that record safely (i.e. to avoid race conditions) as units are required or become free, and, if necessary, wait until a unit of the resource becomes available.
+	# A barrier is used to synchronize multiple tasks, waiting for them all to complete before continuing.
 	class Barrier
 		def initialize(parent: nil)
 			@tasks = []
