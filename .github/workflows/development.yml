@@ -9,8 +9,6 @@ jobs:
     
     strategy:
       matrix:
-        experimental: [false]
-        
         os:
           - ubuntu
           - macos
@@ -20,24 +18,27 @@ jobs:
           - 2.6
           - 2.7
         
+        experimental: [false]
+        env: [""]
+        
         include:
-          - experimental: true
-            os: ubuntu
+          - os: ubuntu
             ruby: truffleruby
-          - experimental: true
-            os: ubuntu
+            experimental: true
+          - os: ubuntu
             ruby: jruby
             env: JRUBY_OPTS="--debug -X+O"
-          - experimental: true
-            os: ubuntu
+            experimental: true
+          - os: ubuntu
             ruby: head
-          - experimental: true
-            os: ubuntu
+            experimental: true
+          - os: ubuntu
             ruby: 2.6
             env: COVERAGE=PartialSummary,Coveralls
+            experimental: true
     
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
     - uses: ruby/setup-ruby@v1
       with:
         ruby-version: ${{matrix.ruby}}
