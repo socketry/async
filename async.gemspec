@@ -20,8 +20,9 @@ Gem::Specification.new do |spec|
 	spec.add_dependency "timers", "~> 4.1"
 	
 	spec.add_development_dependency "async-rspec", "~> 1.1"
+	spec.add_development_dependency "bake"
+	spec.add_development_dependency "benchmark-ips"
 	spec.add_development_dependency "bundler"
 	spec.add_development_dependency "covered", "~> 0.10"
-	spec.add_development_dependency "benchmark-ips"
 	spec.add_development_dependency "rspec", "~> 3.6"
 end
