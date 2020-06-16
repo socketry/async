@@ -3,3 +3,13 @@
 source 'https://rubygems.org'
 
 gemspec
+
+group :maintenance, optional: true do
+	gem "bake-bundler"
+	gem "bake-modernize"
+end
+
+group :local, optional: true do
+	gem "async-rspec", path: "../async-rspec"
+	gem "rspec-files", path: "../rspec-files"
+end
