@@ -148,6 +148,22 @@ module Async
 			@ready << fiber
 		end
 		
+		# Resume the given fiber on the next iteration of the reactor. If urgent, try to wake up the reactor if it is currently waiting for events.
+		# @parameter fiber [Object] Any object that responds to `#resume`.
+		# @reentrant Thread safe. Fiber will be invoked in the context of the scheduler's thread.
+		def notify(fiber, urgent = false)
+			@guard.synchronize do
+				@ready << fiber
+				
+				if urgent
+					unless @interrupted
+						@interrupted = true
+						@selector.wakeup
+					end
+				end
+			end
+		end
+		
 		# Yield the current fiber and resume it on the next iteration of the event loop.
 		def yield(fiber = Fiber.current)
 			@ready << fiber
