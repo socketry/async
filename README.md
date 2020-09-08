@@ -4,11 +4,7 @@ Async is a composable asynchronous I/O framework for Ruby based on [nio4r] and [
 
 [timers]: https://github.com/socketry/timers
 [nio4r]: https://github.com/socketry/nio4r
-
-[![Actions Status](https://github.com/socketry/async/workflows/Development/badge.svg)](https://github.com/socketry/async/actions?workflow=Development)
-[![Code Climate](https://codeclimate.com/github/socketry/async.svg)](https://codeclimate.com/github/socketry/async)
-[![Coverage Status](https://coveralls.io/repos/socketry/async/badge.svg)](https://coveralls.io/r/socketry/async)
-[![Gitter](https://badges.gitter.im/join.svg)](https://gitter.im/socketry/async)
+[![Development Status](https://github.com/socketry/async/workflows/Development/badge.svg)](https://github.com/socketry/async/actions?workflow=Development)
 
 > "Lately I've been looking into `async`, as one of my projects – [tus-ruby-server](https://github.com/janko/tus-ruby-server) – would really benefit from non-blocking I/O. It's really beautifully designed." *– [janko](https://github.com/janko)*
 
@@ -28,22 +24,21 @@ In designing this library, I also built a [similarly designed C++ library of the
 [EventMachine]: https://github.com/eventmachine/eventmachine
 [RubyDNS]: https://github.com/ioquatix/rubydns
 [async-io]: https://github.com/socketry/async-io
-
 ## Installation
 
 Add this line to your application's Gemfile:
 
-```ruby
+``` ruby
 gem "async"
 ```
 
 And then execute:
 
-	$ bundle
+    $ bundle
 
 Or install it yourself as:
 
-	$ gem install async
+    $ gem install async
 
 ## Usage
 
@@ -57,7 +52,7 @@ An `Async::Task` runs using a `Fiber` and blocking operations e.g. `sleep`, `rea
 
 The highest level entry point is `Async{...}`. It's useful if you are building a library and you want well defined asynchronous semantics. This internally invokes `Async::Reactor.run{...}`.
 
-```ruby
+``` ruby
 def run_server
 	Async do |task|
 		# ... acccept connections
@@ -67,9 +62,9 @@ end
 
 If `Async(&block)` happens within an existing reactor, it will schedule an asynchronous task and return. If `Async(&block)` happens outside of an existing reactor, it will create a reactor, schedule the asynchronous task, and block until it completes. The task is scheduled by calling `Async::Reactor#async(&block)`.
 
-This allows the caller to have either blocking or non-blocking behaviour. 
+This allows the caller to have either blocking or non-blocking behaviour.
 
-```ruby
+``` ruby
 require 'async'
 
 def sleepy(duration = 1)
@@ -96,7 +91,7 @@ The cost of using `Async{...}` is minimal for initialization/server setup, but i
 
 If you can guarantee you are running within a task, and have access to it (e.g. via an argument), you can efficiently schedule new tasks using the `Async::Task#async(&block)` method.
 
-```ruby
+``` ruby
 require 'async'
 
 def nested_sleepy(task: Async::Task.current)
@@ -123,7 +118,7 @@ This example creates a child `subtask` from the given parent `task`. It's the mo
 
 Like promises, `Async::Task` produces results. In order to wait for these results, you must invoke `Async::Task#wait`:
 
-```ruby
+``` ruby
 require 'async'
 
 task = Async do
@@ -137,7 +132,7 @@ puts task.wait
 
 Use `Async::Task#stop` to stop tasks. This function raises `Async::Stop` on the target task and all descendent tasks.
 
-```ruby
+``` ruby
 require 'async'
 
 Async do
@@ -159,8 +154,7 @@ When you design a server, you should return the task back to the caller. They ca
 
 `Async::Reactor` and `Async::Task` form nodes in a tree. Reactors and tasks can spawn children tasks. When you invoke `Async::Reactor#async`, the parent task is determined by calling `Async::Task.current?` which uses fiber local storage. A slightly more efficient method is to use `Async::Task#async`, which uses `self` as the parent task.
 
-
-```ruby
+``` ruby
 require 'async'
 
 def sleepy(duration, task: Async::Task.current)
@@ -196,7 +190,7 @@ end
 
 `Async::Reactor#run` will run until the reactor runs out of work to do. To run a single iteration of the reactor, use `Async::Reactor#run_once`
 
-```ruby
+``` ruby
 require 'async'
 
 Async.logger.debug!
@@ -227,7 +221,7 @@ You can use this approach to embed the reactor in another event loop.
 
 In order to ensure your resources are cleaned up correctly, make sure you wrap resources appropriately, e.g.:
 
-```ruby
+``` ruby
 Async::Reactor.run do
 	socket = connect(remote_address) # May raise Async::Stop
 	
@@ -246,7 +240,7 @@ As tasks run synchronously until they yield back to the reactor, you can guarant
 
 `Async::Task` captures and logs exceptions. All unhandled exceptions will cause the enclosing task to enter the `:failed` state. Non-`StandardError` exceptions are re-raised immediately and will generally cause the reactor to fail. This ensures that exceptions will always be visible and cause the program to fail appropriately.
 
-```ruby
+``` ruby
 require 'async'
 
 task = Async do
@@ -262,7 +256,7 @@ puts task.result # raises RuntimeError: Boom
 
 If a task has finished due to an exception, calling `Task#wait` will re-raise the exception.
 
-```ruby
+``` ruby
 require 'async'
 
 Async do
@@ -282,7 +276,7 @@ end
 
 You can wrap asynchronous operations in a timeout. This ensures that malicious services don't cause your code to block indefinitely.
 
-```ruby
+``` ruby
 require 'async'
 
 Async do |task|
@@ -298,7 +292,7 @@ end
 
 Sometimes you need to do some periodic work in a loop.
 
-```ruby
+``` ruby
 require 'async'
 
 Async do |task|
@@ -325,7 +319,7 @@ Blocking Ruby methods such as `pop` in the `Queue` class require access to their
 
 `Async::Barrier` and `Async::Semaphore` are designed to be compatible with each other, and with other tasks that nest `#async` invocations. There are other similar situations where you may want to pass in a parent task, e.g. `Async::IO::Endpoint#bind`.
 
-```ruby
+``` ruby
 barrier = Async::Barrier.new
 semaphore = Async::Semaphore.new(2)
 
@@ -338,27 +332,27 @@ A `parent:` in this context is anything that responds to `#async` in the same wa
 
 ## Contributing
 
-1. Fork it
-2. Create your feature branch (`git checkout -b my-new-feature`)
-3. Commit your changes (`git commit -am 'Add some feature'`)
-4. Push to the branch (`git push origin my-new-feature`)
-5. Create new Pull Request
+1.  Fork it
+2.  Create your feature branch (`git checkout -b my-new-feature`)
+3.  Commit your changes (`git commit -am 'Add some feature'`)
+4.  Push to the branch (`git push origin my-new-feature`)
+5.  Create new Pull Request
 
 ## See Also
 
-- [async-io](https://github.com/socketry/async-io) — Asynchronous networking and sockets.
-- [async-http](https://github.com/socketry/async-http) — Asynchronous HTTP client/server.
-- [async-process](https://github.com/socketry/async-process) — Asynchronous process spawning/waiting.
-- [async-websocket](https://github.com/socketry/async-websocket) — Asynchronous client and server websockets.
-- [async-dns](https://github.com/socketry/async-dns) — Asynchronous DNS resolver and server.
-- [async-rspec](https://github.com/socketry/async-rspec) — Shared contexts for running async specs.
+  - [async-io](https://github.com/socketry/async-io) — Asynchronous networking and sockets.
+  - [async-http](https://github.com/socketry/async-http) — Asynchronous HTTP client/server.
+  - [async-process](https://github.com/socketry/async-process) — Asynchronous process spawning/waiting.
+  - [async-websocket](https://github.com/socketry/async-websocket) — Asynchronous client and server websockets.
+  - [async-dns](https://github.com/socketry/async-dns) — Asynchronous DNS resolver and server.
+  - [async-rspec](https://github.com/socketry/async-rspec) — Shared contexts for running async specs.
 
 ### Projects Using Async
 
-- [ciri](https://github.com/ciri-ethereum/ciri) — An Ethereum implementation written in Ruby.
-- [falcon](https://github.com/socketry/falcon) — A rack compatible server built on top of `async-http`.
-- [rubydns](https://github.com/ioquatix/rubydns) — A easy to use Ruby DNS server.
-- [slack-ruby-bot](https://github.com/slack-ruby/slack-ruby-bot) — A client for making slack bots.
+  - [ciri](https://github.com/ciri-ethereum/ciri) — An Ethereum implementation written in Ruby.
+  - [falcon](https://github.com/socketry/falcon) — A rack compatible server built on top of `async-http`.
+  - [rubydns](https://github.com/ioquatix/rubydns) — A easy to use Ruby DNS server.
+  - [slack-ruby-bot](https://github.com/slack-ruby/slack-ruby-bot) — A client for making slack bots.
 
 ## License
 
