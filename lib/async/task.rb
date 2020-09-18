@@ -226,7 +226,7 @@ module Async
 		private
 		
 		# This is a very tricky aspect of tasks to get right. I've modelled it after `Thread` but it's slightly different in that the exception can propagate back up through the reactor. If the user writes code which raises an exception, that exception should always be visible, i.e. cause a failure. If it's not visible, such code fails silently and can be very difficult to debug.
-		# As an explcit choice, the user can start a task which doesn't propagate exceptions. This only applies to `StandardError` and derived tasks. This allows tasks to internally capture their error state which is raised when invoking `Task#result` similar to how `Thread#join` works. This mode makes `Async::Task` behave more like a promise, and you would need to ensure that someone calls `Task#result` otherwise you might miss important errors.
+		# As an explcit choice, the user can start a task which doesn't propagate exceptions. This only applies to `StandardError` and derived tasks. This allows tasks to internally capture their error state which is raised when invoking `Task#result` similar to how `Thread#join` works. This mode makes {ruby Async::Task} behave more like a promise, and you would need to ensure that someone calls `Task#result` otherwise you might miss important errors.
 		def fail!(exception = nil, propagate = true)
 			@status = :failed
 			@result = exception
