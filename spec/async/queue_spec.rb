@@ -81,6 +81,46 @@ RSpec.shared_context Async::Queue do
 		end
 	end
 	
+	context 'with a custom queue' do
+		let(:lifo_queue_class) do
+			Class.new do
+				def initialize
+					@items = []
+				end
+				
+				def push(item)
+					@items.push(item)
+				end
+				
+				def shift
+					@items.pop
+				end
+				
+				def empty?
+					@items.empty?
+				end
+				
+				def size
+					@items.size
+				end
+			end
+		end
+		
+		subject { described_class.new(queue: lifo_queue_class.new) }
+		
+		it 'uses passed queue' do
+			Async do
+				3.times do |i|
+					subject.enqueue(i)
+				end
+				
+				3.times.reverse_each do |j|
+					expect(subject.dequeue).to be == j
+				end
+			end
+		end
+	end
+	
 	it_behaves_like 'chainable async' do
 		before do
 			subject.enqueue(:item)

@@ -25,10 +25,10 @@ require_relative 'notification'
 module Async
 	# A queue which allows items to be processed in order.
 	class Queue < Notification
-		def initialize(parent: nil)
+		def initialize(parent: nil, queue: [])
 			super()
 			
-			@items = []
+			@items = queue
 			@parent = parent
 		end
 		
