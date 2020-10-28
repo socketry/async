@@ -25,7 +25,10 @@ def clone_and_test(name)
 	# I tried using `bundle config --local local.async ../` but it simply doesn't work.
 	# system("bundle", "config", "--local", "local.async", __dir__, chdir: path)
 	
-	File.open("#{path}/Gemfile", "a") do |file| 
+	gemfile_paths = ["#{path}/Gemfile", "#{path}/gems.rb"]
+	gemfile_path = gemfile_paths.find{|path| File.exist?(path)}
+	
+	File.open(gemfile_path, "a") do |file| 
 		file.puts('gem "async", path: "../../"')
 	end
 	
