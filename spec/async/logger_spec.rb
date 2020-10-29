@@ -37,7 +37,7 @@ RSpec.describe 'Async.logger' do
 			logger.warn message
 		end.wait
 		
-		expect(capture.events.last).to include({
+		expect(capture.last).to include({
 			severity: :warn,
 			name: name,
 			subject: message,
@@ -49,17 +49,23 @@ RSpec.describe 'Async.logger' do
 			parent.async(logger: logger) do |task|
 				expect(task.logger).to be == logger
 				expect(Async.logger).to be == logger
+				expect(Console.logger).to be == logger
 			end.wait
 		end.wait
 	end
 	
 	it "can use parent logger" do
+		current_logger = Console.logger
+		
 		Async(logger: logger) do |parent|
 			child = parent.async{|task| task.yield}
 			
 			expect(parent.logger).to be == logger
 			expect(child.logger).to be == logger
 			expect(Async.logger).to be == logger
+			expect(Console.logger).to be == logger
 		end.wait
+		
+		expect(Console.logger).to be == current_logger
 	end
 end

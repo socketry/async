@@ -15,7 +15,7 @@ Gem::Specification.new do |spec|
 	
 	spec.required_ruby_version = ">= 2.5.0"
 	
-	spec.add_dependency "console", "~> 1.0"
+	spec.add_dependency "console", "~> 1.10"
 	spec.add_dependency "nio4r", "~> 2.3"
 	spec.add_dependency "timers", "~> 4.1"
 	

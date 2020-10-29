@@ -91,11 +91,12 @@ module Async
 		end
 		
 		def logger
-			@logger ||= @parent&.logger
+			@logger || Console.logger
 		end
 		
 		# @attr ios [Reactor] The reactor the task was created within.
 		attr :reactor
+		
 		def_delegators :@reactor, :with_timeout, :timeout, :sleep
 		
 		# Yield back to the reactor and allow other fibers to execute.
@@ -289,6 +290,7 @@ module Async
 		def set!
 			# This is actually fiber-local:
 			Thread.current[:async_task] = self
+			Console.logger = @logger if @logger
 		end
 	end
 end
