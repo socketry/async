@@ -66,15 +66,15 @@ RSpec.describe Async::Reactor do
 		
 		it "can run one iteration" do
 			state = nil
-	
+			
 			subject.async do |task|
 				state = :started
 				task.yield
 				state = :finished
 			end
-	
+			
 			expect(state).to be :started
-	
+			
 			subject.run_once
 			expect(state).to be :finished
 		end
