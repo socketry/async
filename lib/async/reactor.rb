@@ -98,9 +98,6 @@ module Async
 			@children.nil?
 		end
 		
-		# TODO Remove these in next major release. They are too confusing to use correctly.
-		def_delegators :@timers, :every, :after
-		
 		# Start an asynchronous task within the specified reactor. The task will be
 		# executed until the first blocking call, at which point it will yield and
 		# and this method will return.
@@ -266,7 +263,7 @@ module Async
 		def sleep(duration)
 			fiber = Fiber.current
 			
-			timer = self.after(duration) do
+			timer = @timers.after(duration) do
 				if fiber.alive?
 					fiber.resume
 				end
@@ -283,7 +280,7 @@ module Async
 		def with_timeout(timeout, exception = TimeoutError)
 			fiber = Fiber.current
 			
-			timer = self.after(timeout) do
+			timer = @timers.after(timeout) do
 				if fiber.alive?
 					error = exception.new("execution expired")
 					fiber.resume error
