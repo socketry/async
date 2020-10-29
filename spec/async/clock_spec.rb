@@ -34,4 +34,14 @@ RSpec.describe Async::Clock do
 	it "can get current offset" do
 		expect(Async::Clock.now).to be_kind_of Float
 	end
+	
+	it "can accumulate durations" do
+		2.times do
+			subject.start!
+			sleep(0.01)
+			subject.stop!
+		end
+		
+		expect(subject.total).to be_within(5).percent_of(0.02)
+	end
 end

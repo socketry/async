@@ -21,7 +21,7 @@
 # THE SOFTWARE.
 
 module Async
-	module Clock
+	class Clock
 		# Get the current elapsed monotonic time.
 		def self.now
 			::Process.clock_gettime(::Process::CLOCK_MONOTONIC)
@@ -34,6 +34,38 @@ module Async
 			yield
 			
 			return self.now - start_time
+		end
+		
+		def self.start
+			self.new.tap(&:start!)
+		end
+		
+		def initialize
+			@total = 0
+			@started = nil
+		end
+		
+		def start!
+			@started ||= Clock.now
+		end
+		
+		def stop!
+			if @started
+				@total += (Clock.now - @started)
+				@started = nil
+			end
+			
+			return @total
+		end
+		
+		def total
+			total = @total
+			
+			if @started
+				total += (Clock.now - @started)
+			end
+			
+			return total
 		end
 	end
 end
