@@ -38,10 +38,10 @@ RSpec.describe Async::Clock do
 	it "can accumulate durations" do
 		2.times do
 			subject.start!
-			sleep(0.01)
+			sleep(0.1)
 			subject.stop!
 		end
 		
-		expect(subject.total).to be_within(5).percent_of(0.02)
+		expect(subject.total).to be_within(0.02 * Q).of(0.2)
 	end
 end
