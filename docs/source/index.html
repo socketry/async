@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		
+			<title>Source</title>
+		
+		<meta charset="UTF-8"/>
+		<meta name="viewport" content="width=device-width, initial-scale=1"/>
+		
+		<link rel="icon" type="image/png" href="../_static/icon.png"/>
+		<link rel="stylesheet" href="../_static/site.css" type="text/css" media="screen"/>
+		
+		<script src="../_components/jquery/jquery.min.js"></script>
+		<script src="../_components/jquery-syntax/jquery.syntax.min.js"></script>
+		
+		<script src="../_static/links.js"></script>
+		
+		<script type="text/javascript">
+		//<![CDATA[
+			jQuery(function($) {
+				$.syntax();
+			});
+		//]]>
+		</script>
+	</head>
+
+	<body>
+		<header> › <a class="link" href="../index.html">Project</a> › <a class="link" href="index.html">Source</a></header>
+		
+		<main>
+			
+	<h1>Source</h1>
+	
+	<ul class="index"><li>
+					<a href="Kernel/index.html"><code class="language-ruby">module Kernel</code></a>
+					
+					
+					<ul class="index"><li>
+					<a href="Kernel/index.html#Kernel%23Sync"><code class="language-ruby">def Sync(&amp;block)</code></a>
+					
+						<p>Run the given block of code synchronously, but within a reactor if not already in one.</p>
+
+					
+									</li><li>
+					<a href="Kernel/index.html#Kernel%23Async"><code class="language-ruby">def Async(*arguments, **options, &amp;block)</code></a>
+					
+						<p>Run the given block of code in a task, asynchronously, creating a reactor if necessary.</p>
+
+					
+									</li></ul>				</li><li>
+					<a href="Async/index.html"><code class="language-ruby">module Async</code></a>
+					
+					
+					<ul class="index"><li>
+					<a href="Async/TimeoutError/index.html"><code class="language-ruby">class TimeoutError &lt; StandardError</code></a>
+					
+						<p>Raised if a timeout occurs on a specific Fiber. Handled gracefully by <code>Task</code>.</p>
+
+					
+					<ul class="index"></ul>				</li><li>
+					<a href="Async/Reactor/index.html"><code class="language-ruby">class Reactor &lt; Node</code></a>
+					
+						<p>An asynchronous, cooperatively scheduled event reactor.</p>
+
+					
+					<ul class="index"><li>
+					<a href="Async/Reactor/index.html#Async%3A%3AReactor.run"><code class="language-ruby">def self.run(*arguments, **options, &amp;block)</code></a>
+					
+						<p>The preferred method to invoke asynchronous behavior at the top level.</p>
+
+					
+									</li><li>
+					<a href="Async/Reactor/index.html#Async%3A%3AReactor%23async"><code class="language-ruby">def async(*arguments, **options, &amp;block)</code></a>
+					
+						<p>Start an asynchronous task within the specified reactor. The task will be</p>
+
+					
+									</li><li>
+					<a href="Async/Reactor/index.html#Async%3A%3AReactor%23interrupt"><code class="language-ruby">def interrupt</code></a>
+					
+						<p>Interrupt the reactor at the earliest convenience. Can be called from a different thread safely.</p>
+
+					
+									</li><li>
+					<a href="Async/Reactor/index.html#Async%3A%3AReactor%23%3C%3C"><code class="language-ruby">def &lt;&lt; fiber</code></a>
+					
+						<p>Schedule a fiber (or equivalent object) to be resumed on the next loop through the reactor.</p>
+
+					
+									</li><li>
+					<a href="Async/Reactor/index.html#Async%3A%3AReactor%23yield"><code class="language-ruby">def yield(fiber = Fiber.current)</code></a>
+					
+						<p>Yield the current fiber and resume it on the next iteration of the event loop.</p>
+
+					
+									</li><li>
+					<a href="Async/Reactor/index.html#Async%3A%3AReactor%23run_once"><code class="language-ruby">def run_once(timeout = nil)</code></a>
+					
+						<p>Run one iteration of the event loop.</p>
+
+					
+									</li><li>
+					<a href="Async/Reactor/index.html#Async%3A%3AReactor%23close"><code class="language-ruby">def close</code></a>
+					
+						<p>Stop each of the children tasks and close the selector.</p>
+
+					
+									</li><li>
+					<a href="Async/Reactor/index.html#Async%3A%3AReactor%23closed%3F"><code class="language-ruby">def closed?</code></a>
+					
+						<p>Check if the selector has been closed.</p>
+
+					
+									</li><li>
+					<a href="Async/Reactor/index.html#Async%3A%3AReactor%23sleep"><code class="language-ruby">def sleep(duration)</code></a>
+					
+						<p>Put the calling fiber to sleep for a given ammount of time.</p>
+
+					
+									</li><li>
+					<a href="Async/Reactor/index.html#Async%3A%3AReactor%23with_timeout"><code class="language-ruby">def with_timeout(timeout, exception = TimeoutError)</code></a>
+					
+						<p>Invoke the block, but after the specified timeout, raise <a href="Async/TimeoutError/index.html" title="TimeoutError"><code class="language-ruby">class Async::TimeoutError</code></a> in any currenly blocking operation. If the block runs to completion before the timeout occurs or there are no non-blocking operations after the timeout expires, the code will complete without any exception.</p>
+
+					
+									</li></ul>				</li><li>
+					<a href="Async/Debug/index.html"><code class="language-ruby">module Debug</code></a>
+					
+					
+					<ul class="index"><li>
+					<a href="Async/Debug/LeakError/index.html"><code class="language-ruby">class LeakError &lt; RuntimeError</code></a>
+					
+					
+					<ul class="index"></ul>				</li><li>
+					<a href="Async/Debug/Selector/index.html"><code class="language-ruby">class Selector</code></a>
+					
+					
+					<ul class="index"></ul>				</li><li>
+					<a href="Async/Debug/Monitor/index.html"><code class="language-ruby">class Monitor</code></a>
+					
+					
+					<ul class="index"></ul>				</li></ul>				</li><li>
+					<a href="Async/Condition/index.html"><code class="language-ruby">class Condition</code></a>
+					
+						<p>A synchronization primative, which allows fibers to wait until a particular condition is triggered. Signalling the condition directly resumes the waiting fibers and thus blocks the caller.</p>
+
+					
+					<ul class="index"><li>
+					<a href="Async/Condition/index.html#Async%3A%3ACondition%23wait"><code class="language-ruby">def wait</code></a>
+					
+						<p>Queue up the current fiber and wait on yielding the task.</p>
+
+					
+									</li><li>
+					<a href="Async/Condition/index.html#Async%3A%3ACondition%23empty%3F"><code class="language-ruby">def empty?</code></a>
+					
+						<p>Is any fiber waiting on this notification?</p>
+
+					
+									</li><li>
+					<a href="Async/Condition/index.html#Async%3A%3ACondition%23signal"><code class="language-ruby">def signal(value = nil)</code></a>
+					
+						<p>Signal to a given task that it should resume operations.</p>
+
+					
+									</li></ul>				</li><li>
+					<a href="Async/Queue/index.html"><code class="language-ruby">class Queue &lt; Notification</code></a>
+					
+						<p>A queue which allows items to be processed in order.</p>
+
+					
+					<ul class="index"></ul>				</li><li>
+					<a href="Async/LimitedQueue/index.html"><code class="language-ruby">class LimitedQueue &lt; Queue</code></a>
+					
+					
+					<ul class="index"><li>
+					<a href="Async/LimitedQueue/index.html#Async%3A%3ALimitedQueue%23limited%3F"><code class="language-ruby">def limited?</code></a>
+					
+					
+									</li></ul>				</li><li>
+					<a href="Async/Notification/index.html"><code class="language-ruby">class Notification &lt; Condition</code></a>
+					
+						<p>A synchronization primitive, which allows fibers to wait until a notification is received. Does not block the task which signals the notification. Waiting tasks are resumed on next iteration of the reactor.</p>
+
+					
+					<ul class="index"><li>
+					<a href="Async/Notification/index.html#Async%3A%3ANotification%23signal"><code class="language-ruby">def signal(value = nil, task: Task.current)</code></a>
+					
+						<p>Signal to a given task that it should resume operations.</p>
+
+					
+									</li></ul>				</li><li>
+					<a href="Async/Barrier/index.html"><code class="language-ruby">class Barrier</code></a>
+					
+						<p>A barrier is used to synchronize multiple tasks, waiting for them all to complete before continuing.</p>
+
+					
+					<ul class="index"><li>
+					<a href="Async/Barrier/index.html#Async%3A%3ABarrier%23tasks"><code class="language-ruby">attr :tasks</code></a>
+					
+						<p>All tasks which have been invoked into the barrier.</p>
+
+					
+									</li><li>
+					<a href="Async/Barrier/index.html#Async%3A%3ABarrier%23wait"><code class="language-ruby">def wait</code></a>
+					
+						<p>Wait for tasks in FIFO order.</p>
+
+					
+									</li></ul>				</li><li>
+					<a href="Async/Clock/index.html"><code class="language-ruby">class Clock</code></a>
+					
+					
+					<ul class="index"><li>
+					<a href="Async/Clock/index.html#Async%3A%3AClock.now"><code class="language-ruby">def self.now</code></a>
+					
+						<p>Get the current elapsed monotonic time.</p>
+
+					
+									</li><li>
+					<a href="Async/Clock/index.html#Async%3A%3AClock.measure"><code class="language-ruby">def self.measure</code></a>
+					
+						<p>Measure the execution of a block of code.</p>
+
+					
+									</li></ul>				</li><li>
+					<a href="Async/Semaphore/index.html"><code class="language-ruby">class Semaphore</code></a>
+					
+						<p>A semaphore is used to control access to a common resource in a concurrent system. A useful way to think of a semaphore as used in the real-world systems is as a record of how many units of a particular resource are available, coupled with operations to adjust that record safely (i.e. to avoid race conditions) as units are required or become free, and, if necessary, wait until a unit of the resource becomes available.</p>
+
+					
+					<ul class="index"><li>
+					<a href="Async/Semaphore/index.html#Async%3A%3ASemaphore%23count"><code class="language-ruby">attr :count</code></a>
+					
+						<p>The current number of tasks that have acquired the semaphore.</p>
+
+					
+									</li><li>
+					<a href="Async/Semaphore/index.html#Async%3A%3ASemaphore%23limit"><code class="language-ruby">attr :limit</code></a>
+					
+						<p>The maximum number of tasks that can acquire the semaphore.</p>
+
+					
+									</li><li>
+					<a href="Async/Semaphore/index.html#Async%3A%3ASemaphore%23waiting"><code class="language-ruby">attr :waiting</code></a>
+					
+						<p>The tasks waiting on this semaphore.</p>
+
+					
+									</li><li>
+					<a href="Async/Semaphore/index.html#Async%3A%3ASemaphore%23empty%3F"><code class="language-ruby">def empty?</code></a>
+					
+						<p>Is the semaphore currently acquired?</p>
+
+					
+									</li><li>
+					<a href="Async/Semaphore/index.html#Async%3A%3ASemaphore%23blocking%3F"><code class="language-ruby">def blocking?</code></a>
+					
+						<p>Whether trying to acquire this semaphore would block.</p>
+
+					
+									</li><li>
+					<a href="Async/Semaphore/index.html#Async%3A%3ASemaphore%23async"><code class="language-ruby">def async(*arguments, parent: (@parent or Task.current), **options)</code></a>
+					
+						<p>Run an async task. Will wait until the semaphore is ready until spawning and running the task.</p>
+
+					
+									</li><li>
+					<a href="Async/Semaphore/index.html#Async%3A%3ASemaphore%23acquire"><code class="language-ruby">def acquire</code></a>
+					
+						<p>Acquire the semaphore, block if we are at the limit.</p>
+
+					
+									</li><li>
+					<a href="Async/Semaphore/index.html#Async%3A%3ASemaphore%23release"><code class="language-ruby">def release</code></a>
+					
+						<p>Release the semaphore. Must match up with a corresponding call to <code>acquire</code>. Will release waiting fibers in FIFO order.</p>
+
+					
+									</li><li>
+					<a href="Async/Semaphore/index.html#Async%3A%3ASemaphore%23wait"><code class="language-ruby">def wait</code></a>
+					
+						<p>Wait until the semaphore becomes available.</p>
+
+					
+									</li></ul>				</li><li>
+					<a href="Async/List/index.html"><code class="language-ruby">class List</code></a>
+					
+						<p>A double linked list.</p>
+
+					
+					<ul class="index"><li>
+					<a href="Async/List/index.html#Async%3A%3AList%23insert"><code class="language-ruby">def insert(item)</code></a>
+					
+						<p>Inserts an item at the end of the list.</p>
+
+					
+									</li></ul>				</li><li>
+					<a href="Async/Children/index.html"><code class="language-ruby">class Children &lt; List</code></a>
+					
+					
+					<ul class="index"><li>
+					<a href="Async/Children/index.html#Async%3A%3AChildren%23transients%3F"><code class="language-ruby">def transients?</code></a>
+					
+						<p>Does this node have (direct) transient children?</p>
+
+					
+									</li></ul>				</li><li>
+					<a href="Async/Node/index.html"><code class="language-ruby">class Node</code></a>
+					
+						<p>Represents a node in a tree, used for nested <a href="Async/Task/index.html" title="Task"><code class="language-ruby">class Async::Task</code></a> instances.</p>
+
+					
+					<ul class="index"><li>
+					<a href="Async/Node/index.html#Async%3A%3ANode%23initialize"><code class="language-ruby">def initialize(parent = nil, annotation: nil, transient: false)</code></a>
+					
+						<p>Create a new node in the tree.</p>
+
+					
+									</li><li>
+					<a href="Async/Node/index.html#Async%3A%3ANode%23head"><code class="language-ruby">attr_accessor :head</code></a>
+					
+						<p>You should not directly rely on these pointers but instead use <code>#children</code>.</p>
+
+					
+									</li><li>
+					<a href="Async/Node/index.html#Async%3A%3ANode%23parent"><code class="language-ruby">attr :parent</code></a>
+					
+					
+									</li><li>
+					<a href="Async/Node/index.html#Async%3A%3ANode%23children"><code class="language-ruby">attr :children</code></a>
+					
+					
+									</li><li>
+					<a href="Async/Node/index.html#Async%3A%3ANode%23annotation"><code class="language-ruby">attr :annotation</code></a>
+					
+						<p>A useful identifier for the current node.</p>
+
+					
+									</li><li>
+					<a href="Async/Node/index.html#Async%3A%3ANode%23children%3F"><code class="language-ruby">def children?</code></a>
+					
+						<p>Whether there are children?</p>
+
+					
+									</li><li>
+					<a href="Async/Node/index.html#Async%3A%3ANode%23transient%3F"><code class="language-ruby">def transient?</code></a>
+					
+						<p>Is this node transient?</p>
+
+					
+									</li><li>
+					<a href="Async/Node/index.html#Async%3A%3ANode%23parent%3D"><code class="language-ruby">def parent=(parent)</code></a>
+					
+						<p>Change the parent of this node.</p>
+
+					
+									</li><li>
+					<a href="Async/Node/index.html#Async%3A%3ANode%23finished%3F"><code class="language-ruby">def finished?</code></a>
+					
+						<p>Whether the node can be consumed safely. By default, checks if the</p>
+
+					
+									</li><li>
+					<a href="Async/Node/index.html#Async%3A%3ANode%23consume"><code class="language-ruby">def consume</code></a>
+					
+						<p>If the node has a parent, and is <a href="Async/Node/index.html#Async%3A%3ANode%23finished%3F" title="finished?"><code class="language-ruby">Async::Node#finished?</code></a>, then remove this node from</p>
+
+					
+									</li><li>
+					<a href="Async/Node/index.html#Async%3A%3ANode%23traverse"><code class="language-ruby">def traverse(level = 0, &amp;block)</code></a>
+					
+						<p>Traverse the tree.</p>
+
+					
+									</li></ul>				</li><li>
+					<a href="Async/Stop/index.html"><code class="language-ruby">class Stop &lt; Exception</code></a>
+					
+						<p>Raised when a task is explicitly stopped.</p>
+
+					
+					<ul class="index"><li>
+					<a href="Async/Stop/Later/index.html"><code class="language-ruby">class Later</code></a>
+					
+					
+					<ul class="index"></ul>				</li></ul>				</li><li>
+					<a href="Async/Task/index.html"><code class="language-ruby">class Task &lt; Node</code></a>
+					
+						<p>A task represents the state associated with the execution of an asynchronous</p>
+
+					
+					<ul class="index"><li>
+					<a href="Async/Task/index.html#Async%3A%3ATask.yield"><code class="language-ruby">def self.yield</code></a>
+					
+						<p>Yield the unerlying <code>result</code> for the task. If the result</p>
+
+					
+									</li><li>
+					<a href="Async/Task/index.html#Async%3A%3ATask%23initialize"><code class="language-ruby">def initialize(reactor, parent = Task.current?, logger: nil, **options, &amp;block)</code></a>
+					
+						<p>Create a new task.</p>
+
+					
+									</li><li>
+					<a href="Async/Task/index.html#Async%3A%3ATask%23reactor"><code class="language-ruby">attr :reactor</code></a>
+					
+					
+									</li><li>
+					<a href="Async/Task/index.html#Async%3A%3ATask%23fiber"><code class="language-ruby">attr :fiber</code></a>
+					
+					
+									</li><li>
+					<a href="Async/Task/index.html#Async%3A%3ATask%23status"><code class="language-ruby">attr :status</code></a>
+					
+					
+									</li><li>
+					<a href="Async/Task/index.html#Async%3A%3ATask%23run"><code class="language-ruby">def run(*arguments)</code></a>
+					
+						<p>Begin the execution of the task.</p>
+
+					
+									</li><li>
+					<a href="Async/Task/index.html#Async%3A%3ATask%23wait"><code class="language-ruby">def wait</code></a>
+					
+						<p>Retrieve the current result of the task. Will cause the caller to wait until result is available.</p>
+
+					
+									</li><li>
+					<a href="Async/Task/index.html#Async%3A%3ATask%23stop"><code class="language-ruby">def stop(later = false)</code></a>
+					
+						<p>Stop the task and all of its children.</p>
+
+					
+									</li><li>
+					<a href="Async/Task/index.html#Async%3A%3ATask.current"><code class="language-ruby">def self.current</code></a>
+					
+						<p>Lookup the <a href="Async/Task/index.html" title="Task"><code class="language-ruby">class Async::Task</code></a> for the current fiber. Raise <code>RuntimeError</code> if none is available.</p>
+
+					
+									</li><li>
+					<a href="Async/Task/index.html#Async%3A%3ATask.current%3F"><code class="language-ruby">def self.current?</code></a>
+					
+						<p>Check if there is a task defined for the current fiber.</p>
+
+					
+									</li><li>
+					<a href="Async/Task/index.html#Async%3A%3ATask%23running%3F"><code class="language-ruby">def running?</code></a>
+					
+						<p>Check if the task is running.</p>
+
+					
+									</li><li>
+					<a href="Async/Task/index.html#Async%3A%3ATask%23finished%3F"><code class="language-ruby">def finished?</code></a>
+					
+						<p>Whether we can remove this node from the reactor graph.</p>
+
+					
+									</li><li>
+					<a href="Async/Task/index.html#Async%3A%3ATask%23fail%21"><code class="language-ruby">def fail!(exception = nil, propagate = true)</code></a>
+					
+						<p>This is a very tricky aspect of tasks to get right. I've modelled it after <code>Thread</code> but it's slightly different in that the exception can propagate back up through the reactor. If the user writes code which raises an exception, that exception should always be visible, i.e. cause a failure. If it's not visible, such code fails silently and can be very difficult to debug.</p>
+
+					
+									</li><li>
+					<a href="Async/Task/index.html#Async%3A%3ATask%23finish%21"><code class="language-ruby">def finish!</code></a>
+					
+						<p>Finish the current task, and all bound bound IO objects.</p>
+
+					
+									</li><li>
+					<a href="Async/Task/index.html#Async%3A%3ATask%23set%21"><code class="language-ruby">def set!</code></a>
+					
+						<p>Set the current fiber's <code>:async_task</code> to this task.</p>
+
+					
+									</li></ul>				</li><li>
+					<a href="Async/Wrapper/index.html"><code class="language-ruby">class Wrapper</code></a>
+					
+						<p>Represents an asynchronous IO within a reactor.</p>
+
+					
+					<ul class="index"><li>
+					<a href="Async/Wrapper/Cancelled/index.html"><code class="language-ruby">class Cancelled &lt; StandardError</code></a>
+					
+					
+					<ul class="index"><li>
+					<a href="Async/Wrapper/Cancelled/From/index.html"><code class="language-ruby">class From</code></a>
+					
+					
+					<ul class="index"></ul>				</li></ul>				</li><li>
+					<a href="Async/Wrapper/WaitError/index.html"><code class="language-ruby">class WaitError &lt; StandardError</code></a>
+					
+						<p>wait_readable, wait_writable and wait_any are not re-entrant, and will raise this failure.</p>
+
+					
+					<ul class="index"></ul>				</li><li>
+					<a href="Async/Wrapper/index.html#Async%3A%3AWrapper%23initialize"><code class="language-ruby">def initialize(io, reactor = nil)</code></a>
+					
+					
+									</li><li>
+					<a href="Async/Wrapper/index.html#Async%3A%3AWrapper%23io"><code class="language-ruby">attr :io</code></a>
+					
+						<p>The underlying native <code>io</code>.</p>
+
+					
+									</li><li>
+					<a href="Async/Wrapper/index.html#Async%3A%3AWrapper%23reactor"><code class="language-ruby">attr :reactor</code></a>
+					
+						<p>The reactor this wrapper is associated with, if any.</p>
+
+					
+									</li><li>
+					<a href="Async/Wrapper/index.html#Async%3A%3AWrapper%23monitor"><code class="language-ruby">attr :monitor</code></a>
+					
+						<p>The monitor for this wrapper, if any.</p>
+
+					
+									</li><li>
+					<a href="Async/Wrapper/index.html#Async%3A%3AWrapper%23reactor%3D"><code class="language-ruby">def reactor= reactor</code></a>
+					
+						<p>Bind this wrapper to a different reactor. Assign nil to convert to an unbound wrapper (can be used from any reactor/task but with slightly increased overhead.)</p>
+
+					
+									</li><li>
+					<a href="Async/Wrapper/index.html#Async%3A%3AWrapper%23wait_readable"><code class="language-ruby">def wait_readable(timeout = nil)</code></a>
+					
+						<p>Wait for the io to become readable.</p>
+
+					
+									</li><li>
+					<a href="Async/Wrapper/index.html#Async%3A%3AWrapper%23wait_writable"><code class="language-ruby">def wait_writable(timeout = nil)</code></a>
+					
+						<p>Wait for the io to become writable.</p>
+
+					
+									</li><li>
+					<a href="Async/Wrapper/index.html#Async%3A%3AWrapper%23wait_any"><code class="language-ruby">def wait_any(timeout = nil)</code></a>
+					
+						<p>Wait fo the io to become either readable or writable.</p>
+
+					
+									</li><li>
+					<a href="Async/Wrapper/index.html#Async%3A%3AWrapper%23close"><code class="language-ruby">def close</code></a>
+					
+						<p>Close the io and monitor.</p>
+
+					
+									</li><li>
+					<a href="Async/Wrapper/index.html#Async%3A%3AWrapper%23interests"><code class="language-ruby">def interests</code></a>
+					
+						<p>What an abomination.</p>
+
+					
+									</li></ul>				</li><li>
+					<a href="Async/index.html#Async.run"><code class="language-ruby">def self.run(*arguments, &amp;block)</code></a>
+					
+						<p>Invoke <code>Reactor.run</code> with all arguments/block.</p>
+
+					
+									</li></ul>				</li></ul>
+				
+			<footer>Documentation generated by <a href="https://github.com/socketry/utopia-project">Utopia::Project</a>.</footer>
+		</main>
+	</body>
+</html>

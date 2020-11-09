@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		
+			<title>Getting Started</title>
+		
+		<meta charset="UTF-8"/>
+		<meta name="viewport" content="width=device-width, initial-scale=1"/>
+		
+		<link rel="icon" type="image/png" href="../../_static/icon.png"/>
+		<link rel="stylesheet" href="../../_static/site.css" type="text/css" media="screen"/>
+		
+		<script src="../../_components/jquery/jquery.min.js"></script>
+		<script src="../../_components/jquery-syntax/jquery.syntax.min.js"></script>
+		
+		<script src="../../_static/links.js"></script>
+		
+		<script type="text/javascript">
+		//<![CDATA[
+			jQuery(function($) {
+				$.syntax();
+			});
+		//]]>
+		</script>
+	</head>
+
+	<body>
+		<header> › <a class="link" href="../../index.html">Project</a> › <a class="link" href="../index.html">Guides</a></header>
+		
+		<main>
+			
+	<h1>Getting Started</h1>
+	
+	<p>This guide explains how to use <code>async</code> for event-driven systems.</p>
+<section id="installation"><h2>Installation</h2>
+<p>Add the gem to your project:</p>
+<pre><code class="language-bash">$ bundle add async
+</code></pre>
+</section><section id="core-concepts"><h2>Core Concepts</h2>
+<p><code>async</code> has several core concepts:</p>
+<ul>
+<li>A <a href="../../source/Async/Task/index.html" title="Async::Task"><code class="language-ruby">class Async::Task</code></a> instance which captures your sequential computations.</li>
+<li>A <a href="../../source/Async/Reactor/index.html" title="Async::Reactor"><code class="language-ruby">class Async::Reactor</code></a> instance which implements the core event loop.</li>
+</ul>
+</section><section id="creating-tasks"><h2>Creating Tasks</h2>
+<p>The main entry point for creating tasks is the <a href="../../source/Kernel/index.html#Kernel%23Async" title="Kernel#Async"><code class="language-ruby">Kernel#Async</code></a> method. Because this method is defined on <code>Kernel</code>, it's available in all areas of your program.</p>
+<pre><code class="language-ruby">require 'async'
+
+Async do |task|
+	puts &quot;Hello World!&quot;
+end
+</code></pre>
+<p>An <a href="../../source/Async/Task/index.html" title="Async::Task"><code class="language-ruby">class Async::Task</code></a> runs using a <code class="language-ruby">Fiber</code> and blocking operations e.g. <code>sleep</code>, <code>read</code>, <code>write</code> yield control until the operation can complete.</p>
+<p>At the top level, <code>Async do ... end</code> will create an event loop, and nested <code>Async</code> blocks will reuse the existing event loop. This allows the caller to have either blocking or non-blocking behaviour.</p>
+<pre><code class="language-ruby">require 'async'
+
+def sleepy(duration = 1)
+	Async do |task|
+		task.sleep duration
+		puts &quot;I'm done sleeping, time for action!&quot;
+	end
+end
+
+# Synchronous operation:
+sleepy
+
+# Asynchronous operation:
+Async do
+	# These two functions will sleep simultaneously.
+	sleepy
+	sleepy
+end
+</code></pre>
+<p>If you want to guarantee synchronous execution, you can use <a href="../../source/Kernel/index.html#Kernel%23Sync" title="Kernel#Sync"><code class="language-ruby">Kernel#Sync</code></a> which is semantically identical to <code>Async</code> except that in all cases it will wait until the given block completes execution.</p>
+</section><section id="nested-tasks"><h3>Nested Tasks</h3>
+<p>Sometimes it's convenient to explicitly nest tasks. There are a variety of reasons to do this, including grouping tasks in order to wait for completion. In the most basic case, you can make a child task using the <a href="../../source/Async/Task/index.html#Async%3A%3ATask%23async" title="Async::Task#async"><code class="language-ruby">Async::Task#async</code></a> method.</p>
+<pre><code class="language-ruby">require 'async'
+
+def nested_sleepy(task: Async::Task.current)
+	# Block caller
+	task.sleep 0.1
+	
+	# Schedule nested task:
+	subtask = task.async(annotation: &quot;Sleeping&quot;) do |subtask|
+		puts &quot;I'm going to sleep...&quot;
+		subtask.sleep 1.0
+	ensure
+		puts &quot;I'm waking up!&quot;
+	end
+end
+
+Async(annotation: &quot;Top Level&quot;) do |task|
+	subtask = nested_sleepy(task: task)
+	
+	task.reactor.print_hierarchy
+	#&lt;Async::Reactor:0x64 1 children (running)&gt;
+				#&lt;Async::Task:0x78 Top Level (running)&gt;
+								#&lt;Async::Task:0x8c Sleeping (running)&gt;
+end
+</code></pre>
+<p>This example creates a child <code>subtask</code> from the given parent <code>task</code>. It's the most efficient way to schedule a task. The task is executed until the first blocking operation, at which point it will yield control and <code>#async</code> will return. The result of this method is the task itself.</p>
+</section><section id="waiting-for-results"><h2>Waiting For Results</h2>
+<p>Like promises, <a href="../../source/Async/Task/index.html" title="Async::Task"><code class="language-ruby">class Async::Task</code></a> produces results. In order to wait for these results, you must invoke <a href="../../source/Async/Task/index.html#Async%3A%3ATask%23wait" title="Async::Task#wait"><code class="language-ruby">Async::Task#wait</code></a>:</p>
+<pre><code class="language-ruby">require 'async'
+
+task = Async do
+	rand
+end
+
+puts task.wait
+</code></pre>
+</section><section id="waiting-for-multiple-tasks"><h3>Waiting For Multiple Tasks</h3>
+<p>You can use <a href="../../source/Async/Barrier/index.html#Async%3A%3ABarrier%23async" title="Async::Barrier#async"><code class="language-ruby">Async::Barrier#async</code></a> to create multiple child tasks, and wait for them all to complete using <a href="../../source/Async/Barrier/index.html#Async%3A%3ABarrier%23wait" title="Async::Barrier#wait"><code class="language-ruby">Async::Barrier#wait</code></a>.</p>
+<p><a href="../../source/Async/Barrier/index.html" title="Async::Barrier"><code class="language-ruby">class Async::Barrier</code></a> and <a href="../../source/Async/Semaphore/index.html" title="Async::Semaphore"><code class="language-ruby">class Async::Semaphore</code></a> are designed to be compatible with each other, and with other tasks that nest <code>#async</code> invocations. There are other similar situations where you may want to pass in a parent task, e.g. <code class="language-ruby">Async::IO::Endpoint#bind</code>.</p>
+<pre><code class="language-ruby">barrier = Async::Barrier.new
+semaphore = Async::Semaphore.new(2)
+
+semaphore.async(parent: barrier) do
+	# ...
+end
+</code></pre>
+<p>A <code>parent:</code> in this context is anything that responds to <code>#async</code> in the same way that <a href="../../source/Async/Task/index.html" title="Async::Task"><code class="language-ruby">class Async::Task</code></a> responds to <code>#async</code>. In situations where you strictly depend on the interface of <a href="../../source/Async/Task/index.html" title="Async::Task"><code class="language-ruby">class Async::Task</code></a>, use the <code>task: Task.current</code> pattern.</p>
+</section><section id="stopping-tasks"><h3>Stopping Tasks</h3>
+<p>Use <a href="../../source/Async/Task/index.html#Async%3A%3ATask%23stop" title="Async::Task#stop"><code class="language-ruby">Async::Task#stop</code></a> to stop tasks. This function raises <a href="../../source/Async/Stop/index.html" title="Async::Stop"><code class="language-ruby">class Async::Stop</code></a> on the target task and all descendent tasks.</p>
+<pre><code class="language-ruby">require 'async'
+
+Async do
+	sleepy = Async do |task|
+		task.sleep 1000
+	end
+	
+	sleepy.stop
+end
+</code></pre>
+<p>When you design a server, you should return the task back to the caller. They can use this task to stop the server if needed, independently of any other unrelated tasks within the reactor, and it will correctly clean up all related tasks.</p>
+</section><section id="resource-management"><h2>Resource Management</h2>
+<p>In order to ensure your resources are cleaned up correctly, make sure you wrap resources appropriately, e.g.:</p>
+<pre><code class="language-ruby">Async::Reactor.run do
+	socket = connect(remote_address) # May raise Async::Stop
+	
+	socket.write(...) # May raise Async::Stop
+	socket.read(...) # May raise Async::Stop
+
+		socket.close
+	end
+end
+</code></pre>
+<p>As tasks run synchronously until they yield back to the reactor, you can guarantee this model works correctly. While in theory <code>IO#autoclose</code> allows you to automatically close file descriptors when they go out of scope via the GC, it may produce unpredictable behavour (exhaustion of file descriptors, flushing data at odd times), so it's not recommended.</p>
+</section><section id="exception-handling"><h2>Exception Handling</h2>
+<p><a href="../../source/Async/Task/index.html" title="Async::Task"><code class="language-ruby">class Async::Task</code></a> captures and logs exceptions. All unhandled exceptions will cause the enclosing task to enter the <code>:failed</code> state. Non-<code>StandardError</code> exceptions are re-raised immediately and will generally cause the reactor to fail. This ensures that exceptions will always be visible and cause the program to fail appropriately.</p>
+<pre><code class="language-ruby">require 'async'
+
+task = Async do
+	# Exception will be logged and task will be failed.
+	raise &quot;Boom&quot;
+end
+
+puts task.status # failed
+puts task.result # raises RuntimeError: Boom
+</code></pre>
+</section><section id="propagating-exceptions"><h3>Propagating Exceptions</h3>
+<p>If a task has finished due to an exception, calling <code>Task#wait</code> will re-raise the exception.</p>
+<pre><code class="language-ruby">require 'async'
+
+Async do
+	task = Async do
+		raise &quot;Boom&quot;
+	end
+	
+	begin
+		task.wait # Re-raises above exception.
+	rescue
+		puts &quot;It went #{$!}!&quot;
+	end
+end
+</code></pre>
+</section><section id="timeouts"><h2>Timeouts</h2>
+<p>You can wrap asynchronous operations in a timeout. This ensures that malicious services don't cause your code to block indefinitely.</p>
+<pre><code class="language-ruby">require 'async'
+
+Async do |task|
+	task.with_timeout(1) do
+		task.sleep 100
+	rescue Async::TimeoutError
+		puts &quot;I timed out!&quot;
+	end
+end
+</code></pre>
+</section><section id="reoccurring-timers"><h3>Reoccurring Timers</h3>
+<p>Sometimes you need to do some periodic work in a loop.</p>
+<pre><code class="language-ruby">require 'async'
+
+Async do |task|
+	while true
+		puts Time.now
+		task.sleep 1
+	end
+end
+</code></pre>
+</section><section id="caveats"><h2>Caveats</h2>
+</section><section id="enumerators"><h3>Enumerators</h3>
+<p>Due to limitations within Ruby and the nature of this library, it is not possible to use <code>to_enum</code> on methods which invoke asynchronous behaviour. We hope to <a href="https://github.com/socketry/async/issues/23">fix this issue in the future</a>.</p>
+</section><section id="blocking-methods-in-standard-library"><h3>Blocking Methods in Standard Library</h3>
+<p>Blocking Ruby methods such as <code>pop</code> in the <code>Queue</code> class require access to their own threads and will not yield control back to the reactor which can result in a deadlock.  As a substitute for the standard library <code>Queue</code>, the <a href="../../source/Async/Queue/index.html" title="Async::Queue"><code class="language-ruby">class Async::Queue</code></a> class can be used.</p>
+</section>
+				
+			<footer>Documentation generated by <a href="https://github.com/socketry/utopia-project">Utopia::Project</a>.</footer>
+		</main>
+	</body>
+</html>

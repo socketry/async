@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		
+			<title>Async::Wrapper</title>
+		
+		<meta charset="UTF-8"/>
+		<meta name="viewport" content="width=device-width, initial-scale=1"/>
+		
+		<link rel="icon" type="image/png" href="../../../_static/icon.png"/>
+		<link rel="stylesheet" href="../../../_static/site.css" type="text/css" media="screen"/>
+		
+		<script src="../../../_components/jquery/jquery.min.js"></script>
+		<script src="../../../_components/jquery-syntax/jquery.syntax.min.js"></script>
+		
+		<script src="../../../_static/links.js"></script>
+		
+		<script type="text/javascript">
+		//<![CDATA[
+			jQuery(function($) {
+				$.syntax();
+			});
+		//]]>
+		</script>
+	</head>
+
+	<body>
+		<header> › <a class="link" href="../../../index.html">Project</a> › <a class="link" href="../../index.html">Source</a></header>
+		
+		<main>
+			
+	<h1><code class="language-ruby">Async::Wrapper</code></h1>
+	
+	<p>Represents an asynchronous IO within a reactor.</p>
+	
+	<section>
+	<h2>Nested</h2>
+	
+	<ul>
+		<li><a href="Cancelled/index.html"><code class="language-ruby">Async::Wrapper::Cancelled</code></a></li>
+		<li><a href="WaitError/index.html"><code class="language-ruby">Async::Wrapper::WaitError</code></a></li>
+	</ul>
+	</section>
+	
+	<section>
+	<h2>Definitions</h2>
+	
+	<section id="Async::Wrapper#initialize"><h3><code class="language-ruby">def initialize(io, reactor = nil)</code></h3><details>
+						<summary><h4>Implementation</h4></summary>
+						<pre><code class="language-ruby">def initialize(io, reactor = nil)
+	@io = io
+	
+	@reactor = reactor
+	@monitor = nil
+	
+	@readable = nil
+	@writable = nil
+	@any = nil
+end</code></pre>
+					</details></section><section id="Async::Wrapper#io"><h3><code class="language-ruby">attr :io</code></h3><p>The underlying native <code>io</code>.</p>
+</section><section id="Async::Wrapper#reactor"><h3><code class="language-ruby">attr :reactor</code></h3><p>The reactor this wrapper is associated with, if any.</p>
+</section><section id="Async::Wrapper#monitor"><h3><code class="language-ruby">attr :monitor</code></h3><p>The monitor for this wrapper, if any.</p>
+</section><section id="Async::Wrapper#reactor="><h3><code class="language-ruby">def reactor= reactor</code></h3><p>Bind this wrapper to a different reactor. Assign nil to convert to an unbound wrapper (can be used from any reactor/task but with slightly increased overhead.)
+Binding to a reactor is purely a performance consideration. Generally, I don't like APIs that exist only due to optimisations. This is borderline, so consider this functionality semi-private.</p>
+<details>
+						<summary><h4>Implementation</h4></summary>
+						<pre><code class="language-ruby">def reactor= reactor
+	return if @reactor.equal?(reactor)
+	
+	cancel_monitor
+	
+	@reactor = reactor
+end</code></pre>
+					</details></section><section id="Async::Wrapper#wait_readable"><h3><code class="language-ruby">def wait_readable(timeout = nil)</code></h3><p>Wait for the io to become readable.</p>
+<details>
+						<summary><h4>Implementation</h4></summary>
+						<pre><code class="language-ruby">def wait_readable(timeout = nil)
+	raise WaitError if @readable
+	
+	self.reactor = Task.current.reactor
+	
+	begin
+		@readable = Fiber.current
+		wait_for(timeout)
+	ensure
+		@readable = nil
+		@monitor.interests = interests if @monitor
+	end
+end</code></pre>
+					</details></section><section id="Async::Wrapper#wait_writable"><h3><code class="language-ruby">def wait_writable(timeout = nil)</code></h3><p>Wait for the io to become writable.</p>
+<details>
+						<summary><h4>Implementation</h4></summary>
+						<pre><code class="language-ruby">def wait_writable(timeout = nil)
+	raise WaitError if @writable
+	
+	self.reactor = Task.current.reactor
+	
+	begin
+		@writable = Fiber.current
+		wait_for(timeout)
+	ensure
+		@writable = nil
+		@monitor.interests = interests if @monitor
+	end
+end</code></pre>
+					</details></section><section id="Async::Wrapper#wait_any"><h3><code class="language-ruby">def wait_any(timeout = nil)</code></h3><p>Wait fo the io to become either readable or writable.</p>
+<details>
+						<summary><h4>Implementation</h4></summary>
+						<pre><code class="language-ruby">def wait_any(timeout = nil)
+	raise WaitError if @any
+	
+	self.reactor = Task.current.reactor
+	
+	begin
+		@any = Fiber.current
+		wait_for(timeout)
+	ensure
+		@any = nil
+		@monitor.interests = interests if @monitor
+	end
+end</code></pre>
+					</details></section><section id="Async::Wrapper#close"><h3><code class="language-ruby">def close</code></h3><p>Close the io and monitor.</p>
+<details>
+						<summary><h4>Implementation</h4></summary>
+						<pre><code class="language-ruby">def close
+	cancel_monitor
+	
+	@io.close
+end</code></pre>
+					</details></section><section id="Async::Wrapper#interests"><h3><code class="language-ruby">def interests</code></h3><p>What an abomination.</p>
+<details>
+						<summary><h4>Implementation</h4></summary>
+						<pre><code class="language-ruby">def interests
+	if @any
+		return :rw
+	elsif @readable
+		if @writable
+			return :rw
+		else
+			return :r
+		end
+	elsif @writable
+		return :w
+	end
+	
+	return nil
+end</code></pre>
+					</details></section>	</section>
+
+				
+			<footer>Documentation generated by <a href="https://github.com/socketry/utopia-project">Utopia::Project</a>.</footer>
+		</main>
+	</body>
+</html>
