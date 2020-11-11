@@ -40,8 +40,8 @@ module Async
 			self.new.tap(&:start!)
 		end
 		
-		def initialize
-			@total = 0
+		def initialize(total = 0)
+			@total = total
 			@started = nil
 		end
 		

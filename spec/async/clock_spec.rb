@@ -44,4 +44,10 @@ RSpec.describe Async::Clock do
 		
 		expect(subject.total).to be_within(0.02 * Q).of(0.2)
 	end
+	
+	context 'with given total' do
+		subject {described_class.new(1.5)}
+		
+		it{is_expected.to have_attributes(total: 1.5)}
+	end
 end
