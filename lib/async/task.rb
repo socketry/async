@@ -86,6 +86,12 @@ module Async
 			@fiber = make_fiber(&block)
 		end
 		
+		if Fiber.current.respond_to?(:backtrace)
+			def backtrace(*arguments)
+				@fiber.backtrace(*arguments)
+			end
+		end
+		
 		def to_s
 			"\#<#{self.description} (#{@status})>"
 		end

@@ -91,12 +91,24 @@ RSpec.describe Async::Reactor do
 			end
 			
 			output = StringIO.new
-			subject.print_hierarchy(output)
+			subject.print_hierarchy(output, backtrace: false)
 			lines = output.string.lines
 			
 			expect(lines[0]).to be =~ /#<Async::Reactor.*(running)/
 			expect(lines[1]).to be =~ /\t#<Async::Task.*(running)/
 			expect(lines[2]).to be =~ /\t\t#<Async::Task.*(running)/
+		end
+		
+		it "can include backtrace", if: Fiber.current.respond_to?(:backtrace) do
+			subject.async do |parent|
+				parent.sleep 1
+			end
+			
+			output = StringIO.new
+			subject.print_hierarchy(output, backtrace: true)
+			lines = output.string.lines
+			
+			expect(lines).to include(/in `sleep'/)
 		end
 	end
 	

@@ -217,6 +217,10 @@ module Async
 			end
 		end
 		
+		def backtrace(*arguments)
+			nil
+		end
+		
 		def to_s
 			"\#<#{description}>"
 		end
@@ -297,9 +301,23 @@ module Async
 			@children&.each(&:stop)
 		end
 		
-		def print_hierarchy(out = $stdout)
+		def print_hierarchy(out = $stdout, backtrace: true)
 			self.traverse do |node, level|
-				out.puts "#{"\t" * level}#{node}"
+				indent = "\t" * level
+				
+				out.puts "#{indent}#{node}"
+				
+				print_backtrace(out, indent, node) if backtrace
+			end
+		end
+		
+		private
+		
+		def print_backtrace(out, indent, node)
+			if backtrace = node.backtrace
+				backtrace.each_with_index do |line, index|
+					out.puts "#{indent}#{index.zero? ? "→ " : "  "}#{line}"
+				end
 			end
 		end
 	end
