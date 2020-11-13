@@ -21,5 +21,5 @@
 # THE SOFTWARE.
 
 module Async
-	VERSION = "1.26.2"
+	VERSION = "1.27.0"
 end
