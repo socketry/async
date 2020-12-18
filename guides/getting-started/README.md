@@ -143,12 +143,13 @@ In order to ensure your resources are cleaned up correctly, make sure you wrap r
 
 ~~~ ruby
 Async::Reactor.run do
-	socket = connect(remote_address) # May raise Async::Stop
-	
-	socket.write(...) # May raise Async::Stop
-	socket.read(...) # May raise Async::Stop
+	begin
+		socket = connect(remote_address) # May raise Async::Stop
 
-		socket.close
+		socket.write(...) # May raise Async::Stop
+		socket.read(...) # May raise Async::Stop
+	ensure
+		socket.close if socket
 	end
 end
 ~~~
