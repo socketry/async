@@ -136,12 +136,13 @@ end
 </section><section id="resource-management"><h2>Resource Management</h2>
 <p>In order to ensure your resources are cleaned up correctly, make sure you wrap resources appropriately, e.g.:</p>
 <pre><code class="language-ruby">Async::Reactor.run do
-	socket = connect(remote_address) # May raise Async::Stop
-	
-	socket.write(...) # May raise Async::Stop
-	socket.read(...) # May raise Async::Stop
+	begin
+		socket = connect(remote_address) # May raise Async::Stop
 
-		socket.close
+		socket.write(...) # May raise Async::Stop
+		socket.read(...) # May raise Async::Stop
+	ensure
+		socket.close if socket
 	end
 end
 </code></pre>
