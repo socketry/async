@@ -57,13 +57,13 @@ module Async
 		def io_wait(io, events, timeout = nil)
 			wrapper = from_io(io)
 			
-			if events == IO::READABLE
+			if events == ::IO::READABLE
 				if wrapper.wait_readable(timeout)
-					return IO::READABLE
+					return ::IO::READABLE
 				end
-			elsif events == IO::WRITABLE
+			elsif events == ::IO::WRITABLE
 				if wrapper.wait_writable(timeout)
-					return IO::WRITABLE
+					return ::IO::WRITABLE
 				end
 			else
 				if wrapper.wait_any(timeout)
