@@ -34,6 +34,10 @@ module Async
 		
 		attr :items
 		
+		def size
+			@items.size
+		end
+
 		def empty?
 			@items.empty?
 		end

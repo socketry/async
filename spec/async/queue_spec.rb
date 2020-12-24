@@ -53,6 +53,17 @@ RSpec.shared_context Async::Queue do
 		end
 	end
 	
+	describe '#size' do
+		it 'returns queue size' do
+			reactor.async do |task|
+				10.times do |i|
+					subject.enqueue(i)
+					expect(subject.size).to be i + 1
+				end
+			end
+		end
+	end
+	
 	context 'with an empty queue' do
 		it {is_expected.to be_empty}
 	end
