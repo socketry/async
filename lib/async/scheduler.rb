@@ -76,6 +76,16 @@ module Async
 			wrapper.reactor = nil
 		end
 		
+		# Wait for the specified process ID to exit.
+		# @parameter pid [Integer] The process ID to wait for.
+		# @parameter flags [Integer] A bit-mask of flags suitable for `Process::Status.wait`.
+		# @returns [Process::Status] A process status instance.
+		def process_wait(pid, flags)
+			Thread.new do
+				Process::Status.wait(pid, flags)
+			end.value
+		end
+		
 		def kernel_sleep(duration)
 			@reactor.sleep(duration)
 		end

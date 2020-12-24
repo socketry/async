@@ -31,6 +31,16 @@ RSpec.describe Async::Scheduler, if: Async::Scheduler.supported? do
 		sleep(0.001)
 	end
 	
+	describe 'Process.wait' do
+		it "can wait on child process" do
+			expect(reactor.scheduler).to receive(:process_wait).and_call_original
+			
+			pid = ::Process.spawn("true")
+			_, status = Process.wait2(pid)
+			expect(status).to be_success
+		end
+	end
+	
 	describe 'IO.pipe' do
 		let(:message) {"Helloooooo World!"}
 		
