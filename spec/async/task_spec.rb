@@ -390,6 +390,28 @@ RSpec.describe Async::Task do
 		end
 	end
 	
+	describe '#backtrace', if: Fiber.current.respond_to?(:backtrace) do
+		it "has a backtrace" do
+			Async do
+				task = Async do |task|
+					task.sleep(1)
+				end
+				
+				expect(task.backtrace).to include(/sleep/)
+				
+				task.stop
+			end
+		end
+		
+		context "finished task" do
+			it "has no backtrace" do
+				task = Async{}
+				
+				expect(task.backtrace).to be_nil
+			end
+		end
+	end
+	
 	describe '#wait' do
 		it "will wait on another task to complete" do
 			apples_task = reactor.async do |task|

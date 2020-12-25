@@ -88,7 +88,7 @@ module Async
 		
 		if Fiber.current.respond_to?(:backtrace)
 			def backtrace(*arguments)
-				@fiber.backtrace(*arguments)
+				@fiber&.backtrace(*arguments)
 			end
 		end
 		
