@@ -16,6 +16,8 @@ end
 private
 
 def clone_and_test(name)
+	require 'fileutils'
+	
 	path = "external/#{name}"
 	FileUtils.rm_rf path
 	FileUtils.mkdir_p path
