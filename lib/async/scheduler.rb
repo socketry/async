@@ -104,9 +104,11 @@ module Async
 		def fiber(&block)
 			task = Task.new(@reactor, &block)
 			
+			fiber = task.fiber
+			
 			task.run
 			
-			return task.fiber
+			return fiber
 		end
 	end
 end

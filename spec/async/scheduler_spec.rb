@@ -31,6 +31,17 @@ RSpec.describe Async::Scheduler, if: Async::Scheduler.supported? do
 		sleep(0.001)
 	end
 	
+	describe 'Fiber.schedule' do
+		it "can start child task" do
+			fiber = Async do
+				Fiber.schedule{}
+			end.wait
+			
+			expect(fiber).to_not be_nil
+			expect(fiber).to be_kind_of(Fiber)
+		end
+	end
+	
 	describe 'Process.wait' do
 		it "can wait on child process" do
 			expect(reactor.scheduler).to receive(:process_wait).and_call_original
