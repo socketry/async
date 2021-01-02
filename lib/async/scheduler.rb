@@ -102,9 +102,9 @@ module Async
 		end
 		
 		def fiber(&block)
-			task = Task.new(&block)
+			task = Task.new(@reactor, &block)
 			
-			task.resume
+			task.run
 			
 			return task.fiber
 		end
