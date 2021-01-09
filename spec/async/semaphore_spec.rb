@@ -86,6 +86,25 @@ RSpec.describe Async::Semaphore do
 		end
 	end
 	
+	context '#sync' do
+		let(:repeats) {10}
+		let(:limit) {2}
+		
+		it 'processes work synchronously with one task' do
+			semaphore = Async::Semaphore.new(limit)
+			
+			result = repeats.times.map do |i|
+				semaphore.sync do |task|
+					expect(semaphore.count).to be == 1
+					task.sleep(rand * 0.1)
+					i
+				end
+			end
+			
+			expect(result).to be == (0...repeats).to_a
+		end
+	end
+	
 	context '#waiting' do
 		subject {Async::Semaphore.new(0)}
 		it 'handles exceptions thrown while waiting' do

@@ -65,6 +65,16 @@ module Async
 			end
 		end
 		
+		def sync(*arguments)
+			acquire
+			
+			begin
+				yield Task.current, *arguments
+			ensure
+				release
+			end
+		end
+		
 		# Acquire the semaphore, block if we are at the limit.
 		# If no block is provided, you must call release manually.
 		# @yield when the semaphore can be acquired
