@@ -156,6 +156,16 @@ module Async
 		# Deprecated.
 		alias result wait
 		# Soon to become attr :result
+
+		# Wait on all children to complete, including subtasks.
+		# @return [Object] the final expression/result of the task's block
+		def wait_all(task = self)
+			task.children&.each do |child|
+				wait_all(child)
+			end
+
+			task.wait
+		end
 		
 		# Stop the task and all of its children.
 		# @return [void]

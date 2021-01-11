@@ -468,6 +468,52 @@ RSpec.describe Async::Task do
 			expect(innocent_task).to be_finished
 		end
 	end
+
+	describe '#wait_all' do
+		it "will wait on all subtasks to complete" do
+			result = nil
+
+			reactor.async do |task|
+				wait_task = task.async do |subtask1|
+					subtask1.async do |subtask2|
+						subtask2.async do |subtask3|
+							subtask3.sleep(0.25)
+
+							result = :subtask3
+						end
+					end
+				end
+
+				wait_task.wait_all
+			end
+
+			reactor.run
+
+			expect(result).to eq(:subtask3)
+		end
+
+		it "will return the result" do
+			result = nil
+
+			reactor.async do |task|
+				wait_task = task.async do |subtask1|
+					subtask1.async do |subtask2|
+						subtask2.async do |subtask3|
+							subtask3.sleep(0.25)
+						end
+					end
+
+					:subtask1
+				end
+
+				result = wait_task.wait_all
+			end
+
+			reactor.run
+
+			expect(result).to eq(:subtask1)
+		end
+	end
 	
 	describe '#children' do
 		it "enumerates children in same order they are created" do
