@@ -50,5 +50,16 @@ RSpec.describe Kernel do
 				expect(result).to be == value
 			end
 		end
+
+		it "can propagate error" do
+			expect do 
+				Sync do
+					Async::Task.current.with_timeout(10) do 
+						raise StandardError, "brain not provided"
+					end
+				end
+			end.to raise_exception(StandardError, /brain/)
+		end
+
 	end
 end
