@@ -43,12 +43,22 @@ RSpec.describe Kernel do
 				result = Sync do |sync_task|
 					expect(Async::Task.current).to be task
 					expect(sync_task).to be task
-
+					
 					next value
 				end
 				
 				expect(result).to be == value
 			end
+		end
+		
+		it "can propagate error without logging them" do
+			expect(Console.logger).to_not receive(:error)
+			
+			expect do
+				Sync do
+					raise StandardError, "brain not provided"
+				end
+			end.to raise_exception(StandardError, /brain/)
 		end
 	end
 end
