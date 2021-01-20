@@ -72,14 +72,14 @@ module Async
 		# Create a new task.
 		# @param reactor [Async::Reactor] the reactor this task will run within.
 		# @param parent [Async::Task] the parent task.
-		def initialize(reactor, parent = Task.current?, logger: nil, **options, &block)
+		def initialize(reactor, parent = Task.current?, logger: nil, finished: nil, **options, &block)
 			super(parent || reactor, **options)
 			
 			@reactor = reactor
 			
 			@status = :initialized
 			@result = nil
-			@finished = nil
+			@finished = finished
 			
 			@logger = logger
 			

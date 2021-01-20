@@ -28,7 +28,10 @@ module Kernel
 		if task = ::Async::Task.current?
 			yield task
 		else
-			::Async::Reactor.run(&block).wait
+			::Async::Reactor.run(
+				finished: ::Async::Condition.new,
+				&block
+			).wait
 		end
 	end
 end
