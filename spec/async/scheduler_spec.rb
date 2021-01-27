@@ -91,6 +91,32 @@ RSpec.describe Async::Scheduler, if: Async::Scheduler.supported? do
 			# The requests all get started concurrently:
 			expect(events.first(3)).to be == [0, 1, 2]
 		end
+		
+		it "can clean up unused wrappers" do
+			input, output = IO.pipe
+			
+			reader = reactor.async do
+				input.read
+				input.close
+				input = nil
+			end
+			
+			output.write(".")
+			output.close
+			
+			reader.wait
+			reader = nil
+			output = nil
+			
+			# Oh no...
+			10.times do
+				GC.start
+				break unless reactor.scheduler.wrappers.any?
+				sleep(0.001)
+			end
+			
+			expect(reactor.scheduler.wrappers.size).to be == 0
+		end
 	end
 	
 	context "with thread" do

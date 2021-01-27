@@ -19,6 +19,7 @@
 # THE SOFTWARE.
 
 require_relative 'clock'
+require 'objspace'
 
 module Async
 	class Scheduler
@@ -37,15 +38,16 @@ module Async
 			@wrappers = nil
 		end
 		
+		attr :wrappers
+		
 		def set!
-			@wrappers = {}
+			@wrappers = ::ObjectSpace::WeakMap.new
 			Fiber.set_scheduler(self)
 		end
 		
 		def clear!
 			# Because these instances are created with `autoclose: false`, this does not close the underlying file descriptor:
 			# @ios&.each_value(&:close)
-			
 			@wrappers = nil
 			Fiber.set_scheduler(nil)
 		end
