@@ -82,7 +82,7 @@ module Async
 		# @returns [Process::Status] A process status instance.
 		def process_wait(pid, flags)
 			Thread.new do
-				Process::Status.wait(pid, flags)
+				::Process::Status.wait(pid, flags)
 			end.value
 		end
 		
