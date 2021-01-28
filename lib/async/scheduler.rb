@@ -87,7 +87,7 @@ module Async
 		end
 		
 		def kernel_sleep(duration)
-			@reactor.sleep(duration)
+			self.block(nil, duration)
 		end
 		
 		def block(blocker, timeout)

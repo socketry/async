@@ -102,7 +102,7 @@ module Async
 			fiber = Fiber.current
 			
 			if timeout
-				timer = self.after(timeout) do
+				timer = @timers.after(timeout) do
 					if fiber.alive?
 						fiber.resume(false)
 					end
