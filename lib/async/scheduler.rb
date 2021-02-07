@@ -20,10 +20,6 @@
 
 require_relative 'clock'
 
-class IO
-	attr :async_wrapper
-end
-
 module Async
 	class Scheduler
 		if Fiber.respond_to?(:set_scheduler)
@@ -51,7 +47,7 @@ module Async
 		end
 		
 		private def from_io(io)
-			io.async_wrapper ||= Wrapper.new(io, @reactor)
+			Wrapper.new(io, @reactor)
 		end
 		
 		def io_wait(io, events, timeout = nil)
