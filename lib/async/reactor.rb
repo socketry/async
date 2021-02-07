@@ -223,7 +223,7 @@ module Async
 				@running.clear
 			end
 			
-			unless @blocked.zero?
+			if @unblocked.any?
 				unblocked = Array.new
 				
 				@guard.synchronize do
