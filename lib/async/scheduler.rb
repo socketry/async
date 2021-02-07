@@ -34,24 +34,20 @@ module Async
 		
 		def initialize(reactor)
 			@reactor = reactor
-			@wrappers = nil
 		end
 		
+		attr :wrappers
+		
 		def set!
-			@wrappers = {}
 			Fiber.set_scheduler(self)
 		end
 		
 		def clear!
-			# Because these instances are created with `autoclose: false`, this does not close the underlying file descriptor:
-			# @ios&.each_value(&:close)
-			
-			@wrappers = nil
 			Fiber.set_scheduler(nil)
 		end
 		
 		private def from_io(io)
-			@wrappers[io] ||= Wrapper.new(io, @reactor)
+			Wrapper.new(io, @reactor)
 		end
 		
 		def io_wait(io, events, timeout = nil)

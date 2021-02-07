@@ -26,7 +26,7 @@ RSpec.describe Async::Scheduler, if: Async::Scheduler.supported? do
 	include_context Async::RSpec::Reactor
 	
 	it "can intercept sleep" do
-		expect(reactor).to receive(:sleep).with(0.001)
+		expect(reactor.scheduler).to receive(:kernel_sleep).with(0.001)
 		
 		sleep(0.001)
 	end
