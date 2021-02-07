@@ -19,7 +19,10 @@
 # THE SOFTWARE.
 
 require_relative 'clock'
-require 'objspace'
+
+class IO
+	attr :async_wrapper
+end
 
 module Async
 	class Scheduler
@@ -35,25 +38,20 @@ module Async
 		
 		def initialize(reactor)
 			@reactor = reactor
-			@wrappers = nil
 		end
 		
 		attr :wrappers
 		
 		def set!
-			@wrappers = ::ObjectSpace::WeakMap.new
 			Fiber.set_scheduler(self)
 		end
 		
 		def clear!
-			# Because these instances are created with `autoclose: false`, this does not close the underlying file descriptor:
-			# @ios&.each_value(&:close)
-			@wrappers = nil
 			Fiber.set_scheduler(nil)
 		end
 		
 		private def from_io(io)
-			@wrappers[io] ||= Wrapper.new(io, @reactor)
+			io.async_wrapper ||= Wrapper.new(io, @reactor)
 		end
 		
 		def io_wait(io, events, timeout = nil)
