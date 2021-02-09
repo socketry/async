@@ -111,7 +111,7 @@ module Async
 			
 			begin
 				@blocked += 1
-				Fiber.yield
+				Task.yield
 			ensure
 				@blocked -= 1
 			end
@@ -198,7 +198,7 @@ module Async
 		def yield(fiber = Fiber.current)
 			@ready << fiber
 			
-			Fiber.yield
+			Task.yield
 		end
 		
 		def finished?
