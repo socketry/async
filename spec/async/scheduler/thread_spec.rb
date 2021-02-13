@@ -45,6 +45,7 @@ RSpec.describe Async::Scheduler, if: Async::Scheduler.supported? do
 					thread.join
 				ensure
 					thread.kill
+					thread.join
 				end
 			end
 			
