@@ -49,8 +49,8 @@ RSpec.describe Async::Scheduler, if: Async::Scheduler.supported? do
 			end
 			
 			task.stop
+			task.wait
 			
-			sleep(0)
 			expect(thread).to_not be_alive
 		end
 	end
