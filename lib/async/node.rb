@@ -82,12 +82,14 @@ module Async
 		def each
 			return to_enum unless block_given?
 			
-			item = @head
-			while item
-				# We store the tail pointer so we can remove the current item from the linked list:
-				tail = item.tail
-				yield item
-				item = tail
+			current = self
+			while node = current.next
+				yield node
+				
+				# If the node has deleted itself or any subsequent node, it will no longer be the next node, so don't use it for continued traversal:
+				if current.next.equal?(node)
+					current = node
+				end
 			end
 		end
 		
@@ -100,6 +102,10 @@ module Async
 		end
 		
 		def first
+			@head
+		end
+		
+		def next
 			@head
 		end
 		
@@ -176,6 +182,10 @@ module Async
 		# List pointers:
 		attr_accessor :head
 		attr_accessor :tail
+		
+		def next
+			@tail
+		end
 		
 		# @attr parent [Node, nil]
 		attr :parent

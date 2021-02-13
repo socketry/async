@@ -75,13 +75,13 @@ RSpec.describe Async::Node do
 			expect(bottom.parent).to be middle
 		end
 		
-		it "can consume node while enumerating children" do
+		it "can consume nodes while enumerating children" do
 			3.times do
 				Async::Node.new(subject)
 			end
 			
 			children = subject.children.each.to_a
-			expect(subject.children.size).to be 3
+			expect(children.size).to be == 3
 			
 			enumerated = []
 			
@@ -91,6 +91,28 @@ RSpec.describe Async::Node do
 			end
 			
 			expect(enumerated).to be == children
+		end
+		
+		it "can consume multiple nodes while enumerating children" do
+			3.times do
+				Async::Node.new(subject)
+			end
+			
+			children = subject.children.each.to_a
+			expect(children.size).to be == 3
+			
+			enumerated = []
+			
+			subject.children.each do |child|
+				# On the first iteration, we consume the first two children:
+				children[0].consume
+				children[1].consume
+				
+				# This would end up appending the first child, and then the third child:
+				enumerated << child
+			end
+			
+			expect(enumerated).to be == [children[0], children[2]]
 		end
 	end
 	
