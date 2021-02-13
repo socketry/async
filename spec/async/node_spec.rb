@@ -114,6 +114,20 @@ RSpec.describe Async::Node do
 			
 			expect(enumerated).to be == [children[0], children[2]]
 		end
+		
+		it "correctly enumerates finished children" do
+			middle = Async::Node.new(subject)
+			bottom = 2.times.map{Async::Node.new(middle)}
+			
+			allow(bottom[0]).to receive(:finished?).and_return(false)
+			allow(bottom[1]).to receive(:finished?).and_return(false)
+			
+			allow(middle).to receive(:finished?).and_return(true)
+			middle.consume
+			
+			expect(subject.children.size).to be == 2
+			expect(subject.children.each.to_a).to be == bottom
+		end
 	end
 	
 	describe '#annotate' do

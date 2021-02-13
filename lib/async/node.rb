@@ -24,6 +24,7 @@ module Async
 	# A double linked list.
 	class List
 		def initialize
+			# The list behaves like a list node, so @tail points to the next item (the first one) and head points to the previous item (the last one). This may be slightly confusing but it makes the interface more natural.
 			@head = nil
 			@tail = nil
 			@size = 0
@@ -36,21 +37,21 @@ module Async
 		
 		# Inserts an item at the end of the list.
 		def insert(item)
-			unless @head
-				@head = item
+			unless @tail
 				@tail = item
+				@head = item
 				
 				# Consistency:
 				item.head = nil
 				item.tail = nil
 			else
-				@tail.tail = item
-				item.head = @tail
+				@head.tail = item
+				item.head = @head
 				
 				# Consistency:
 				item.tail = nil
 				
-				@tail = item
+				@head = item
 			end
 			
 			@size += 1
@@ -59,14 +60,14 @@ module Async
 		end
 		
 		def delete(item)
-			if @head.equal?(item)
-				@head = @head.tail
+			if @tail.equal?(item)
+				@tail = @tail.tail
 			else
 				item.head.tail = item.tail
 			end
 			
-			if @tail.equal?(item)
-				@tail = @tail.head
+			if @head.equal?(item)
+				@head = @head.head
 			else
 				item.tail.head = item.head
 			end
@@ -79,15 +80,15 @@ module Async
 			return self
 		end
 		
-		def each
+		def each(&block)
 			return to_enum unless block_given?
 			
 			current = self
-			while node = current.next
+			while node = current.tail
 				yield node
 				
 				# If the node has deleted itself or any subsequent node, it will no longer be the next node, so don't use it for continued traversal:
-				if current.next.equal?(node)
+				if current.tail.equal?(node)
 					current = node
 				end
 			end
@@ -102,23 +103,19 @@ module Async
 		end
 		
 		def first
-			@head
-		end
-		
-		def next
-			@head
-		end
-		
-		def last
 			@tail
 		end
 		
+		def last
+			@head
+		end
+		
 		def empty?
-			@head.nil?
+			@tail.nil?
 		end
 		
 		def nil?
-			@head.nil?
+			@tail.nil?
 		end
 	end
 	
@@ -182,10 +179,6 @@ module Async
 		# List pointers:
 		attr_accessor :head
 		attr_accessor :tail
-		
-		def next
-			@tail
-		end
 		
 		# @attr parent [Node, nil]
 		attr :parent
@@ -286,6 +279,8 @@ module Async
 						if child.finished?
 							delete_child(child)
 						else
+							# In theory we don't need to do this... because we are throwing away the list. However, if you don't correctly update the list when moving the child to the parent, it foobars the enumeration, and subsequent nodes will be skipped, or in the worst case you might start enumerating the parents nodes.
+							delete_child(child)
 							parent.add_child(child)
 						end
 					end
