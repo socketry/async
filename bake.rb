@@ -34,5 +34,5 @@ def clone_and_test(name)
 		file.puts('gem "async", path: "../../"')
 	end
 	
-	system("cd #{path} && bundle install && bundle exec rspec")
+	system("cd #{path} && bundle install && bundle exec rspec") or abort("Tests failed!")
 end
