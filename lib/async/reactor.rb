@@ -347,7 +347,7 @@ module Async
 			timer = @timers.after(timeout) do
 				if fiber.alive?
 					error = exception.new("execution expired")
-					fiber.resume error
+					fiber.resume(error)
 				end
 			end
 			
