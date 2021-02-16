@@ -68,6 +68,8 @@ module Async
 			end
 			
 			return false
+		rescue TimeoutError
+			return nil
 		ensure
 			wrapper.reactor = nil
 		end
