@@ -20,25 +20,23 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
+require 'delegate'
+
 module Async
 	module Debug
-		class Monitor
+		class Monitor < Delegator
 			def initialize(monitor, selector)
 				@monitor = monitor
 				@selector = selector
 			end
 			
+			def __getobj__
+				@monitor
+			end
+			
 			def close
-				@selector.deregister(@monitor.io)
+				@selector.deregister(self)
 				@monitor.close
-			end
-			
-			def method_missing(*arguments, &block)
-				@monitor.send(*arguments)
-			end
-			
-			def respond_to?(*arguments)
-				@monitor.respond_to?(*arguments)
 			end
 			
 			def inspect
