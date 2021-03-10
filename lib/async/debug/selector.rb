@@ -24,6 +24,7 @@ require_relative 'monitor'
 require_relative '../logger'
 
 require 'nio'
+require 'set'
 
 module Async
 	module Debug
@@ -36,7 +37,7 @@ module Async
 		class Selector
 			def initialize(selector = NIO::Selector.new)
 				@selector = selector
-				@monitors = {}
+				@monitors = Set.new
 			end
 			
 			def register(object, interests)
@@ -46,26 +47,18 @@ module Async
 					raise RuntimeError, "Could not convert #{io} into IO!"
 				end
 				
-				if monitor = @monitors[io.fileno]
-					raise RuntimeError, "Trying to register monitor for #{object.inspect} but it was already registered: #{monitor.inspect}!"
-				end
-				
 				monitor = Monitor.new(@selector.register(object, interests), self)
 				
-				@monitors[io.fileno] = monitor
+				@monitors.add(monitor)
 				
 				return monitor
 			end
 			
-			def deregister(object)
-				Async.logger.debug(self) {"Deregistering #{object.inspect}."}
+			def deregister(monitor)
+				Async.logger.debug(self) {"Deregistering #{monitor.inspect}."}
 				
-				unless io = ::IO.try_convert(object)
-					raise RuntimeError, "Could not convert #{io} into IO!"
-				end
-				
-				unless @monitors.delete(io.fileno)
-					raise RuntimeError, "Trying to remove monitor for #{io.inspect} but it was not registered!"
+				unless @monitors.delete?(monitor)
+					raise RuntimeError, "Trying to remove monitor for #{monitor.inspect} but it was not registered!"
 				end
 			end
 			
@@ -75,7 +68,7 @@ module Async
 			
 			def close
 				if @monitors.any?
-					raise LeakError, @monitors.values
+					raise LeakError, @monitors
 				end
 			ensure
 				@selector.close
