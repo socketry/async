@@ -71,7 +71,7 @@ module Async
 		rescue TimeoutError
 			return nil
 		ensure
-			wrapper.reactor = nil
+			wrapper&.reactor = nil
 		end
 		
 		# Wait for the specified process ID to exit.
