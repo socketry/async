@@ -81,7 +81,7 @@ module Async
 			@result = nil
 			@finished = finished
 			
-			@logger = logger
+			@logger = logger || parent&.instance_variable_get(:@logger)
 			
 			@fiber = make_fiber(&block)
 		end

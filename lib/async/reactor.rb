@@ -47,9 +47,7 @@ module Async
 		# running.
 		def self.run(*arguments, **options, &block)
 			if current = Task.current?
-				reactor = current.reactor
-				
-				return reactor.async(*arguments, **options, &block)
+				return current.async(*arguments, **options, &block)
 			else
 				reactor = self.new
 				

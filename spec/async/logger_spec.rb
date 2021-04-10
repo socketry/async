@@ -56,6 +56,7 @@ RSpec.describe 'Async.logger' do
 	
 	it "can use parent logger" do
 		current_logger = Console.logger
+		child = nil
 		
 		Async(logger: logger) do |parent|
 			child = parent.async{|task| task.yield}
@@ -65,6 +66,8 @@ RSpec.describe 'Async.logger' do
 			expect(Async.logger).to be == logger
 			expect(Console.logger).to be == logger
 		end.wait
+		
+		expect(child.logger).to be == logger
 		
 		expect(Console.logger).to be == current_logger
 	end
