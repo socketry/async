@@ -94,6 +94,7 @@ module Async
 		end
 		
 		attr :scheduler
+		attr :logger
 		
 		# @reentrant Not thread safe.
 		def block(blocker, timeout)
@@ -133,10 +134,6 @@ module Async
 			end
 		end
 		
-		def logger
-			@logger || Console.logger
-		end
-		
 		def to_s
 			"\#<#{self.description} #{@children&.size || 0} children (#{stopped? ? 'stopped' : 'running'})>"
 		end
@@ -165,7 +162,7 @@ module Async
 			# - Avoid scheduler overhead if no blocking operation is performed.
 			task.run(*arguments)
 			
-			# logger.debug "Initial execution of task #{fiber} complete (#{result} -> #{fiber.alive?})..."
+			# Console.logger.debug "Initial execution of task #{fiber} complete (#{result} -> #{fiber.alive?})..."
 			return task
 		end
 		
@@ -208,7 +205,7 @@ module Async
 		# @param timeout [Float | nil] the maximum timeout, or if nil, indefinite.
 		# @return [Boolean] whether there is more work to do.
 		def run_once(timeout = nil)
-			# logger.debug(self) {"@ready = #{@ready} @running = #{@running}"}
+			# Console.logger.debug(self) {"@ready = #{@ready} @running = #{@running}"}
 			
 			if @ready.any?
 				# running used to correctly answer on `finished?`, and to reuse Array object.
@@ -256,7 +253,7 @@ module Async
 				interval = timeout
 			end
 			
-			# logger.info(self) {"Selecting with #{@children&.size} children with interval = #{interval ? interval.round(2) : 'infinite'}..."}
+			# Console.logger.info(self) {"Selecting with #{@children&.size} children with interval = #{interval ? interval.round(2) : 'infinite'}..."}
 			if monitors = @selector.select(interval)
 				monitors.each do |monitor|
 					monitor.value.resume
@@ -293,7 +290,7 @@ module Async
 			return initial_task
 		ensure
 			@scheduler&.clear!
-			logger.debug(self) {"Exiting run-loop because #{$! ? $! : 'finished'}."}
+			Console.logger.debug(self) {"Exiting run-loop because #{$! ? $! : 'finished'}."}
 		end
 		
 		def stop(later = true)

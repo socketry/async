@@ -81,10 +81,12 @@ module Async
 			@result = nil
 			@finished = finished
 			
-			@logger = logger || parent&.instance_variable_get(:@logger)
+			@logger = logger || @parent.logger
 			
 			@fiber = make_fiber(&block)
 		end
+		
+		attr :logger
 		
 		if Fiber.current.respond_to?(:backtrace)
 			def backtrace(*arguments)
@@ -94,10 +96,6 @@ module Async
 		
 		def to_s
 			"\#<#{self.description} (#{@status})>"
-		end
-		
-		def logger
-			@logger || Console.logger
 		end
 		
 		# @attr ios [Reactor] The reactor the task was created within.
@@ -242,9 +240,9 @@ module Async
 				raise
 			elsif @finished.nil?
 				# If no one has called wait, we log this as an error:
-				logger.error(self) {$!}
+				Console.logger.error(self) {$!}
 			else
-				logger.debug(self) {$!}
+				Console.logger.debug(self) {$!}
 			end
 		end
 		
@@ -264,7 +262,7 @@ module Async
 				begin
 					@result = yield(self, *arguments)
 					@status = :complete
-					# logger.debug(self) {"Task was completed with #{@children.size} children!"}
+					# Console.logger.debug(self) {"Task was completed with #{@children.size} children!"}
 				rescue Stop
 					stop!
 				rescue StandardError => error
@@ -272,7 +270,7 @@ module Async
 				rescue Exception => exception
 					fail!(exception, true)
 				ensure
-					# logger.debug(self) {"Task ensure $!=#{$!} with #{@children.size} children!"}
+					# Console.logger.debug(self) {"Task ensure $!=#{$!} with #{@children.size} children!"}
 					finish!
 				end
 			end
