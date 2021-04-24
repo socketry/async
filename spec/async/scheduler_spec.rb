@@ -18,23 +18,27 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-require 'async/scheduler'
+require 'async/reactor'
 require 'async/barrier'
 require 'net/http'
 
-RSpec.describe Async::Scheduler, if: Async::Scheduler.supported? do
+RSpec.describe Async::Scheduler do
 	include_context Async::RSpec::Reactor
 	
 	it "can intercept sleep" do
-		expect(reactor.scheduler).to receive(:kernel_sleep).with(0.001)
+		expect(reactor).to receive(:kernel_sleep).with(0.001)
 		
 		sleep(0.001)
 	end
 	
 	describe 'Fiber.schedule' do
 		it "can start child task" do
-			fiber = Async do
-				Fiber.schedule{}
+			fiber = nil
+			
+			Async do
+				Fiber.schedule do
+					fiber = Fiber.current
+				end
 			end.wait
 			
 			expect(fiber).to_not be_nil
@@ -44,7 +48,7 @@ RSpec.describe Async::Scheduler, if: Async::Scheduler.supported? do
 	
 	describe 'Process.wait' do
 		it "can wait on child process" do
-			expect(reactor.scheduler).to receive(:process_wait).and_call_original
+			expect(reactor).to receive(:process_wait).and_call_original
 			
 			pid = ::Process.spawn("true")
 			_, status = Process.wait2(pid)
@@ -70,7 +74,9 @@ RSpec.describe Async::Scheduler, if: Async::Scheduler.supported? do
 			
 			expect(input.read).to be == message
 			
+		ensure
 			input.close
+			output.close
 		end
 		
 		it "can fetch website using Net::HTTP" do
@@ -94,27 +100,29 @@ RSpec.describe Async::Scheduler, if: Async::Scheduler.supported? do
 	end
 	
 	context "with thread" do
-		let(:queue) {Thread::Queue.new}
-		subject {Thread.new{queue.pop}}
-		
 		it "can join thread" do
+			queue = Thread::Queue.new
+			thread = Thread.new{queue.pop}
+			
 			waiting = 0
 			
 			3.times do
 				Async do
 					waiting += 1
-					subject.join
+					thread.join
 					waiting -= 1
 				end
 			end
 			
 			expect(waiting).to be == 3
 			queue.close
+			
+			puts "Done."
 		end
 	end
 	
 	context "with queue" do
-		subject {Thread::Queue.new}
+		subject {::Thread::Queue.new}
 		let(:item) {"Hello World"}
 		
 		it "can pass items between thread and fiber" do
@@ -122,7 +130,7 @@ RSpec.describe Async::Scheduler, if: Async::Scheduler.supported? do
 				expect(subject.pop).to be == item
 			end
 			
-			Thread.new do
+			::Thread.new do
 				expect(Fiber).to be_blocking
 				subject.push(item)
 			end.join

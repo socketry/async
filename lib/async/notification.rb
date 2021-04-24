@@ -30,7 +30,7 @@ module Async
 		def signal(value = nil, task: Task.current)
 			return if @waiting.empty?
 			
-			task.reactor << Signal.new(@waiting, value)
+			Fiber.scheduler << Signal.new(@waiting, value)
 			
 			@waiting = []
 			
@@ -42,9 +42,9 @@ module Async
 				true
 			end
 			
-			def resume
+			def transfer
 				waiting.each do |fiber|
-					fiber.resume(value) if fiber.alive?
+					fiber.transfer(value) if fiber.alive?
 				end
 			end
 		end

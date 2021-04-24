@@ -21,7 +21,6 @@
 # THE SOFTWARE.
 
 require_relative "async/version"
-require_relative "async/logger"
 require_relative "async/reactor"
 
 require_relative "kernel/async"
@@ -29,7 +28,7 @@ require_relative "kernel/sync"
 
 module Async
 	# Invoke `Reactor.run` with all arguments/block.
-	def self.run(*arguments, &block)
-		Reactor.run(*arguments, &block)
+	def self.run(...)
+		Reactor.run(...)
 	end
 end

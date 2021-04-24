@@ -49,7 +49,7 @@ RSpec.describe Async::Reactor do
 		end
 	end
 	
-	describe '#run_once' do
+	describe '#run' do
 		it "can run the reactor" do
 			# Run the reactor for 1 second:
 			task = subject.async do |task|
@@ -59,23 +59,23 @@ RSpec.describe Async::Reactor do
 			expect(task).to be_running
 			
 			# This will resume the task, and then the reactor will be finished.
-			expect(subject.run_once).to be false
+			subject.run
 			
 			expect(task).to be_finished
 		end
 		
 		it "can run one iteration" do
-			state = nil
+			state = :started
 			
 			subject.async do |task|
-				state = :started
 				task.yield
 				state = :finished
 			end
 			
 			expect(state).to be :started
 			
-			subject.run_once
+			subject.run
+			
 			expect(state).to be :finished
 		end
 	end
@@ -84,31 +84,35 @@ RSpec.describe Async::Reactor do
 		it "can print hierarchy" do
 			subject.async do |parent|
 				parent.async do |child|
-					child.sleep 1
+					child.yield
 				end
 				
-				parent.sleep 1
+				output = StringIO.new
+				subject.print_hierarchy(output, backtrace: false)
+				lines = output.string.lines
+				
+				expect(lines[0]).to be =~ /#<Async::Reactor/
+				expect(lines[1]).to be =~ /\t#<Async::Task.*(running)/
+				expect(lines[2]).to be =~ /\t\t#<Async::Task.*(running)/
 			end
 			
-			output = StringIO.new
-			subject.print_hierarchy(output, backtrace: false)
-			lines = output.string.lines
-			
-			expect(lines[0]).to be =~ /#<Async::Reactor.*(running)/
-			expect(lines[1]).to be =~ /\t#<Async::Task.*(running)/
-			expect(lines[2]).to be =~ /\t\t#<Async::Task.*(running)/
+			subject.run
 		end
 		
 		it "can include backtrace", if: Fiber.current.respond_to?(:backtrace) do
 			subject.async do |parent|
-				parent.sleep 1
+				child = parent.async do |child|
+					child.sleep 1
+				end
+				
+				output = StringIO.new
+				subject.print_hierarchy(output, backtrace: true)
+				lines = output.string.lines
+				
+				expect(lines).to include(/in `sleep'/)
+				
+				child.stop
 			end
-			
-			output = StringIO.new
-			subject.print_hierarchy(output, backtrace: true)
-			lines = output.string.lines
-			
-			expect(lines).to include(/in `sleep'/)
 		end
 	end
 	
@@ -139,7 +143,7 @@ RSpec.describe Async::Reactor do
 			
 			thread = Thread.new do
 				if events.pop
-					subject.stop
+					subject.interrupt
 				end
 			end
 			
@@ -149,6 +153,7 @@ RSpec.describe Async::Reactor do
 			
 			subject.run
 			
+			puts "join"
 			thread.join
 			
 			expect(subject).to be_stopped

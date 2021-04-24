@@ -27,7 +27,9 @@ RSpec.describe Async::Scheduler, if: Async::Scheduler.supported? do
 		it "can wait with timeout" do
 			s1, s2 = Socket.pair :UNIX, :STREAM, 0
 			
-			expect(s1.wait_readable(0)).to be nil
+			result = s1.wait_readable(0)
+			
+			expect(result).to be_nil
 		ensure
 			s1.close
 			s2.close

@@ -89,7 +89,7 @@ module Async
 			
 			while (@limit - @count) > 0 and fiber = @waiting.shift
 				if fiber.alive?
-					fiber.resume
+					Fiber.scheduler.resume(fiber)
 				end
 			end
 		end
@@ -102,7 +102,7 @@ module Async
 			
 			if blocking?
 				@waiting << fiber
-				Task.yield while blocking?
+				Fiber.scheduler.transfer while blocking?
 			end
 		rescue Exception
 			@waiting.delete(fiber)

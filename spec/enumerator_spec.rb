@@ -27,57 +27,62 @@ RSpec.describe Enumerator do
 		task.sleep(0.002)
 		yield 2
 	end
-
+	
 	def enum(task)
 		to_enum(:some_yielder, task)
 	end
-
+	
 	it "should play well with Enumerator as internal iterator" do
 		# no fiber really used in internal iterator,
 		# but let this test be here for completness
-		ar = nil
+		result = nil
+		
 		Async do |task|
-			ar = enum(task).to_a
+			result = enum(task).to_a
 		end
-		expect(ar).to be == [1, 2]
+		
+		expect(result).to be == [1, 2]
 	end
-
-	it "should play well with Enumerator as external iterator", pending: "expected failure" do
-		ar = []
+	
+	it "should play well with Enumerator as external iterator" do
+		result = []
+		
 		Async do |task|
-			en = enum(task)
-			ar << en.next
-			ar << en.next
-			ar << begin en.next rescue $! end
+			enumerator = enum(task)
+			result << enumerator.next
+			result << enumerator.next
+			result << begin enumerator.next rescue $! end
 		end
-		expect(ar[0]).to be == 1
-		expect(ar[1]).to be == 2
-		expect(ar[2]).to be_a StopIteration
+		
+		expect(result[0]).to be == 1
+		expect(result[1]).to be == 2
+		expect(result[2]).to be_a StopIteration
 	end
-
-	it "should play well with Enumerator.zip(Enumerator) method", pending: "expected failure" do
+	
+	it "should play well with Enumerator.zip(Enumerator) method" do
 		Async do |task|
-			ar = [:a, :b, :c, :d].each.zip(enum(task))
-			expect(ar).to be == [[:a, 1], [:b, 2], [:c, nil], [:d, nil]]
-		end.wait
+			result = [:a, :b, :c, :d].each.zip(enum(task))
+			expect(result).to be == [[:a, 1], [:b, 2], [:c, nil], [:d, nil]]
+		end
 	end
-
-	it "should play with explicit Fiber usage", pending: "expected failure" do
-		ar = []
+	
+	it "should play well with explicit Fiber usage" do
+		result = []
+		
 		Async do |task|
-			fib = Fiber.new {
+			fiber = Fiber.new do
 				Fiber.yield 1
 				task.sleep(0.002)
 				Fiber.yield 2
-			}
-			ar << fib.resume
-			ar << fib.resume
-			ar << fib.resume
-			ar << begin en.next rescue $! end
+			end
+			
+			result << fiber.resume
+			result << fiber.resume
+			result << fiber.resume
 		end
-		expect(ar[0]).to be == 1
-		expect(ar[1]).to be == 2
-		expect(ar[2]).to be nil
-		expect(ar[3]).to be_a FiberError
+		
+		expect(result[0]).to be == 1
+		expect(result[1]).to be == 2
+		expect(result[2]).to be nil
 	end
 end

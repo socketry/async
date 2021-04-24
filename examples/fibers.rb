@@ -50,7 +50,7 @@ class Fiber
 		
 		timer = reactor.add_timer(duration) do
 			if self.alive?
-				error = Fiber::TimeoutError.new("execution expired")
+				error = Fiber::TimeoutError.new
 				error.set_backtrace backtrace
 				self.resume error
 			end

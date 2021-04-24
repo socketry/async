@@ -37,11 +37,9 @@ module Async
 			fiber = Fiber.current
 			@waiting << fiber
 			
-			Task.yield
-			
-			# It would be nice if there was a better construct for this. We only need to invoke #delete if the task was not resumed normally. This can only occur with `raise` and `throw`. But there is no easy way to detect this.
-		# ensure when not return or ensure when raise, throw
+			Fiber.scheduler.transfer
 		rescue Exception
+			# It would be nice if there was a better construct for this. We only need to invoke #delete if the task was not resumed normally. This can only occur with `raise` and `throw`. But there is no easy way to detect this.
 			@waiting.delete(fiber)
 			raise
 		end
@@ -61,7 +59,7 @@ module Async
 			@waiting = []
 			
 			waiting.each do |fiber|
-				fiber.resume(value) if fiber.alive?
+				Fiber.scheduler.resume(fiber, value) if fiber.alive?
 			end
 			
 			return nil

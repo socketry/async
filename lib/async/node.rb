@@ -175,6 +175,10 @@ module Async
 			end
 		end
 		
+		def root
+			@parent&.root || self
+		end
+		
 		# You should not directly rely on these pointers but instead use `#children`.
 		# List pointers:
 		attr_accessor :head
@@ -225,7 +229,7 @@ module Async
 		end
 		
 		def to_s
-			"\#<#{description}>"
+			"\#<#{self.description}>"
 		end
 		
 		# Change the parent of this node.
@@ -327,6 +331,10 @@ module Async
 			@children&.each do |child|
 				child.stop(later) unless child.transient?
 			end
+		end
+		
+		def stopped?
+			@children.nil?
 		end
 		
 		def print_hierarchy(out = $stdout, backtrace: true)
