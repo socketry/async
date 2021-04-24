@@ -21,7 +21,6 @@
 # THE SOFTWARE.
 
 require 'fiber'
-require 'forwardable'
 
 require_relative 'node'
 require_relative 'condition'
@@ -38,55 +37,66 @@ module Async
 				true
 			end
 			
-			def resume
+			def transfer
 				@task.stop
 			end
+		end
+	end
+	
+	# Raised if a timeout occurs on a specific Fiber. Handled gracefully by `Task`.
+	class TimeoutError < StandardError
+		def initialize(message = "execution expired")
+			super
 		end
 	end
 	
 	# A task represents the state associated with the execution of an asynchronous
 	# block.
 	class Task < Node
-		extend Forwardable
-		
-		# Yield the unerlying `result` for the task. If the result
-		# is an Exception, then that result will be raised an its
-		# exception.
-		# @return [Object] result of the task
-		# @raise [Exception] if the result is an exception
-		# @yield [result] result of the task if a block if given.
 		def self.yield
-			if block_given?
-				result = yield
+			Fiber.scheduler.transfer
+		end
+		
+		# The preferred method to invoke asynchronous behavior at the top level.
+		#
+		# - When invoked within an existing reactor task, it will run the given block
+		# asynchronously. Will return the task once it has been scheduled.
+		# - When invoked at the top level, will create and run a reactor, and invoke
+		# the block as an asynchronous task. Will block until the reactor finishes
+		# running.
+		def self.run(*arguments, **options, &block)
+			if current = self.current?
+				return current.async(*arguments, **options, &block)
 			else
-				result = Fiber.yield
-			end
-			
-			if result.is_a? Exception
-				raise result
-			else
-				return result
+				scheduler = Scheduler.new
+				scheduler.set!
+				
+				begin
+					Fiber.schedule(&block)
+					return self.run(*arguments, **options, &block)
+				ensure
+					scheduler.clear!
+				end
 			end
 		end
 		
 		# Create a new task.
 		# @param reactor [Async::Reactor] the reactor this task will run within.
 		# @param parent [Async::Task] the parent task.
-		def initialize(reactor, parent = Task.current?, logger: nil, finished: nil, **options, &block)
-			super(parent || reactor, **options)
-			
-			@reactor = reactor
+		def initialize(parent = Task.current?, finished: nil, **options, &block)
+			super(parent, **options)
 			
 			@status = :initialized
 			@result = nil
 			@finished = finished
 			
-			@logger = logger || @parent.logger
-			
-			@fiber = make_fiber(&block)
+			@block = block
+			@fiber = nil
 		end
 		
-		attr :logger
+		def reactor
+			self.root
+		end
 		
 		if Fiber.current.respond_to?(:backtrace)
 			def backtrace(*arguments)
@@ -98,14 +108,17 @@ module Async
 			"\#<#{self.description} (#{@status})>"
 		end
 		
-		# @attr ios [Reactor] The reactor the task was created within.
-		attr :reactor
+		def sleep(duration = nil)
+			super
+		end
 		
-		def_delegators :@reactor, :with_timeout, :sleep
+		def with_timeout(timeout, exception = TimeoutError, message = "execution expired", &block)
+			Fiber.scheduler.timeout_after(timeout, exception, message, &block)
+		end
 		
 		# Yield back to the reactor and allow other fibers to execute.
 		def yield
-			Task.yield{reactor.yield}
+			Fiber.scheduler.yield
 		end
 		
 		# @attr fiber [Fiber] The fiber which is being used for the execution of this task.
@@ -123,14 +136,14 @@ module Async
 			if @status == :initialized
 				@status = :running
 				
-				@fiber.resume(*arguments)
+				schedule(arguments)
 			else
 				raise RuntimeError, "Task already running!"
 			end
 		end
 		
 		def async(*arguments, **options, &block)
-			task = Task.new(@reactor, self, **options, &block)
+			task = Task.new(self, **options, &block)
 			
 			task.run(*arguments)
 			
@@ -141,19 +154,25 @@ module Async
 		# @raise [RuntimeError] if the task's fiber is the current fiber.
 		# @return [Object] the final expression/result of the task's block.
 		def wait
-			raise RuntimeError, "Cannot wait on own fiber" if Fiber.current.equal?(@fiber)
+			raise "Cannot wait on own fiber" if Fiber.current.equal?(@fiber)
 			
 			if running?
+				raise "Cannot wait outside of reactor" unless Fiber.scheduler
+				
 				@finished ||= Condition.new
 				@finished.wait
+			end
+			
+			case @result
+			when Exception
+				raise @result
 			else
-				Task.yield{@result}
+				return @result
 			end
 		end
 		
-		# Deprecated.
-		alias result wait
-		# Soon to become attr :result
+		# Access the result of the task without waiting. May be nil if the task is not completed.
+		attr :result
 		
 		# Stop the task and all of its children.
 		def stop(later = false)
@@ -165,15 +184,16 @@ module Async
 			if self.running?
 				if self.current?
 					if later
-						@reactor << Stop::Later.new(self)
+						Fiber.scheduler << Stop::Later.new(self)
 					else
 						raise Stop, "Stopping current task!"
 					end
 				elsif @fiber&.alive?
 					begin
-						@fiber.resume(Stop.new)
+						Fiber.scheduler << Fiber.current
+						@fiber.raise(Stop)
 					rescue FiberError
-						@reactor << Stop::Later.new(self)
+						Fiber.scheduler << Stop::Later.new(self)
 					end
 				end
 			else
@@ -246,18 +266,18 @@ module Async
 		end
 		
 		def stop!
-			# logger.debug(self) {"Task was stopped with #{@children&.size.inspect} children!"}
+			# Console.logger.info(self, self.annotation) {"Task was stopped with #{@children&.size.inspect} children!"}
 			@status = :stopped
 			
 			stop_children(true)
 		end
 		
-		def make_fiber(&block)
-			Fiber.new do |*arguments|
+		def schedule(arguments)
+			@fiber = Fiber.new do
 				set!
 				
 				begin
-					@result = yield(self, *arguments)
+					@result = @block.call(self, *arguments)
 					@status = :complete
 					# Console.logger.debug(self) {"Task was completed with #{@children.size} children!"}
 				rescue Stop
@@ -267,10 +287,12 @@ module Async
 				rescue Exception => exception
 					fail!(exception, true)
 				ensure
-					# Console.logger.debug(self) {"Task ensure $!=#{$!} with #{@children.size} children!"}
+					# Console.logger.info(self) {"Task ensure $! = #{$!} with #{@children&.size.inspect} children!"}
 					finish!
 				end
 			end
+			
+			self.root.resume(@fiber)
 		end
 		
 		# Finish the current task, and all bound bound IO objects.
@@ -291,7 +313,6 @@ module Async
 		def set!
 			# This is actually fiber-local:
 			Thread.current[:async_task] = self
-			Console.logger = @logger if @logger
 		end
 	end
 end

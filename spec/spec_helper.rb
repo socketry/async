@@ -3,6 +3,8 @@
 require 'async/rspec'
 require 'covered/rspec'
 
+require 'console'
+
 if RUBY_PLATFORM =~ /darwin/
 	Q = 20
 else

@@ -1,6 +1,4 @@
-# frozen_string_literal: true
-
-# Copyright, 2019, by Samuel G. D. Williams. <http://www.codeotaku.com>
+# Copyright, 2020, by Samuel G. D. Williams. <http://www.codeotaku.com>
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -20,53 +18,33 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-require 'benchmark/ips'
-require 'async'
-
-RSpec.describe Async::Wrapper do
-	let(:pipe) {IO.pipe}
-	
-	after do
-		pipe.each(&:close)
-	end
-	
-	let(:input) {described_class.new(pipe.first)}
-	let(:output) {described_class.new(pipe.last)}
-	
-	it "should be fast to wait until readable" do
-		Benchmark.ips do |x|
-			x.report('Wrapper#wait_readable') do |repeats|
-				Async do |task|
-					input = Async::Wrapper.new(pipe.first, task.reactor)
-					output = pipe.last
-					
-					repeats.times do
-						output.write(".")
-						input.wait_readable
-						input.io.read(1)
-					end
-					
-					input.reactor = nil
+module Async
+	# A thread safe synchronisation primative.
+	class Interrupt
+		def initialize(scheduler, &block)
+			@scheduler = scheduler
+			@input, @output = IO.pipe
+			
+			@fiber = Fiber.new do
+				while true
+					@scheduler.io_wait(@fiber, @input, ::Event::READABLE)
+					block.call(@input.read_nonblock(1))
 				end
 			end
 			
-			x.report('Reactor#register') do |repeats|
-				Async do |task|
-					input = pipe.first
-					monitor = task.reactor.register(input, :r)
-					output = pipe.last
-					
-					repeats.times do
-						output.write(".")
-						Async::Task.yield
-						input.read(1)
-					end
-					
-					monitor.close
-				end
-			end
-			
-			x.compare!
+			@fiber.transfer
+		end
+		
+		def signal(event = '.')
+			@output.write('.')
+			@output.flush
+		end
+		
+		def close
+			@input.close
+			@output.close
 		end
 	end
+	
+	private_constant :Interrupt
 end

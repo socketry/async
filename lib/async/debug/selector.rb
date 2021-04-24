@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# Copyright, 2018, by Samuel G. D. Williams. <http://www.codeotaku.com>
+# Copyright, 2021, by Samuel G. D. Williams. <http://www.codeotaku.com>
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -20,62 +20,14 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-require_relative 'monitor'
-require_relative '../logger'
-
-require 'nio'
-require 'set'
+require 'fiber'
+require 'event/debug/selector'
 
 module Async
 	module Debug
-		class LeakError < RuntimeError
-			def initialize(monitors)
-				super "Trying to close selector with active monitors: #{monitors.inspect}! This may cause your socket or file descriptor to leak."
-			end
-		end
-
-		class Selector
-			def initialize(selector = NIO::Selector.new)
-				@selector = selector
-				@monitors = Set.new
-			end
-			
-			def register(object, interests)
-				Async.logger.debug(self) {"Registering #{object.inspect} for #{interests}."}
-				
-				unless io = ::IO.try_convert(object)
-					raise RuntimeError, "Could not convert #{io} into IO!"
-				end
-				
-				monitor = Monitor.new(@selector.register(object, interests), self)
-				
-				@monitors.add(monitor)
-				
-				return monitor
-			end
-			
-			def deregister(monitor)
-				Async.logger.debug(self) {"Deregistering #{monitor.inspect}."}
-				
-				unless @monitors.delete?(monitor)
-					raise RuntimeError, "Trying to remove monitor for #{monitor.inspect} but it was not registered!"
-				end
-			end
-			
-			def wakeup
-				@selector.wakeup
-			end
-			
-			def close
-				if @monitors.any?
-					raise LeakError, @monitors
-				end
-			ensure
-				@selector.close
-			end
-			
-			def select(*arguments)
-				@selector.select(*arguments)
+		class Selector < Event::Debug::Selector
+			def initialize(selector = nil)
+				super(selector || Event::Backend.new(Fiber.current))
 			end
 		end
 	end

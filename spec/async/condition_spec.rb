@@ -25,7 +25,7 @@ require 'async/condition'
 
 require_relative 'condition_examples'
 
-RSpec.describe Async::Condition do
+RSpec.describe Async::Condition, timeout: 1000 do
 	include_context Async::RSpec::Reactor
 	
 	it 'should continue after condition is signalled' do
@@ -39,8 +39,6 @@ RSpec.describe Async::Condition do
 		subject.signal
 		
 		expect(task.status).to be :complete
-		
-		task.stop
 	end
 	
 	it 'can stop nested task' do
