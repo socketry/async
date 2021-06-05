@@ -251,7 +251,7 @@ module Async
 			@status = :stopped
 			
 			@children&.each do |child|
-				child.stop(true)
+				child.stop(true) unless child.transient?
 			end
 		end
 		
