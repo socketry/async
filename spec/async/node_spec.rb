@@ -175,7 +175,7 @@ RSpec.describe Async::Node do
 			expect(subject).to be_finished
 			
 			expect(child).to receive(:stop)
-			subject.stop
+			subject.terminate
 		end
 		
 		it 'can move transient sibling to parent' do
@@ -224,6 +224,30 @@ RSpec.describe Async::Node do
 			expect(middle.parent).to be subject
 			expect(subject.children).to include(middle)
 			expect(middle.children).to be_nil
+		end
+		
+		it 'does not stop child transient tasks' do
+			middle = Async::Node.new(subject, annotation: "middle")
+			child1 = Async::Node.new(middle, transient: true, annotation: "child1")
+			child2 = Async::Node.new(middle, annotation: "child2")
+			
+			expect(child1).to_not receive(:stop)
+			expect(child2).to receive(:stop)
+			
+			subject.stop
+		end
+	end
+	
+	describe '#terminate' do
+		it 'stops all tasks' do
+			middle = Async::Node.new(subject, annotation: "middle")
+			child1 = Async::Node.new(middle, transient: true, annotation: "child1")
+			child2 = Async::Node.new(middle, annotation: "child2")
+			
+			expect(child1).to receive(:stop).at_least(:once)
+			expect(child2).to receive(:stop).at_least(:once)
+			
+			subject.terminate
 		end
 	end
 end

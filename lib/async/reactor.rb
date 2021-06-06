@@ -293,19 +293,12 @@ module Async
 			Console.logger.debug(self) {"Exiting run-loop because #{$! ? $! : 'finished'}."}
 		end
 		
-		def stop(later = true)
-			@children&.each do |child|
-				# We don't want this process to propagate `Async::Stop` exceptions, so we schedule tasks to stop later.
-				child.stop(later)
-			end
-		end
-		
 		# Stop each of the children tasks and close the selector.
 		# 
 		# @return [void]
 		def close
-			# This is a critical step. Because tasks could be stored as instance variables, and since the reactor is (probably) going out of scope, we need to ensure they are stopped. Otherwise, the tasks will belong to a reactor that will never run again and are not stopped.
-			self.stop(false)
+			# This is a critical step. Because tasks could be stored as instance variables, and since the reactor is (probably) going out of scope, we need to ensure they are stopped. Otherwise, the tasks will belong to a reactor that will never run again and are not stopped:
+			self.terminate
 			
 			@selector.close
 			@selector = nil
