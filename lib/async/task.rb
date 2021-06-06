@@ -249,7 +249,7 @@ module Async
 			# logger.debug(self) {"Task was stopped with #{@children&.size.inspect} children!"}
 			@status = :stopped
 			
-			stop_children
+			stop_children(true)
 		end
 		
 		def make_fiber(&block)
