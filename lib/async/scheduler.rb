@@ -90,6 +90,7 @@ module Async
 			self.block(nil, duration)
 		end
 		
+		# Invoked when a fiber tries to perform a blocking operation which cannot continue. A corresponding call {unblock} must be performed to allow this fiber to continue.
 		# @reentrant Not thread safe.
 		def block(blocker, timeout)
 			# $stderr.puts "block(#{blocker}, #{Fiber.current}, #{timeout})"
@@ -164,7 +165,7 @@ module Async
 		end
 		
 		def finished?
-			super && @ready.empty? && @running.empty? && @blocked.zero?
+			super && @ready.empty? && @running.empty?
 		end
 		
 		# Run one iteration of the event loop.
