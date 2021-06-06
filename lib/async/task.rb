@@ -156,7 +156,6 @@ module Async
 		# Soon to become attr :result
 		
 		# Stop the task and all of its children.
-		# @return [void]
 		def stop(later = false)
 			if self.stopped?
 				# If we already stopped this task... don't try to stop it again:
@@ -250,9 +249,7 @@ module Async
 			# logger.debug(self) {"Task was stopped with #{@children&.size.inspect} children!"}
 			@status = :stopped
 			
-			@children&.each do |child|
-				child.stop(true) unless child.transient?
-			end
+			stop_children
 		end
 		
 		def make_fiber(&block)

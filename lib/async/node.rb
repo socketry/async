@@ -302,8 +302,31 @@ module Async
 			end
 		end
 		
-		def stop
-			@children&.each(&:stop)
+		# Immediately terminate all children tasks, including transient tasks.
+		# Internally invokes `stop(false)` on all children.
+		def terminate
+			# Attempt to stop the current task immediately, and all children:
+			stop(false)
+			
+			# If that doesn't work, take more serious action:
+			@children&.each do |child|
+				child.terminate
+			end
+		end
+		
+		# Attempt to stop the current node immediately, including all non-transient children.
+		# Invokes {#stop_children} to stop all children.
+		# @parameter later [Boolean] Whether to defer stopping until some point in the future.
+		def stop(later = false)
+			# The implementation of this method may defer calling `stop_children`.
+			stop_children(later)
+		end
+		
+		# Attempt to stop all non-transient children.
+		private def stop_children(later = false)
+			@children&.each do |child|
+				child.stop(later) unless child.transient?
+			end
 		end
 		
 		def print_hierarchy(out = $stdout, backtrace: true)
