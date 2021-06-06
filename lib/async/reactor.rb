@@ -294,8 +294,6 @@ module Async
 		end
 		
 		# Stop each of the children tasks and close the selector.
-		# 
-		# @return [void]
 		def close
 			# This is a critical step. Because tasks could be stored as instance variables, and since the reactor is (probably) going out of scope, we need to ensure they are stopped. Otherwise, the tasks will belong to a reactor that will never run again and are not stopped:
 			self.terminate
@@ -305,13 +303,13 @@ module Async
 		end
 		
 		# Check if the selector has been closed.
-		# @return [Boolean]
+		# @returns [Boolean]
 		def closed?
 			@selector.nil?
 		end
 		
 		# Put the calling fiber to sleep for a given ammount of time.
-		# @param duration [Numeric] The time in seconds, to sleep for.
+		# @parameter duration [Numeric] The time in seconds, to sleep for.
 		def sleep(duration)
 			fiber = Fiber.current
 			
