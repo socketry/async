@@ -164,10 +164,6 @@ module Async
 			end.value
 		end
 		
-		def finished?
-			super && @ready.empty? && @running.empty?
-		end
-		
 		# Run one iteration of the event loop.
 		# @param timeout [Float | nil] the maximum timeout, or if nil, indefinite.
 		# @return [Boolean] whether there is more work to do.
