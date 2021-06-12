@@ -159,9 +159,9 @@ module Async
 		# @parameter flags [Integer] A bit-mask of flags suitable for `Process::Status.wait`.
 		# @returns [Process::Status] A process status instance.
 		def process_wait(pid, flags)
-			Thread.new do
-				::Process::Status.wait(pid, flags)
-			end.value
+			fiber = Fiber.current
+			
+			return @selector.process_wait(fiber, pid, flags)
 		end
 		
 		# Run one iteration of the event loop.
