@@ -42,13 +42,17 @@ module Async
 			@items.empty?
 		end
 		
-		def enqueue(item)
-			@items.push(item)
+		def <<(item)
+			@items << item
 			
 			self.signal unless self.empty?
 		end
 		
-		alias << enqueue
+		def enqueue(*items)
+			@items.concat(items)
+			
+			self.signal unless self.empty?
+		end
 		
 		def dequeue
 			while @items.empty?
@@ -87,12 +91,25 @@ module Async
 			@items.size >= @limit
 		end
 		
-		def enqueue item
+		def <<(item)
 			while limited?
 				@full.wait
 			end
 			
 			super
+		end
+		
+		def enqueue *items
+			while !items.empty?
+				while limited?
+					@full.wait
+				end
+				
+				available = @limit - @items.size
+				@items.concat(items.shift(available))
+				
+				self.signal unless self.empty?
+			end
 		end
 		
 		def dequeue
