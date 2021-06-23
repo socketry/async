@@ -25,6 +25,7 @@ require_relative 'node'
 require 'console'
 require 'event'
 require 'timers'
+require 'resolv'
 
 module Async
 	class Scheduler < Node
@@ -132,6 +133,10 @@ module Async
 		
 		def kernel_sleep(duration)
 			self.block(nil, duration)
+		end
+		
+		def address_resolve(hostname)
+			::Resolv.getaddresses(hostname)
 		end
 		
 		def io_wait(io, events, timeout = nil)
