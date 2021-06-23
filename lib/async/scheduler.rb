@@ -56,6 +56,16 @@ module Async
 			end
 		end
 		
+		def set!
+			Fiber.set_scheduler(self)
+			@loop = Fiber.current
+		end
+		
+		def clear!
+			Fiber.set_scheduler(nil)
+			@loop = nil
+		end
+		
 		def interrupt
 			@interrupt.signal('!')
 		end
@@ -84,10 +94,6 @@ module Async
 		# Transfer from te calling fiber to the event loop.
 		def transfer
 			@loop.transfer
-		end
-		
-		def kernel_sleep(duration)
-			self.block(nil, duration)
 		end
 		
 		# Invoked when a fiber tries to perform a blocking operation which cannot continue. A corresponding call {unblock} must be performed to allow this fiber to continue.
@@ -124,14 +130,8 @@ module Async
 			end
 		end
 		
-		def set!
-			Fiber.set_scheduler(self)
-			@loop = Fiber.current
-		end
-		
-		def clear!
-			Fiber.set_scheduler(nil)
-			@loop = nil
+		def kernel_sleep(duration)
+			self.block(nil, duration)
 		end
 		
 		def io_wait(io, events, timeout = nil)
