@@ -219,6 +219,8 @@ module Async
 			
 			if @annotation
 				"#{@object_name} #{@annotation}"
+			elsif line = self.backtrace(0, 1)&.first
+				"#{@object_name} #{line}"
 			else
 				@object_name
 			end
@@ -231,6 +233,8 @@ module Async
 		def to_s
 			"\#<#{self.description}>"
 		end
+		
+		alias inspect to_s
 		
 		# Change the parent of this node.
 		# @param parent [Node, nil] the parent to attach to, or nil to detach.
