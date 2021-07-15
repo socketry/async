@@ -31,17 +31,31 @@ module Async
 			@waiting = []
 		end
 		
+		Queue = Struct.new(:fiber) do
+			def transfer(*arguments)
+				fiber&.transfer(*arguments)
+			end
+			
+			def alive?
+				fiber&.alive?
+			end
+			
+			def nullify
+				self.fiber = nil
+			end
+		end
+		
+		private_constant :Queue
+		
 		# Queue up the current fiber and wait on yielding the task.
 		# @return [Object]
 		def wait
-			fiber = Fiber.current
-			@waiting << fiber
+			queue = Queue.new(Fiber.current)
+			@waiting << queue
 			
 			Fiber.scheduler.transfer
-		rescue Exception
-			# It would be nice if there was a better construct for this. We only need to invoke #delete if the task was not resumed normally. This can only occur with `raise` and `throw`. But there is no easy way to detect this.
-			@waiting.delete(fiber)
-			raise
+		ensure
+			queue.nullify
 		end
 		
 		# Is any fiber waiting on this notification?
