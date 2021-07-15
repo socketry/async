@@ -36,18 +36,13 @@ module Async
 		def initialize(parent = nil, selector: nil)
 			super(parent)
 			
-			@selector = selector || Event::Backend.new(Fiber.current)
-			@timers = Timers::Group.new
-			
-			@ready = []
-			@running = []
+			@selector = selector || ::Event::Selector.new(Fiber.current)
+			@timers = ::Timers::Group.new
 			
 			@guard = Mutex.new
 			@interrupted = false
 			@blocked = 0
 			@unblocked = []
-			
-			@loop = nil
 			
 			@interrupt = Interrupt.new(@selector) do |event|
 				case event
@@ -59,42 +54,45 @@ module Async
 		
 		def set!
 			Fiber.set_scheduler(self)
-			@loop = Fiber.current
 		end
 		
 		def clear!
 			Fiber.set_scheduler(nil)
-			@loop = nil
 		end
 		
+		# Interrupt the event loop.
 		def interrupt
 			@interrupt.signal('!')
 		end
 		
-		# Schedule a fiber (or equivalent object) to be resumed on the next loop through the reactor.
-		# @param fiber [#resume] The object to be resumed on the next iteration of the run-loop.
-		def << fiber
-			@ready << fiber
+		# Transfer from the calling fiber to the event loop.
+		def transfer
+			@selector.transfer
 		end
 		
 		# Yield the current fiber and resume it on the next iteration of the event loop.
 		def yield
-			@ready << Fiber.current
-			@loop.transfer
+			@selector.yield
+		end
+		
+		# Schedule a fiber (or equivalent object) to be resumed on the next loop through the reactor.
+		# @param fiber [#resume] The object to be resumed on the next iteration of the run-loop.
+		def push(fiber)
+			@selector.push(fiber)
+		end
+		
+		alias << push
+		
+		def raise(*arguments)
+			@selector.raise(*arguments)
 		end
 		
 		def resume(fiber, *arguments)
-			if @loop
-				@ready << Fiber.current
-				fiber.transfer(*arguments)
+			if Fiber.scheduler
+				@selector.resume(fiber, *arguments)
 			else
-				@ready << fiber
+				@selector.push(fiber)
 			end
-		end
-		
-		# Transfer from te calling fiber to the event loop.
-		def transfer
-			@loop.transfer
 		end
 		
 		# Invoked when a fiber tries to perform a blocking operation which cannot continue. A corresponding call {unblock} must be performed to allow this fiber to continue.
@@ -113,7 +111,7 @@ module Async
 			
 			begin
 				@blocked += 1
-				@loop.transfer
+				@selector.transfer
 			ensure
 				@blocked -= 1
 			end
@@ -159,33 +157,27 @@ module Async
 			timer&.cancel
 		end
 		
+		# def io_read(io, buffer, length)
+		# 	@selector.io_read(Fiber.current, io, buffer, length)
+		# end
+		# 
+		# def io_write(io, buffer, length)
+		# 	@selector.io_write(Fiber.current, io, buffer, length)
+		# end
+		
 		# Wait for the specified process ID to exit.
 		# @parameter pid [Integer] The process ID to wait for.
 		# @parameter flags [Integer] A bit-mask of flags suitable for `Process::Status.wait`.
 		# @returns [Process::Status] A process status instance.
 		def process_wait(pid, flags)
-			fiber = Fiber.current
-			
-			return @selector.process_wait(fiber, pid, flags)
+			return @selector.process_wait(Fiber.current, pid, flags)
 		end
 		
 		# Run one iteration of the event loop.
 		# @param timeout [Float | nil] the maximum timeout, or if nil, indefinite.
 		# @return [Boolean] whether there is more work to do.
 		def run_once(timeout = nil)
-			raise "Running scheduler on non-blocking fiber!" unless Fiber.blocking?
-			# Console.logger.info(self) {"@ready = #{@ready} @running = #{@running}"}
-			
-			if @ready.any?
-				# running used to correctly answer on `finished?`, and to reuse Array object.
-				@running, @ready = @ready, @running
-				
-				@running.each do |fiber|
-					fiber.transfer if fiber.alive?
-				end
-				
-				@running.clear
-			end
+			Kernel::raise "Running scheduler on non-blocking fiber!" unless Fiber.blocking?
 			
 			if @unblocked.any?
 				unblocked = Array.new
@@ -199,7 +191,7 @@ module Async
 				end
 			end
 			
-			if @ready.empty? and @unblocked.empty?
+			if !@selector.ready? and @unblocked.empty?
 				interval = @timers.wait_interval
 			else
 				# if there are tasks ready to execute, don't sleep:
@@ -244,7 +236,7 @@ module Async
 		
 		# Run the reactor until all tasks are finished. Proxies arguments to {#async} immediately before entering the loop, if a block is provided.
 		def run(*arguments, **options, &block)
-			raise RuntimeError, 'Reactor has been closed' if @selector.nil?
+			Kernel::raise RuntimeError, 'Reactor has been closed' if @selector.nil?
 			
 			initial_task = self.async(*arguments, **options, &block) if block_given?
 			
@@ -261,7 +253,7 @@ module Async
 			# This is a critical step. Because tasks could be stored as instance variables, and since the reactor is (probably) going out of scope, we need to ensure they are stopped. Otherwise, the tasks will belong to a reactor that will never run again and are not stopped.
 			self.terminate
 			
-			raise "Closing scheduler with blocked operations!" if @blocked > 0
+			Kernel::raise "Closing scheduler with blocked operations!" if @blocked > 0
 			
 			@guard.synchronize do
 				@interrupt.close

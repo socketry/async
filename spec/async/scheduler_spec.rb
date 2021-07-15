@@ -116,8 +116,6 @@ RSpec.describe Async::Scheduler do
 			
 			expect(waiting).to be == 3
 			queue.close
-			
-			puts "Done."
 		end
 	end
 	

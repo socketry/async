@@ -27,7 +27,7 @@ module Async
 	module Debug
 		class Selector < Event::Debug::Selector
 			def initialize(selector = nil)
-				super(selector || Event::Backend.new(Fiber.current))
+				super(selector || Event::Selector.new(Fiber.current))
 			end
 		end
 	end

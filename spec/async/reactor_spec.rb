@@ -149,13 +149,12 @@ RSpec.describe Async::Reactor do
 			
 			subject.async do |task|
 				events << true
+				thread.join
 			end
 			
 			subject.run
 			
-			puts "join"
-			thread.join
-			
+			expect(thread).to_not be_alive
 			expect(subject).to be_stopped
 		end
 	end
