@@ -24,6 +24,7 @@ RSpec.describe Async::Scheduler, if: Async::Scheduler.supported? do
 	include_context Async::RSpec::Reactor
 	
 	describe ::Thread do
+		# I saw this hang.
 		it "can wait for value" do
 			value = Thread.new do
 				sleep(0)

@@ -23,7 +23,6 @@
 require 'async/barrier'
 require 'async/clock'
 require 'async/rspec'
-
 require 'async/semaphore'
 
 require_relative 'chainable_async_examples'

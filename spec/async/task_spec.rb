@@ -22,6 +22,7 @@
 
 require 'async'
 require 'async/clock'
+require 'async/queue'
 
 RSpec.describe Async::Task do
 	let(:reactor) {Async::Reactor.new}
@@ -229,10 +230,13 @@ RSpec.describe Async::Task do
 			reactor.run do
 				reactor.async do |task|
 					parent_task = task
+					
 					task.async do |task|
 						child_task = task
+						
 						task.sleep(10)
 					end
+					
 					task.sleep(10)
 				end
 				
@@ -243,6 +247,9 @@ RSpec.describe Async::Task do
 				expect(child_task.fiber).to be_alive
 				
 				parent_task.stop
+				
+				# We need to yield here to allow the tasks to be terminated. The parent task raises an exception in the child task and adds itself to the selector ready queue. It takes at least one iteration for the parent task to exit as well:
+				reactor.yield
 				
 				expect(parent_task).to_not be_alive
 				expect(child_task).to_not be_alive

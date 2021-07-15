@@ -190,8 +190,7 @@ module Async
 					end
 				elsif @fiber&.alive?
 					begin
-						Fiber.scheduler << Fiber.current
-						@fiber.raise(Stop)
+						Fiber.scheduler.raise(@fiber, Stop)
 					rescue FiberError
 						Fiber.scheduler << Stop::Later.new(self)
 					end
