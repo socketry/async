@@ -27,8 +27,4 @@ require_relative "kernel/async"
 require_relative "kernel/sync"
 
 module Async
-	# Invoke `Reactor.run` with all arguments/block.
-	def self.run(...)
-		Reactor.run(...)
-	end
 end

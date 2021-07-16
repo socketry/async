@@ -19,79 +19,35 @@
 # THE SOFTWARE.
 
 require_relative 'scheduler'
-require_relative 'task'
 
 module Async
 	class Reactor < Scheduler
-		# The preferred method to invoke asynchronous behavior at the top level.
-		#
-		# - When invoked within an existing reactor task, it will run the given block
-		# asynchronously. Will return the task once it has been scheduled.
-		# - When invoked at the top level, will create and run a reactor, and invoke
-		# the block as an asynchronous task. Will block until the reactor finishes
-		# running.
-		def self.run(*arguments, **options, &block)
-			if current = Task.current?
-				return current.async(*arguments, **options, &block)
-			else
-				reactor = self.new
-				
-				begin
-					return reactor.run(*arguments, **options, &block)
-				ensure
-					reactor.close
-				end
-			end
+		# @deprecated Prefer {Kernel::Async}.
+		def self.run(...)
+			Async(...)
 		end
 		
 		def initialize(...)
 			super
 			
-			@closing = false
-			self.set!
+			Fiber.set_scheduler(self)
+			@opened = true
 		end
 		
 		def to_s
 			"\#<#{self.description} #{@children&.size || 0} children (#{stopped? ? 'stopped' : 'running'})>"
 		end
 		
-		# Start an asynchronous task within the specified reactor. The task will be
-		# executed until the first blocking call, at which point it will yield and
-		# and this method will return.
-		#
-		# This is the main entry point for scheduling asynchronus tasks.
-		#
-		# @yield [Task] Executed within the task.
-		# @return [Task] The task that was scheduled into the reactor.
-		def async(*arguments, **options, &block)
-			task = Task.new(self, **options, &block)
-			
-			# I want to take a moment to explain the logic of this.
-			# When calling an async block, we deterministically execute it until the
-			# first blocking operation. We don't *have* to do this - we could schedule
-			# it for later execution, but it's useful to:
-			# - Fail at the point of the method call where possible.
-			# - Execute determinstically where possible.
-			# - Avoid scheduler overhead if no blocking operation is performed.
-			task.run(*arguments)
-			
-			# Console.logger.debug "Initial execution of task #{fiber} complete (#{result} -> #{fiber.alive?})..."
-			return task
-		end
-		
 		def close
-			if @closing
-				super
+			if @opened
+				@opened = false
+				Fiber.set_scheduler(nil)
 			else
-				@closing = true
-				self.clear!
+				super
 			end
 		end
 		
+		alias with_timeout timeout_after
 		public :sleep
-		
-		def with_timeout(timeout, exception = TimeoutError, message = "execution expired", &block)
-			timeout_after(timeout, exception, message, &block)
-		end
 	end
 end

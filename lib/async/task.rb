@@ -53,31 +53,9 @@ module Async
 	# A task represents the state associated with the execution of an asynchronous
 	# block.
 	class Task < Node
+		# @deprecated with no replacement.
 		def self.yield
 			Fiber.scheduler.transfer
-		end
-		
-		# The preferred method to invoke asynchronous behavior at the top level.
-		#
-		# - When invoked within an existing reactor task, it will run the given block
-		# asynchronously. Will return the task once it has been scheduled.
-		# - When invoked at the top level, will create and run a reactor, and invoke
-		# the block as an asynchronous task. Will block until the reactor finishes
-		# running.
-		def self.run(*arguments, **options, &block)
-			if current = self.current?
-				return current.async(*arguments, **options, &block)
-			else
-				scheduler = Scheduler.new
-				scheduler.set!
-				
-				begin
-					Fiber.schedule(&block)
-					return self.run(*arguments, **options, &block)
-				ensure
-					scheduler.clear!
-				end
-			end
 		end
 		
 		# Create a new task.
@@ -94,6 +72,7 @@ module Async
 			@fiber = nil
 		end
 		
+		# @deprecated Prefer to use {Node#root}.
 		def reactor
 			self.root
 		end
@@ -108,10 +87,12 @@ module Async
 			"\#<#{self.description} (#{@status})>"
 		end
 		
+		# @deprecated Prefer #{Kernel#sleep}.
 		def sleep(duration = nil)
 			super
 		end
 		
+		# @deprecated Prefer #{Scheduler#timeout_after}.
 		def with_timeout(timeout, exception = TimeoutError, message = "execution expired", &block)
 			Fiber.scheduler.timeout_after(timeout, exception, message, &block)
 		end

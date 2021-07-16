@@ -22,6 +22,7 @@
 
 module Async
 	# Represents an asynchronous IO within a reactor.
+	# @deprecated with no replacement.
 	class Wrapper
 		class Cancelled < StandardError
 		end

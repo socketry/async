@@ -20,7 +20,7 @@
 
 require_relative 'clock'
 require_relative 'interrupt'
-require_relative 'node'
+require_relative 'task'
 
 require 'console'
 require 'event'
@@ -52,12 +52,29 @@ module Async
 			end
 		end
 		
-		def set!
-			Fiber.set_scheduler(self)
+		def close
+			# This is a critical step. Because tasks could be stored as instance variables, and since the reactor is (probably) going out of scope, we need to ensure they are stopped. Otherwise, the tasks will belong to a reactor that will never run again and are not stopped.
+			self.terminate
+			
+			Kernel::raise "Closing scheduler with blocked operations!" if @blocked > 0
+			
+			@guard.synchronize do
+				@interrupt&.close
+				@interrupt = nil
+				
+				@selector&.close
+				@selector = nil
+			end
+			
+			consume
 		end
 		
-		def clear!
-			Fiber.set_scheduler(nil)
+		def closed?
+			@selector.nil?
+		end
+		
+		def to_s
+			"\#<#{self.description} #{@children&.size || 0} children (#{stopped? ? 'stopped' : 'running'})>"
 		end
 		
 		# Interrupt the event loop.
@@ -235,10 +252,10 @@ module Async
 		end
 		
 		# Run the reactor until all tasks are finished. Proxies arguments to {#async} immediately before entering the loop, if a block is provided.
-		def run(*arguments, **options, &block)
+		def run(...)
 			Kernel::raise RuntimeError, 'Reactor has been closed' if @selector.nil?
 			
-			initial_task = self.async(*arguments, **options, &block) if block_given?
+			initial_task = self.async(...) if block_given?
 			
 			while self.run_once
 				# Round and round we go!
@@ -249,36 +266,38 @@ module Async
 			Console.logger.debug(self) {"Exiting run-loop because #{$! ? $! : 'finished'}."}
 		end
 		
-		def close
-			# This is a critical step. Because tasks could be stored as instance variables, and since the reactor is (probably) going out of scope, we need to ensure they are stopped. Otherwise, the tasks will belong to a reactor that will never run again and are not stopped.
-			self.terminate
+		# Start an asynchronous task within the specified reactor. The task will be
+		# executed until the first blocking call, at which point it will yield and
+		# and this method will return.
+		#
+		# This is the main entry point for scheduling asynchronus tasks.
+		#
+		# @yield [Task] Executed within the task.
+		# @return [Task] The task that was scheduled into the reactor.
+		# @deprecated with no replacement.
+		def async(*arguments, **options, &block)
+			task = Task.new(Task.current? || self, **options, &block)
 			
-			Kernel::raise "Closing scheduler with blocked operations!" if @blocked > 0
+			# I want to take a moment to explain the logic of this.
+			# When calling an async block, we deterministically execute it until the
+			# first blocking operation. We don't *have* to do this - we could schedule
+			# it for later execution, but it's useful to:
+			# - Fail at the point of the method call where possible.
+			# - Execute determinstically where possible.
+			# - Avoid scheduler overhead if no blocking operation is performed.
+			task.run(*arguments)
 			
-			@guard.synchronize do
-				@interrupt.close
-				@interrupt = nil
-				
-				@selector.close
-				@selector = nil
-			end
+			# Console.logger.debug "Initial execution of task #{fiber} complete (#{result} -> #{fiber.alive?})..."
+			return task
 		end
 		
-		def closed?
-			@selector.nil?
-		end
-		
-		def fiber(&block)
-			task = Task.new(Task.current? || self, &block)
-			
-			task.run
-			
-			return task.fiber
+		def fiber(...)
+			return async(...).fiber
 		end
 		
 		# Invoke the block, but after the specified timeout, raise {TimeoutError} in any currenly blocking operation. If the block runs to completion before the timeout occurs or there are no non-blocking operations after the timeout expires, the code will complete without any exception.
 		# @param duration [Numeric] The time in seconds, in which the task should complete.
-		def timeout_after(timeout, exception, message, &block)
+		def timeout_after(timeout, exception = TimeoutError, message = "execution expired", &block)
 			fiber = Fiber.current
 			
 			timer = @timers.after(timeout) do
