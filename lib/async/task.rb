@@ -138,8 +138,6 @@ module Async
 			raise "Cannot wait on own fiber" if Fiber.current.equal?(@fiber)
 			
 			if running?
-				raise "Cannot wait outside of reactor" unless Fiber.scheduler
-				
 				@finished ||= Condition.new
 				@finished.wait
 			end
