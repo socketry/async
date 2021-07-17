@@ -31,20 +31,10 @@ module Async
 			super
 			
 			Fiber.set_scheduler(self)
-			@opened = true
 		end
 		
 		def to_s
 			"\#<#{self.description} #{@children&.size || 0} children (#{stopped? ? 'stopped' : 'running'})>"
-		end
-		
-		def close
-			if @opened
-				@opened = false
-				Fiber.set_scheduler(nil)
-			else
-				super
-			end
 		end
 		
 		alias with_timeout timeout_after

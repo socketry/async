@@ -41,7 +41,7 @@ module Kernel
 			begin
 				return reactor.run(...)
 			ensure
-				reactor.close
+				Fiber.set_scheduler(nil)
 			end
 		end
 	end

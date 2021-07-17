@@ -33,7 +33,7 @@ module Kernel
 			begin
 				return reactor.run(finished: ::Async::Condition.new, &block).wait
 			ensure
-				reactor.close
+				Fiber.set_scheduler(nil)
 			end
 		end
 	end
