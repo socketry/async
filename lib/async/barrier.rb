@@ -56,5 +56,11 @@ module Async
 				task.wait
 			end
 		end
+		
+		def stop
+			while task = @tasks.shift
+				task.stop
+			end
+		end
 	end
 end

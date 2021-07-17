@@ -30,7 +30,7 @@ require_relative 'chainable_async_examples'
 RSpec.describe Async::Barrier do
 	include_context Async::RSpec::Reactor
 	
-	context '#async' do
+	describe '#async' do
 		let(:repeats) {40}
 		let(:delay) {0.1}
 		
@@ -60,7 +60,7 @@ RSpec.describe Async::Barrier do
 		end
 	end
 	
-	context '#wait' do
+	describe '#wait' do
 		it 'should wait for tasks even after exceptions' do
 			task1 = subject.async do
 				raise "Boom"
@@ -91,6 +91,23 @@ RSpec.describe Async::Barrier do
 			subject.wait
 			
 			expect(order).to be == [0, 1, 2, 3, 4]
+		end
+	end
+	
+	describe '#stop' do
+		it "can stop several tasks" do
+			task1 = subject.async do |task|
+				task.sleep(10)
+			end
+			
+			task2 = subject.async do |task|
+				task.sleep(10)
+			end
+			
+			subject.stop
+			
+			expect(task1).to be_stopped
+			expect(task2).to be_stopped
 		end
 	end
 	
