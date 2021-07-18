@@ -26,13 +26,12 @@ require_relative 'node'
 
 module Async
 	# A synchronization primative, which allows fibers to wait until a particular condition is (edge) triggered.
-	# @public
+	# @public Since `stable-v1`.
 	class Condition
 		def initialize
 			@waiting = []
 		end
 		
-		# @private
 		Queue = Struct.new(:fiber) do
 			def transfer(*arguments)
 				fiber&.transfer(*arguments)

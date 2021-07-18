@@ -23,7 +23,7 @@ require_relative 'scheduler'
 module Async
 	# A wrapper around the the scheduler which binds it to the current thread automatically.
 	class Reactor < Scheduler
-		# @deprecated Prefer {Kernel::Async}.
+		# @deprecated Replaced by {Kernel::Async}.
 		def self.run(...)
 			Async(...)
 		end

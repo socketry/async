@@ -24,7 +24,7 @@ require_relative 'condition'
 
 module Async
 	# A synchronization primitive, which allows fibers to wait until a notification is received. Does not block the task which signals the notification. Waiting tasks are resumed on next iteration of the reactor.
-	# @public
+	# @public Since `stable-v1`.
 	class Notification < Condition
 		# Signal to a given task that it should resume operations.
 		# @return [void]

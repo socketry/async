@@ -30,7 +30,7 @@ module Async
 	# Handles scheduling of fibers. Implements the fiber scheduler interface.
 	class Scheduler < Node
 		# Whether the fiber scheduler is supported.
-		# @public
+		# @public Since `stable-v1`.
 		def self.supported?
 			true
 		end
@@ -57,7 +57,7 @@ module Async
 			end
 		end
 		
-		# @public
+		# @public Since `stable-v1`.
 		def close
 			# This is a critical step. Because tasks could be stored as instance variables, and since the reactor is (probably) going out of scope, we need to ensure they are stopped. Otherwise, the tasks will belong to a reactor that will never run again and are not stopped.
 			self.terminate
@@ -75,7 +75,8 @@ module Async
 			consume
 		end
 		
-		# @public
+		# @returns [Boolean] Whether the scheduler has been closed.
+		# @public Since `stable-v1`.
 		def closed?
 			@selector.nil?
 		end
@@ -120,7 +121,7 @@ module Async
 		end
 		
 		# Invoked when a fiber tries to perform a blocking operation which cannot continue. A corresponding call {unblock} must be performed to allow this fiber to continue.
-		# @asynchronous not thread safe.
+		# @asynchronous May only be called on same thread as fiber scheduler.
 		def block(blocker, timeout)
 			# $stderr.puts "block(#{blocker}, #{Fiber.current}, #{timeout})"
 			fiber = Fiber.current
@@ -143,7 +144,7 @@ module Async
 			timer&.cancel
 		end
 		
-		# @asynchronous thread safe.
+		# @asynchronous May be called from any thread.
 		def unblock(blocker, fiber)
 			# $stderr.puts "unblock(#{blocker}, #{fiber})"
 			
@@ -153,17 +154,17 @@ module Async
 			end
 		end
 		
-		# @asynchronous non-blocking.
+		# @asynchronous May be non-blocking..
 		def kernel_sleep(duration)
 			self.block(nil, duration)
 		end
 		
-		# @asynchronous non-blocking.
+		# @asynchronous May be non-blocking..
 		def address_resolve(hostname)
 			::Resolv.getaddresses(hostname)
 		end
 		
-		# @asynchronous non-blocking.
+		# @asynchronous May be non-blocking..
 		def io_wait(io, events, timeout = nil)
 			fiber = Fiber.current
 			
@@ -196,7 +197,7 @@ module Async
 		# @parameter pid [Integer] The process ID to wait for.
 		# @parameter flags [Integer] A bit-mask of flags suitable for `Process::Status.wait`.
 		# @returns [Process::Status] A process status instance.
-		# @asynchronous non-blocking.
+		# @asynchronous May be non-blocking..
 		def process_wait(pid, flags)
 			return @selector.process_wait(Fiber.current, pid, flags)
 		end
@@ -285,7 +286,7 @@ module Async
 		#
 		# @yield [Task] Executed within the task.
 		# @return [Task] The task that was scheduled into the reactor.
-		# @deprecated with no replacement.
+		# @deprecated With no replacement.
 		def async(*arguments, **options, &block)
 			task = Task.new(Task.current? || self, **options, &block)
 			

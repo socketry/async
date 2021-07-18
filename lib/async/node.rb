@@ -176,6 +176,7 @@ module Async
 			end
 		end
 		
+		# @returns [Node] the root node in the hierarchy.
 		def root
 			@parent&.root || self
 		end

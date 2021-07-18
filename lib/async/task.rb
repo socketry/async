@@ -44,6 +44,7 @@ module Async
 	end
 	
 	# Raised if a timeout occurs on a specific Fiber. Handled gracefully by `Task`.
+	# @public Since `stable-v1`.
 	class TimeoutError < StandardError
 		def initialize(message = "execution expired")
 			super
@@ -51,9 +52,9 @@ module Async
 	end
 	
 	# Encapsulates the state of a running task and it's result.
-	# @public
+	# @public Since `stable-v1`.
 	class Task < Node
-		# @deprecated with no replacement.
+		# @deprecated With no replacement.
 		def self.yield
 			Fiber.scheduler.transfer
 		end
@@ -72,7 +73,6 @@ module Async
 			@fiber = nil
 		end
 		
-		# @deprecated Prefer to use {Node#root}.
 		def reactor
 			self.root
 		end
@@ -87,12 +87,12 @@ module Async
 			"\#<#{self.description} (#{@status})>"
 		end
 		
-		# @deprecated Prefer #{Kernel#sleep}.
+		# @deprecated Prefer {Kernel#sleep} except when compatibility with `stable-v1` is required.
 		def sleep(duration = nil)
 			super
 		end
 		
-		# @deprecated Prefer #{Scheduler#timeout_after}.
+		# @deprecated Replaced by {Scheduler#timeout_after}.
 		def with_timeout(timeout, exception = TimeoutError, message = "execution expired", &block)
 			Fiber.scheduler.timeout_after(timeout, exception, message, &block)
 		end

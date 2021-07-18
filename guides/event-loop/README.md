@@ -49,7 +49,7 @@ Most methods of the reactor and related tasks are not thread-safe, so you'd typi
 ~~~ ruby
 require 'async'
 
-Async.logger.debug!
+Console.logger.debug!
 reactor = Async::Reactor.new
 
 # Run the reactor for 1 second:

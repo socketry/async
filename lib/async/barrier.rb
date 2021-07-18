@@ -24,11 +24,11 @@ require_relative 'task'
 
 module Async
 	# A barrier is used to synchronize multiple tasks, waiting for them all to complete before continuing.
-	# @public
+	# @public Since `stable-v1`.
 	class Barrier
 		# Initialize the barrier.
 		# @parameter parent [Task | Semaphore | Nil] The parent for holding any children tasks.
-		# @public
+		# @public Since `stable-v1`.
 		def initialize(parent: nil)
 			@tasks = []
 			
@@ -36,17 +36,15 @@ module Async
 		end
 		
 		# All tasks which have been invoked into the barrier.
-		# @public
 		attr :tasks
 		
 		# The number of tasks currently held by the barrier.
-		# @public
 		def size
 			@tasks.size
 		end
 		
 		# Execute a child task and add it to the barrier.
-		# @asynchronous execution of the given block.
+		# @asynchronous Executes the given block concurrently.
 		def async(*arguments, parent: (@parent or Task.current), **options, &block)
 			task = parent.async(*arguments, **options, &block)
 			
@@ -62,7 +60,7 @@ module Async
 		end
 		
 		# Wait for tasks in FIFO order.
-		# @asynchronous if there are held tasks.
+		# @asynchronous Will wait for tasks to finish executing.
 		def wait
 			while task = @tasks.shift
 				task.wait
@@ -70,7 +68,7 @@ module Async
 		end
 		
 		# Stop all tasks held by the barrier.
-		# @asynchronous if there are held tasks.
+		# @asynchronous May wait for tasks to finish executing.
 		def stop
 			while task = @tasks.shift
 				task.stop
