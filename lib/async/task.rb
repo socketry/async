@@ -60,8 +60,8 @@ module Async
 		end
 		
 		# Create a new task.
-		# @param reactor [Async::Reactor] the reactor this task will run within.
-		# @param parent [Async::Task] the parent task.
+		# @parameter reactor [Reactor] the reactor this task will run within.
+		# @parameter parent [Task] the parent task.
 		def initialize(parent = Task.current?, finished: nil, **options, &block)
 			super(parent, **options)
 			
@@ -132,8 +132,8 @@ module Async
 		end
 		
 		# Retrieve the current result of the task. Will cause the caller to wait until result is available.
-		# @raise [RuntimeError] if the task's fiber is the current fiber.
-		# @return [Object] the final expression/result of the task's block.
+		# @raises[RuntimeError] If the task's fiber is the current fiber.
+		# @returns [Object] The final expression/result of the task's block.
 		def wait
 			raise "Cannot wait on own fiber" if Fiber.current.equal?(@fiber)
 			
@@ -181,14 +181,14 @@ module Async
 		end
 		
 		# Lookup the {Task} for the current fiber. Raise `RuntimeError` if none is available.
-		# @return [Async::Task]
-		# @raise [RuntimeError] if task was not {set!} for the current fiber.
+		# @returns [Task]
+		# @raises[RuntimeError] If task was not {set!} for the current fiber.
 		def self.current
 			Thread.current[:async_task] or raise RuntimeError, "No async task available!"
 		end
 		
 		# Check if there is a task defined for the current fiber.
-		# @return [Async::Task, nil]
+		# @returns [Task | Nil]
 		def self.current?
 			Thread.current[:async_task]
 		end
@@ -198,13 +198,13 @@ module Async
 		end
 		
 		# Check if the task is running.
-		# @return [Boolean]
+		# @returns [Boolean]
 		def running?
 			@status == :running
 		end
 		
 		# Whether we can remove this node from the reactor graph.
-		# @return [Boolean]
+		# @returns [Boolean]
 		def finished?
 			super && @status != :running
 		end

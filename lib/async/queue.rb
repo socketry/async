@@ -84,7 +84,7 @@ module Async
 		
 		attr :limit
 		
-		# @return [Boolean] Whether trying to enqueue an item would block.
+		# @returns [Boolean] Whether trying to enqueue an item would block.
 		def limited?
 			@items.size >= @limit
 		end

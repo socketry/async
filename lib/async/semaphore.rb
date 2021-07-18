@@ -70,8 +70,8 @@ module Async
 		
 		# Acquire the semaphore, block if we are at the limit.
 		# If no block is provided, you must call release manually.
-		# @yield when the semaphore can be acquired
-		# @return the result of the block if invoked
+		# @yields {...} When the semaphore can be acquired.
+		# @returns The result of the block if invoked.
 		def acquire
 			wait
 			

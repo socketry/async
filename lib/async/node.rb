@@ -158,7 +158,7 @@ module Async
 	# A node in a tree, used for implementing the task hierarchy.
 	class Node
 		# Create a new node in the tree.
-		# @param parent [Node, nil] This node will attach to the given parent.
+		# @parameter parent [Node | Nil] This node will attach to the given parent.
 		def initialize(parent = nil, annotation: nil, transient: false)
 			@parent = nil
 			@children = nil
@@ -240,8 +240,8 @@ module Async
 		alias inspect to_s
 		
 		# Change the parent of this node.
-		# @param parent [Node, nil] the parent to attach to, or nil to detach.
-		# @return [self]
+		# @parameter parent [Node | Nil] the parent to attach to, or nil to detach.
+		# @returns [Node] Itself.
 		def parent=(parent)
 			return if @parent.equal?(parent)
 			
@@ -274,7 +274,7 @@ module Async
 		
 		# Whether the node can be consumed safely. By default, checks if the
 		# children set is empty.
-		# @return [Boolean]
+		# @returns [Boolean]
 		def finished?
 			@children.nil? || @children.finished?
 		end
@@ -304,7 +304,7 @@ module Async
 		end
 		
 		# Traverse the tree.
-		# @yield [node, level] The node and the level relative to the given root.
+		# @yields {|node, level| ...} The node and the level relative to the given root.
 		def traverse(level = 0, &block)
 			yield self, level
 			

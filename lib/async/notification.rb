@@ -27,7 +27,6 @@ module Async
 	# @public Since `stable-v1`.
 	class Notification < Condition
 		# Signal to a given task that it should resume operations.
-		# @return [void]
 		def signal(value = nil, task: Task.current)
 			return if @waiting.empty?
 			

@@ -28,8 +28,8 @@ module Async
 		class Cancelled < StandardError
 		end
 		
-		# @param io the native object to wrap.
-		# @param reactor [Reactor] the reactor that is managing this wrapper, or not specified, it's looked up by way of {Task.current}.
+		# @parameter io the native object to wrap.
+		# @parameter reactor [Reactor] the reactor that is managing this wrapper, or not specified, it's looked up by way of {Task.current}.
 		def initialize(io, reactor = nil)
 			@io = io
 			@reactor = reactor
@@ -62,7 +62,7 @@ module Async
 		end
 		
 		# Wait fo the io to become either readable or writable.
-		# @param duration [Float] timeout after the given duration if not `nil`.
+		# @parameter duration [Float] timeout after the given duration if not `nil`.
 		def wait_any(timeout = @timeout)
 			@io.wait_any(timeout) or raise TimeoutError
 		end

@@ -202,8 +202,8 @@ module Async
 		end
 		
 		# Run one iteration of the event loop.
-		# @param timeout [Float | nil] the maximum timeout, or if nil, indefinite.
-		# @return [Boolean] whether there is more work to do.
+		# @parameter timeout [Float | Nil] the maximum timeout, or if nil, indefinite.
+		# @returns [Boolean] whether there is more work to do.
 		def run_once(timeout = nil)
 			Kernel::raise "Running scheduler on non-blocking fiber!" unless Fiber.blocking?
 			
@@ -283,8 +283,8 @@ module Async
 		#
 		# This is the main entry point for scheduling asynchronus tasks.
 		#
-		# @yield [Task] Executed within the task.
-		# @return [Task] The task that was scheduled into the reactor.
+		# @yields {|task| ...} Executed within the task.
+		# @returns [Task] The task that was scheduled into the reactor.
 		# @deprecated With no replacement.
 		def async(*arguments, **options, &block)
 			task = Task.new(Task.current? || self, **options, &block)
@@ -307,7 +307,7 @@ module Async
 		end
 		
 		# Invoke the block, but after the specified timeout, raise {TimeoutError} in any currenly blocking operation. If the block runs to completion before the timeout occurs or there are no non-blocking operations after the timeout expires, the code will complete without any exception.
-		# @param duration [Numeric] The time in seconds, in which the task should complete.
+		# @parameter duration [Numeric] The time in seconds, in which the task should complete.
 		def timeout_after(timeout, exception = TimeoutError, message = "execution expired", &block)
 			fiber = Fiber.current
 			
