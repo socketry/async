@@ -49,9 +49,8 @@ module Async
 			@blocked = 0
 			@unblocked = []
 			
-			@interrupt = ::Event::Interrupt.call(@selector) do |event|
-				case event
-				when URGENT
+			@interrupt = ::Event::Interrupt.attach(@selector) do |event|
+				if event == URGENT
 					@interrupted = true
 				end
 			end

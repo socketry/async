@@ -34,10 +34,6 @@ module Async
 			Fiber.set_scheduler(self)
 		end
 		
-		def to_s
-			"\#<#{self.description} #{@children&.size || 0} children (#{stopped? ? 'stopped' : 'running'})>"
-		end
-		
 		alias with_timeout timeout_after
 		public :sleep
 	end
