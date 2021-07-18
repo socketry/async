@@ -23,7 +23,7 @@
 require_relative 'task'
 
 module Async
-	# A barrier is used to synchronize multiple tasks, waiting for them all to complete before continuing.
+	# A synchronization primitive, which allows one task to wait for a number of other tasks to complete. It can be used in conjunction with {Semaphore}.
 	# @public Since `stable-v1`.
 	class Barrier
 		# Initialize the barrier.
