@@ -2,12 +2,12 @@ A synchronization primitive, which allows fibers to wait until a particular cond
 
 ## Example
 
-~~~ruby
+~~~ ruby
 require 'async'
 
-condition = Async::Condition.new
-
 Sync do
+	condition = Async::Condition.new
+	
 	Async do
 		Console.logger.info "Waiting for condition..."
 		value = condition.wait
@@ -29,4 +29,3 @@ end
 1.0s     info: Signalling condition... [ec=0x64] [pid=47943]
 1.0s     info: Condition was signalled: Hello World [ec=0x3c] [pid=47943]
 ~~~
-

@@ -2,7 +2,7 @@ A synchronization primitive, which allows one task to wait for a number of other
 
 ## Example
 
-~~~ruby
+~~~ ruby
 require 'async'
 require 'async/barrier'
 
