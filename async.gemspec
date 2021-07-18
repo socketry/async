@@ -17,7 +17,7 @@ Gem::Specification.new do |spec|
 	
 	spec.add_dependency "console", "~> 1.10"
 	
-	spec.add_dependency "event", "~> 0.9.4"
+	spec.add_dependency "event", "~> 0.10"
 	spec.add_dependency "timers", "~> 4.1"
 	
 	spec.add_development_dependency "async-rspec", "~> 1.1"

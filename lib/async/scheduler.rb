@@ -19,7 +19,6 @@
 # THE SOFTWARE.
 
 require_relative 'clock'
-require_relative 'interrupt'
 require_relative 'task'
 
 require 'console'
@@ -33,6 +32,9 @@ module Async
 			true
 		end
 		
+		# Used for indicating an urgent interrupt.
+		URGENT = 1
+		
 		def initialize(parent = nil, selector: nil)
 			super(parent)
 			
@@ -44,9 +46,9 @@ module Async
 			@blocked = 0
 			@unblocked = []
 			
-			@interrupt = Interrupt.new(@selector) do |event|
+			@interrupt = ::Event::Interrupt.call(@selector) do |event|
 				case event
-				when '!'
+				when URGENT
 					@interrupted = true
 				end
 			end
@@ -79,7 +81,7 @@ module Async
 		
 		# Interrupt the event loop.
 		def interrupt
-			@interrupt.signal('!')
+			@interrupt.signal(URGENT)
 		end
 		
 		# Transfer from the calling fiber to the event loop.
