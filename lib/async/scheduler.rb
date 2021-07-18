@@ -86,7 +86,7 @@ module Async
 		
 		# Interrupt the event loop.
 		def interrupt
-			@interrupt.signal(URGENT)
+			@interrupt&.signal(URGENT)
 		end
 		
 		# Transfer from the calling fiber to the event loop.
@@ -154,8 +154,12 @@ module Async
 		end
 		
 		# @asynchronous May be non-blocking..
-		def kernel_sleep(duration)
-			self.block(nil, duration)
+		def kernel_sleep(duration = nil)
+			if duration
+				self.block(nil, duration)
+			else
+				self.transfer
+			end
 		end
 		
 		# @asynchronous May be non-blocking..

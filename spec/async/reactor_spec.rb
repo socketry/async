@@ -147,19 +147,22 @@ RSpec.describe Async::Reactor do
 				end
 			end
 			
-			subject.async do |task|
+			subject.async do
 				events << true
+				
+				# Wait to be interrupted:
+				sleep
 			end
 			
 			subject.run
 			
+			# This prevents a bug on Ruby 3.0.2 which causes Thread#join to hang.
+			Fiber.set_scheduler(nil)
+			
+			thread.join
+			expect(thread).to_not be_alive
+			
 			expect(subject).to be_stopped
-			
-			# Broken on Ruby 3.0
-			# Fiber.set_scheduler(nil)
-			
-			# thread.join
-			# expect(thread).to_not be_alive
 		end
 	end
 	
