@@ -27,7 +27,10 @@ require 'timers'
 require 'resolv'
 
 module Async
+	# Handles scheduling of fibers. Implements the fiber scheduler interface.
 	class Scheduler < Node
+		# Whether the fiber scheduler is supported.
+		# @public
 		def self.supported?
 			true
 		end
@@ -54,6 +57,7 @@ module Async
 			end
 		end
 		
+		# @public
 		def close
 			# This is a critical step. Because tasks could be stored as instance variables, and since the reactor is (probably) going out of scope, we need to ensure they are stopped. Otherwise, the tasks will belong to a reactor that will never run again and are not stopped.
 			self.terminate
@@ -71,6 +75,7 @@ module Async
 			consume
 		end
 		
+		# @public
 		def closed?
 			@selector.nil?
 		end
@@ -95,7 +100,7 @@ module Async
 		end
 		
 		# Schedule a fiber (or equivalent object) to be resumed on the next loop through the reactor.
-		# @param fiber [#resume] The object to be resumed on the next iteration of the run-loop.
+		# @parameter fiber [Fiber | Object] The object to be resumed on the next iteration of the run-loop.
 		def push(fiber)
 			@selector.push(fiber)
 		end
@@ -115,7 +120,7 @@ module Async
 		end
 		
 		# Invoked when a fiber tries to perform a blocking operation which cannot continue. A corresponding call {unblock} must be performed to allow this fiber to continue.
-		# @reentrant Not thread safe.
+		# @asynchronous not thread safe.
 		def block(blocker, timeout)
 			# $stderr.puts "block(#{blocker}, #{Fiber.current}, #{timeout})"
 			fiber = Fiber.current
@@ -138,7 +143,7 @@ module Async
 			timer&.cancel
 		end
 		
-		# @reentrant Thread safe.
+		# @asynchronous thread safe.
 		def unblock(blocker, fiber)
 			# $stderr.puts "unblock(#{blocker}, #{fiber})"
 			
@@ -148,14 +153,17 @@ module Async
 			end
 		end
 		
+		# @asynchronous non-blocking.
 		def kernel_sleep(duration)
 			self.block(nil, duration)
 		end
 		
+		# @asynchronous non-blocking.
 		def address_resolve(hostname)
 			::Resolv.getaddresses(hostname)
 		end
 		
+		# @asynchronous non-blocking.
 		def io_wait(io, events, timeout = nil)
 			fiber = Fiber.current
 			
@@ -188,6 +196,7 @@ module Async
 		# @parameter pid [Integer] The process ID to wait for.
 		# @parameter flags [Integer] A bit-mask of flags suitable for `Process::Status.wait`.
 		# @returns [Process::Status] A process status instance.
+		# @asynchronous non-blocking.
 		def process_wait(pid, flags)
 			return @selector.process_wait(Fiber.current, pid, flags)
 		end

@@ -21,7 +21,7 @@
 # THE SOFTWARE.
 
 module Async
-	# A double linked list.
+	# A double linked list used for managing tasks.
 	class List
 		def initialize
 			# The list behaves like a list node, so @tail points to the next item (the first one) and head points to the previous item (the last one). This may be slightly confusing but it makes the interface more natural.
@@ -121,6 +121,7 @@ module Async
 	
 	private_constant :List
 	
+	# A list of children tasks.
 	class Children < List
 		def initialize
 			super
@@ -154,7 +155,7 @@ module Async
 		end
 	end
 	
-	# Represents a node in a tree, used for nested {Task} instances.
+	# A node in a tree, used for implementing the task hierarchy.
 	class Node
 		# Create a new node in the tree.
 		# @param parent [Node, nil] This node will attach to the given parent.
@@ -179,15 +180,16 @@ module Async
 			@parent&.root || self
 		end
 		
-		# You should not directly rely on these pointers but instead use `#children`.
-		# List pointers:
+		# @private
 		attr_accessor :head
+		
+		# @private
 		attr_accessor :tail
 		
-		# @attr parent [Node, nil]
+		# @attribute [Node] The parent node.
 		attr :parent
 		
-		# @attr children [List<Node>] Optional list of children.
+		# @attribute children [Children | Nil] Optional list of children.
 		attr :children
 		
 		# A useful identifier for the current node.

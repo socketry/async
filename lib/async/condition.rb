@@ -25,12 +25,14 @@ require 'forwardable'
 require_relative 'node'
 
 module Async
-	# A synchronization primative, which allows fibers to wait until a particular condition is triggered. Signalling the condition directly resumes the waiting fibers and thus blocks the caller.
+	# A synchronization primative, which allows fibers to wait until a particular condition is (edge) triggered.
+	# @public
 	class Condition
 		def initialize
 			@waiting = []
 		end
 		
+		# @private
 		Queue = Struct.new(:fiber) do
 			def transfer(*arguments)
 				fiber&.transfer(*arguments)
@@ -48,7 +50,7 @@ module Async
 		private_constant :Queue
 		
 		# Queue up the current fiber and wait on yielding the task.
-		# @return [Object]
+		# @returns [Object]
 		def wait
 			queue = Queue.new(Fiber.current)
 			@waiting << queue
@@ -59,15 +61,13 @@ module Async
 		end
 		
 		# Is any fiber waiting on this notification?
-		# @return [Boolean]
+		# @returns [Boolean]
 		def empty?
 			@waiting.empty?
 		end
 		
 		# Signal to a given task that it should resume operations.
-		# @param value The value to return to the waiting fibers.
-		# @see Task.yield which is responsible for handling value.
-		# @return [void]
+		# @parameter value [Object | Nil] The value to return to the waiting fibers.
 		def signal(value = nil)
 			waiting = @waiting
 			@waiting = []

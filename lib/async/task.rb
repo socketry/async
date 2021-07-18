@@ -50,8 +50,8 @@ module Async
 		end
 	end
 	
-	# A task represents the state associated with the execution of an asynchronous
-	# block.
+	# Encapsulates the state of a running task and it's result.
+	# @public
 	class Task < Node
 		# @deprecated with no replacement.
 		def self.yield

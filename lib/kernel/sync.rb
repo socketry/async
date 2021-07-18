@@ -22,8 +22,15 @@
 
 require_relative "../async/reactor"
 
+# Extensions to all Ruby objects.
 module Kernel
 	# Run the given block of code synchronously, but within a reactor if not already in one.
+	#
+	# @yields {|task| ...} The block that will execute asynchronously.
+	# 	@parameter task [Async::Task] The task that is executing the given block.
+	#
+	# @public stable-v1
+	# @asynchronous will wait until completion.
 	def Sync(&block)
 		if task = ::Async::Task.current?
 			yield task

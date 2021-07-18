@@ -24,6 +24,7 @@ require_relative 'notification'
 
 module Async
 	# A queue which allows items to be processed in order.
+	# @public
 	class Queue < Notification
 		def initialize(parent: nil)
 			super()
@@ -71,6 +72,7 @@ module Async
 		end
 	end
 	
+	# @public
 	class LimitedQueue < Queue
 		def initialize(limit = 1, **options)
 			super(**options)

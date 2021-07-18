@@ -32,6 +32,12 @@ module Kernel
 	# - When invoked at the top level, will create and run a reactor, and invoke
 	# the block as an asynchronous task. Will block until the reactor finishes
 	# running.
+	#
+	# @yields {|task| ...} The block that will execute asynchronously.
+	# 	@parameter task [Async::Task] The task that is executing the given block.
+	#
+	# @public stable-v1
+	# @asynchronous may block until completion.
 	def Async(...)
 		if current = ::Async::Task.current?
 			return current.async(...)
