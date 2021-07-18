@@ -21,7 +21,7 @@
 # THE SOFTWARE.
 
 module Async
-	# A synchronization primative, which limits access to a given resource.
+	# A synchronization primitive, which limits access to a given resource.
 	# @public Since `stable-v1`.
 	class Semaphore
 		# @parameter limit [Integer] The maximum number of times the semaphore can be acquired before it blocks.

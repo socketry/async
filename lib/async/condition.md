@@ -1,4 +1,4 @@
-A synchronization primative, which allows fibers to wait until a particular condition is (edge) triggered. Zero or more fibers can wait on a condition. When the condition is signalled, the fibers will be resumed in order.
+A synchronization primitive, which allows fibers to wait until a particular condition is (edge) triggered. Zero or more fibers can wait on a condition. When the condition is signalled, the fibers will be resumed in order.
 
 ## Example
 

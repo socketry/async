@@ -25,7 +25,7 @@ require 'forwardable'
 require_relative 'node'
 
 module Async
-	# A synchronization primative, which allows fibers to wait until a particular condition is (edge) triggered.
+	# A synchronization primitive, which allows fibers to wait until a particular condition is (edge) triggered.
 	# @public Since `stable-v1`.
 	class Condition
 		def initialize
