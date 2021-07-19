@@ -206,22 +206,17 @@ module Async
 		end
 		
 		# Run one iteration of the event loop.
-		# @parameter timeout [Float | Nil] the maximum timeout, or if nil, indefinite.
-		# @returns [Boolean] whether there is more work to do.
+		# @parameter timeout [Float | Nil] The maximum timeout, or if nil, indefinite.
+		# @returns [Boolean] Whether there is more work to do.
 		def run_once(timeout = nil)
 			Kernel::raise "Running scheduler on non-blocking fiber!" unless Fiber.blocking?
-			
-			unless @selector.ready?
-				interval = @timers.wait_interval
-			else
-				# if there are tasks ready to execute, don't sleep:
-				interval = 0
-			end
 			
 			# If we are finished, we stop the task tree and exit:
 			if self.finished?
 				return false
 			end
+			
+			interval = @timers.wait_interval
 			
 			# If there is no interval to wait (thus no timers), and no tasks, we could be done:
 			if interval.nil?
