@@ -19,4 +19,4 @@ The `main` branch of async is compatible with Ruby 3.0.2+, and partially compati
 - {ruby Async::Task} uses {ruby Fiber#transfer} for scheduling so it is compatible with all other usage of Fiber.
 - {ruby Async::Reactor} implements the Fiber scheduler interface and is compatible with a wide range of non-blocking operations, including DNS, {ruby Process.wait}, etc.
 - External C libraries that use blocking operations may still block.
-- Ruby 3.0 has some bugs in the non-blocking thread primitives which have not been backported. Ruby 3.1+ solves these problems.
+- Ruby <= 3.0.2 has some bugs in its non-blocking thread primitives. These should be fixed in 3.0.3+.
