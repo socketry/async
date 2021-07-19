@@ -44,10 +44,8 @@ module Async
 			@selector = selector || ::Event::Selector.new(Fiber.current)
 			@timers = ::Timers::Group.new
 			
-			@guard = Mutex.new
 			@interrupted = false
 			@blocked = 0
-			@unblocked = []
 			
 			@interrupt = ::Event::Interrupt.attach(@selector) do |event|
 				if event == URGENT
@@ -63,13 +61,16 @@ module Async
 			
 			Kernel::raise "Closing scheduler with blocked operations!" if @blocked > 0
 			
-			@guard.synchronize do
-				@interrupt&.close
-				@interrupt = nil
-				
-				@selector&.close
-				@selector = nil
-			end
+			# We depend on GVL for consistency:
+			# @guard.synchronize do
+			
+			@interrupt&.close
+			@interrupt = nil
+			
+			@selector&.close
+			@selector = nil
+			
+			# end
 			
 			consume
 		end
@@ -147,10 +148,10 @@ module Async
 		def unblock(blocker, fiber)
 			# $stderr.puts "unblock(#{blocker}, #{fiber})"
 			
-			@guard.synchronize do
-				@unblocked << fiber
-				@interrupt&.signal
-			end
+			# This operation is protected by the GVL:
+			@selector.push(fiber)
+			
+			@interrupt&.signal
 		end
 		
 		# @asynchronous May be non-blocking..
@@ -211,19 +212,7 @@ module Async
 		def run_once(timeout = nil)
 			Kernel::raise "Running scheduler on non-blocking fiber!" unless Fiber.blocking?
 			
-			if @unblocked.any?
-				unblocked = Array.new
-				
-				@guard.synchronize do
-					unblocked, @unblocked = @unblocked, unblocked
-				end
-					
-				while fiber = unblocked.pop
-					fiber.transfer if fiber.alive?
-				end
-			end
-			
-			if !@selector.ready? and @unblocked.empty?
+			unless @selector.ready?
 				interval = @timers.wait_interval
 			else
 				# if there are tasks ready to execute, don't sleep:
