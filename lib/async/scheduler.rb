@@ -150,8 +150,7 @@ module Async
 			
 			# This operation is protected by the GVL:
 			@selector.push(fiber)
-			
-			@interrupt&.signal
+			@interrupt.signal
 		end
 		
 		# @asynchronous May be non-blocking..
