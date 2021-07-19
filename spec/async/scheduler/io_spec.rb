@@ -25,6 +25,8 @@ RSpec.describe Async::Scheduler, if: Async::Scheduler.supported? do
 	
 	describe ::IO do
 		it "can wait with timeout" do
+			expect(reactor).to receive(:io_wait).and_call_original
+			
 			s1, s2 = Socket.pair :UNIX, :STREAM, 0
 			
 			result = s1.wait_readable(0)
