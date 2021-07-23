@@ -242,9 +242,7 @@ module Async
 			
 			Thread.handle_interrupt(Interrupt => :never) do
 				while self.run_once
-					begin
-						Thread.handle_interrupt(Interrupt => :immediate) {}
-					rescue Interrupt
+					if Thread.pending_interrupt?
 						break
 					end
 				end
