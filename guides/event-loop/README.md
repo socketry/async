@@ -4,7 +4,7 @@ This guide gives an overview of how the event loop is implemented.
 
 ## Overview
 
-{ruby Async::Reactor} provides the event loop and sits at the root of any task tree. Work is scheduled by adding {ruby Async::Task} instances to the reactor. When you invoke {ruby Async::Reactor#async}, the parent task is determined by calling {ruby Async::Task.current?} which uses fiber local storage. A slightly more efficient method is to use {ruby Async::Task#async}, which uses `self` as the parent task.
+{ruby Async::Reactor} provides the event loop and sits at the root of any task tree. Work is scheduled by adding {ruby Async::Task} instances to the reactor. When you invoke {ruby Async::Reactor#async}, the parent task is determined by calling {ruby Async::Task.current?} which uses fiber local storage. A slightly more efficient method is to use {ruby Async::Task#async}, which uses {ruby self} as the parent task.
 
 ~~~ ruby
 require 'async'
@@ -44,7 +44,7 @@ Most methods of the reactor and related tasks are not thread-safe, so you'd typi
 
 ### Embedding Reactors
 
-`Async::Reactor#run` will run until the reactor runs out of work to do. To run a single iteration of the reactor, use `Async::Reactor#run_once`
+{ruby Async::Scheduler#run} will run until the reactor runs out of work to do. To run a single iteration of the reactor, use {ruby Async::Scheduler#run_once}
 
 ~~~ ruby
 require 'async'
@@ -63,12 +63,12 @@ while reactor.run_once
 end
 ~~~
 
-You can use this approach to embed the reactor in another event loop.
+You can use this approach to embed the reactor in another event loop. For some integrations, you may want to specify the maximum time to wait to {ruby Async::Scheduler#run_once}.
 
 ### Stopping Reactors
 
-`Async::Reactor#stop` will stop the current reactor and all children tasks.
+{ruby Async::Reactor#stop} will stop the current reactor and all children tasks.
 
 ### Interrupting Reactors
 
-`Async::Reactor#interrupt` can be called safely from a different thread (or signal handler) and will cause the reactor to invoke `#stop`.
+{ruby Async::Reactor#interrupt} can be called safely from a different thread (or signal handler) and will cause the reactor to exit with an {ruby Interrupt} exception.
