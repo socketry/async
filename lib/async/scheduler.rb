@@ -35,23 +35,15 @@ module Async
 			true
 		end
 		
-		# Used for indicating an urgent interrupt.
-		URGENT = 1
-		
 		def initialize(parent = nil, selector: nil)
 			super(parent)
 			
 			@selector = selector || ::Event::Selector.new(Fiber.current)
+			@thread = Thread.current
+			
 			@timers = ::Timers::Group.new
 			
-			@interrupted = false
 			@blocked = 0
-			
-			@interrupt = ::Event::Interrupt.attach(@selector) do |event|
-				if event == URGENT
-					@interrupted = true
-				end
-			end
 		end
 		
 		# @public Since `stable-v1`.
@@ -87,7 +79,7 @@ module Async
 		
 		# Interrupt the event loop.
 		def interrupt
-			@interrupt&.signal(URGENT)
+			@thread.raise(Interrupt)
 		end
 		
 		# Transfer from the calling fiber to the event loop.
@@ -150,7 +142,7 @@ module Async
 			
 			# This operation is protected by the GVL:
 			@selector.push(fiber)
-			@interrupt.signal
+			@thread.wakeup
 		end
 		
 		# @asynchronous May be non-blocking..
@@ -238,13 +230,6 @@ module Async
 			
 			@timers.fire
 			
-			# We check and clear the interrupted flag here:
-			if @interrupted
-				@interrupted = false
-				
-				return false
-			end
-			
 			# The reactor still has work to do:
 			return true
 		end
@@ -255,8 +240,14 @@ module Async
 			
 			initial_task = self.async(...) if block_given?
 			
-			while self.run_once
-				# Round and round we go!
+			Thread.handle_interrupt(Interrupt => :never) do
+				while self.run_once
+					begin
+						Thread.handle_interrupt(Interrupt => :immediate) {}
+					rescue Interrupt
+						break
+					end
+				end
 			end
 			
 			return initial_task
