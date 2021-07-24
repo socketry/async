@@ -225,6 +225,10 @@ module Async
 			@status == :complete
 		end
 		
+		def inspect
+			"#<#{self.class} @status=#{@status.inspect}>"
+		end
+		
 		private
 		
 		# This is a very tricky aspect of tasks to get right. I've modelled it after `Thread` but it's slightly different in that the exception can propagate back up through the reactor. If the user writes code which raises an exception, that exception should always be visible, i.e. cause a failure. If it's not visible, such code fails silently and can be very difficult to debug.
