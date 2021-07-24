@@ -226,7 +226,7 @@ module Async
 		end
 		
 		def inspect
-			"#<#{self.class} #{@annotation ? "@annotation=\"#{@annotation}\" " : ""}@status=#{@status.inspect}>"
+			"#<#{self.class} @annotation=#{@annotation.inspect} @status=#{@status.inspect}>"
 		end
 		
 		private
