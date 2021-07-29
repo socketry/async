@@ -50,17 +50,26 @@ module Async
 			@tasks.empty?
 		end
 		
-		# Wait for tasks in FIFO order.
+		# Wait for all tasks.
+		# @asynchronous Will wait for tasks to finish executing.
 		def wait
-			while task = @tasks.shift
-				task.wait
+			# TODO: This would be better with linked list.
+			while @tasks.any?
+				task = @tasks.first
+				
+				begin
+					task.wait
+				ensure
+					# Remove the task from the waiting list if it's finished:
+					@tasks.shift if @tasks.first == task
+				end
 			end
 		end
 		
 		def stop
-			while task = @tasks.shift
-				task.stop
-			end
+			# We have to be careful to avoid enumerating tasks while adding/removing to it:
+			tasks = @tasks.dup
+			tasks.each(&:stop)
 		end
 	end
 end
