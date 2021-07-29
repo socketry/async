@@ -109,6 +109,53 @@ RSpec.describe Async::Barrier do
 			expect(task1).to be_stopped
 			expect(task2).to be_stopped
 		end
+		
+		it "can stop several tasks when waiting on barrier" do
+			task1 = subject.async do |task|
+				task.sleep(10)
+			end
+			
+			task2 = subject.async do |task|
+				task.sleep(10)
+			end
+			
+			task3 = reactor.async do
+				subject.wait
+			end
+			
+			subject.stop
+			
+			task1.wait
+			task2.wait
+			
+			expect(task1).to be_stopped
+			expect(task2).to be_stopped
+			
+			task3.wait
+		end
+		
+		it "several tasks can wait on the same barrier" do
+			task1 = subject.async do |task|
+				task.sleep(10)
+			end
+			
+			task2 = reactor.async do |task|
+				subject.wait
+			end
+			
+			task3 = reactor.async do
+				subject.wait
+			end
+			
+			subject.stop
+			
+			task1.wait
+			
+			expect(task1).to be_stopped
+			
+			task2.wait
+			task3.wait
+		end
 	end
 	
 	context 'with semaphore' do
