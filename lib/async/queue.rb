@@ -20,12 +20,16 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
+require 'forwardable'
+
 require_relative 'notification'
 
 module Async
 	# A queue which allows items to be processed in order.
 	# @public Since `stable-v1`.
 	class Queue < Notification
+		extend Forwardable
+
 		def initialize(parent: nil)
 			super()
 			
@@ -49,7 +53,7 @@ module Async
 			self.signal unless self.empty?
 		end
 		
-		alias << enqueue
+		def_delegator :self, :enqueue, :<<
 		
 		def dequeue
 			while @items.empty?
