@@ -18,6 +18,7 @@ Gem::Specification.new do |spec|
 	spec.add_dependency "console", "~> 1.10"
 	spec.add_dependency "nio4r", "~> 2.3"
 	spec.add_dependency "timers", "~> 4.1"
+	spec.add_dependency "traces", "~> 0.4.0"
 	
 	spec.add_development_dependency "async-rspec", "~> 1.1"
 	spec.add_development_dependency "bake"

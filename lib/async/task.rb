@@ -26,6 +26,8 @@ require 'forwardable'
 require_relative 'node'
 require_relative 'condition'
 
+require 'traces/provider'
+
 module Async
 	# Raised when a task is explicitly stopped.
 	class Stop < Exception
@@ -292,6 +294,27 @@ module Async
 			# This is actually fiber-local:
 			Thread.current[:async_task] = self
 			Console.logger = @logger if @logger
+		end
+	end
+	
+	Traces::Provider(Task) do
+		def make_fiber(&block)
+			unless self.transient?
+				trace_context = self.trace_context
+			end
+			
+			super do |*arguments|
+				self.trace_context = trace_context
+				attributes = {}
+				
+				if annotation = self.annotation
+					attributes['annotation'] = annotation
+				end
+				
+				trace('async.task', attributes: attributes) do
+					yield(*arguments)
+				end
+			end
 		end
 	end
 end
