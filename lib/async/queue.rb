@@ -49,7 +49,9 @@ module Async
 			self.signal unless self.empty?
 		end
 		
-		alias << enqueue
+		def <<(item)
+			enqueue(item)
+		end
 		
 		def dequeue
 			while @items.empty?
