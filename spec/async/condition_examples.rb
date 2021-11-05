@@ -20,6 +20,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
+require 'async/variable'
+
 RSpec.shared_examples Async::Condition do
 	it 'can signal waiting task' do
 		state = nil
@@ -71,6 +73,9 @@ RSpec.shared_examples Async::Condition do
 	end
 	
 	context "with timeout" do
+		let!(:ready) {Async::Variable.new(subject)}
+		let!(:waiting) {Async::Variable.new(described_class.new)}
+		
 		before do
 			@state = nil
 		end
@@ -80,7 +85,9 @@ RSpec.shared_examples Async::Condition do
 				task.with_timeout(0.1) do
 					begin
 						@state = :waiting
-						subject.wait
+						waiting.resolve
+						
+						ready.wait
 						@state = :signalled
 					rescue Async::TimeoutError
 						@state = :timeout
@@ -96,7 +103,9 @@ RSpec.shared_examples Async::Condition do
 		end
 		
 		it 'can signal while waiting' do
-			subject.signal
+			waiting.wait
+			ready.resolve
+			
 			task.wait
 			
 			expect(@state).to be == :signalled
