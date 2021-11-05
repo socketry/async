@@ -3,7 +3,7 @@ name: Documentation
 on:
   push:
     branches:
-      - master
+      - main
 
 jobs:
   deploy:
@@ -15,7 +15,7 @@ jobs:
       env:
         BUNDLE_WITH: maintenance
       with:
-        ruby-version: 2.7
+        ruby-version: 3.0
         bundler-cache: true
     
     - name: Installing packages
@@ -28,5 +28,5 @@ jobs:
     - name: Deploy documentation
       uses: JamesIves/github-pages-deploy-action@4.0.0
       with:
-        branch: gh-pages
+        branch: docs
         folder: docs
