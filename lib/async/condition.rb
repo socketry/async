@@ -21,7 +21,6 @@
 # THE SOFTWARE.
 
 require 'fiber'
-require 'forwardable'
 require_relative 'node'
 
 module Async
