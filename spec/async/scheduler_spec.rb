@@ -58,7 +58,7 @@ RSpec.describe Async::Scheduler do
 	
 	describe 'Kernel#system' do
 		it "can execute child process" do
-			expect(reactor).to receive(:process_wait).and_call_original
+			# expect(reactor).to receive(:process_wait).and_call_original
 			
 			::Kernel.system("true")
 			expect($?).to be_success

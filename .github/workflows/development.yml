@@ -7,19 +7,19 @@ jobs:
     name: ${{matrix.ruby}} on ${{matrix.os}}
     runs-on: ${{matrix.os}}-latest
     continue-on-error: ${{matrix.experimental}}
-    
+
     strategy:
       matrix:
         os:
           - ubuntu
           - macos
-        
+
         ruby:
-          - head
-        
+          - 3.0.3
+
         experimental: [false]
         env: [""]
-        
+
         include:
           - os: ubuntu
             ruby: truffleruby
@@ -35,18 +35,18 @@ jobs:
             ruby: head
             env: COVERAGE=PartialSummary,Coveralls
             experimental: true
-    
+
     steps:
     - uses: actions/checkout@v2
     - uses: ruby/setup-ruby@v1
       with:
         ruby-version: ${{matrix.ruby}}
         bundler-cache: true
-    
+
     - name: Run tests
       timeout-minutes: 5
       run: ${{matrix.env}} bundle exec rspec
-    
+
     - name: Run external tests
       timeout-minutes: 5
       if: matrix.experimental == false && matrix.os == 'ubuntu'
