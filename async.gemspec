@@ -16,7 +16,7 @@ Gem::Specification.new do |spec|
 	spec.required_ruby_version = ">= 3.0.2"
 	
 	spec.add_dependency "console", "~> 1.10"
-	spec.add_dependency "event", "~> 1.0"
+	spec.add_dependency "io-event", "~> 0.1"
 	spec.add_dependency "timers", "~> 4.1"
 	
 	spec.add_development_dependency "async-rspec", "~> 1.1"

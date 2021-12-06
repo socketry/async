@@ -22,7 +22,7 @@ require_relative 'clock'
 require_relative 'task'
 
 require 'console'
-require 'event'
+require 'io/event'
 require 'timers'
 require 'resolv'
 
@@ -38,7 +38,7 @@ module Async
 		def initialize(parent = nil, selector: nil)
 			super(parent)
 			
-			@selector = selector || ::Event::Selector.new(Fiber.current)
+			@selector = selector || ::IO::Event::Selector.new(Fiber.current)
 			@thread = Thread.current
 			
 			@timers = ::Timers::Group.new
