@@ -30,11 +30,7 @@ jobs:
             experimental: true
           - os: ubuntu
             ruby: head
-            experimental: true
-          - os: ubuntu
-            ruby: head
-            env: COVERAGE=PartialSummary,Coveralls
-            experimental: true
+            experimental: false
 
     steps:
     - uses: actions/checkout@v2
