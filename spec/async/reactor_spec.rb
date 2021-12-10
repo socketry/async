@@ -155,12 +155,12 @@ RSpec.describe Async::Reactor do
 				sleep
 			end
 			
-			expect do
-				subject.run
-			end.to raise_error(Interrupt)
+			subject.run
 			
 			thread.join
 			expect(thread).to_not be_alive
+			
+			expect(subject).to_not be_stopped
 		end
 	end
 	

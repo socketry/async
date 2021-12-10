@@ -242,7 +242,7 @@ module Async
 			
 			while self.run_once
 				if @interrupted
-					Kernel::raise Interrupt, 'Scheduler interrupted!'
+					break
 				end
 			end
 			
