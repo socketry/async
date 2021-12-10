@@ -143,6 +143,7 @@ RSpec.describe Async::Reactor do
 			
 			thread = Thread.new do
 				if events.pop
+					sleep 0.2
 					subject.interrupt
 				end
 			end
@@ -158,13 +159,8 @@ RSpec.describe Async::Reactor do
 				subject.run
 			end.to raise_error(Interrupt)
 			
-			# This prevents a bug on Ruby 3.0.2 which causes Thread#join to hang.
-			Fiber.set_scheduler(nil)
-			
 			thread.join
 			expect(thread).to_not be_alive
-			
-			expect(subject).to be_stopped
 		end
 	end
 	

@@ -163,7 +163,7 @@ module Async
 			if self.running?
 				if self.current?
 					if later
-						Fiber.scheduler << Stop::Later.new(self)
+						Fiber.scheduler.push Stop::Later.new(self)
 					else
 						raise Stop, "Stopping current task!"
 					end
@@ -171,7 +171,7 @@ module Async
 					begin
 						Fiber.scheduler.raise(@fiber, Stop)
 					rescue FiberError
-						Fiber.scheduler << Stop::Later.new(self)
+						Fiber.scheduler.push Stop::Later.new(self)
 					end
 				end
 			else

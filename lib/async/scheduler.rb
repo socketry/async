@@ -21,8 +21,9 @@
 require_relative 'clock'
 require_relative 'task'
 
-require 'console'
 require 'io/event'
+
+require 'console'
 require 'timers'
 require 'resolv'
 
@@ -39,11 +40,11 @@ module Async
 			super(parent)
 			
 			@selector = selector || ::IO::Event::Selector.new(Fiber.current)
-			@thread = Thread.current
-			
-			@timers = ::Timers::Group.new
+			@interrupted = false
 			
 			@blocked = 0
+			
+			@timers = ::Timers::Group.new
 		end
 		
 		# @public Since `stable-v1`.
@@ -55,9 +56,6 @@ module Async
 			
 			# We depend on GVL for consistency:
 			# @guard.synchronize do
-			
-			@interrupt&.close
-			@interrupt = nil
 			
 			@selector&.close
 			@selector = nil
@@ -77,9 +75,10 @@ module Async
 			"\#<#{self.description} #{@children&.size || 0} children (#{stopped? ? 'stopped' : 'running'})>"
 		end
 		
-		# Interrupt the event loop.
+		# Interrupt the event loop and cause it to exit.
 		def interrupt
-			@thread.raise(Interrupt)
+			@interrupted = true
+			@selector.wakeup
 		end
 		
 		# Transfer from the calling fiber to the event loop.
@@ -97,8 +96,6 @@ module Async
 		def push(fiber)
 			@selector.push(fiber)
 		end
-		
-		alias << push
 		
 		def raise(*arguments)
 			@selector.raise(*arguments)
@@ -142,7 +139,7 @@ module Async
 			
 			# This operation is protected by the GVL:
 			@selector.push(fiber)
-			@thread.wakeup
+			@selector.wakeup
 		end
 		
 		# @asynchronous May be non-blocking..
@@ -179,14 +176,16 @@ module Async
 		ensure
 			timer&.cancel
 		end
-		
-		# def io_read(io, buffer, length)
-		# 	@selector.io_read(Fiber.current, io, buffer, length)
-		# end
-		# 
-		# def io_write(io, buffer, length)
-		# 	@selector.io_write(Fiber.current, io, buffer, length)
-		# end
+
+		if IO.const_defined?(:Buffer)
+			def io_read(io, buffer, length)
+				@selector.io_read(Fiber.current, io, buffer, length)
+			end
+			
+			def io_write(io, buffer, length)
+				@selector.io_write(Fiber.current, io, buffer, length)
+			end
+		end
 		
 		# Wait for the specified process ID to exit.
 		# @parameter pid [Integer] The process ID to wait for.
@@ -222,7 +221,6 @@ module Async
 			end
 			
 			begin
-				# Console.logger.info(self) {"@selector.select(#{interval ? interval.round(2) : 'forever'})..."}
 				@selector.select(interval)
 			rescue Errno::EINTR
 				# Ignore.
@@ -240,11 +238,11 @@ module Async
 			
 			initial_task = self.async(...) if block_given?
 			
-			Thread.handle_interrupt(Interrupt => :never) do
-				while self.run_once
-					if Thread.pending_interrupt?
-						break
-					end
+			@interrupted = false
+			
+			while self.run_once
+				if @interrupted
+					Kernel::raise Interrupt, 'Scheduler interrupted!'
 				end
 			end
 			
