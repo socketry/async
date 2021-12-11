@@ -181,7 +181,7 @@ module Async
 			def io_read(io, buffer, length)
 				@selector.io_read(Fiber.current, io, buffer, length)
 			end
-			
+		
 			def io_write(io, buffer, length)
 				@selector.io_write(Fiber.current, io, buffer, length)
 			end
