@@ -13,10 +13,10 @@ Gem::Specification.new do |spec|
 	
 	spec.files = Dir.glob('{lib}/**/*', File::FNM_DOTMATCH, base: __dir__)
 	
-	spec.required_ruby_version = ">= 3.0.2"
+	spec.required_ruby_version = ">= 3.1.0"
 	
 	spec.add_dependency "console", "~> 1.10"
-	spec.add_dependency "io-event", "~> 0.2.3"
+	spec.add_dependency "io-event", "~> 1.0.0"
 	spec.add_dependency "timers", "~> 4.1"
 	
 	spec.add_development_dependency "async-rspec", "~> 1.1"
