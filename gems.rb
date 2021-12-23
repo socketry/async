@@ -8,7 +8,7 @@ gemspec
 # gem "async-rspec", path: "../async-rspec"
 
 group :maintenance, optional: true do
-	gem "bake-bundler"
+	gem "bake-gem"
 	gem "bake-modernize"
 	
 	gem "utopia-project"#, path: '../utopia-project'
