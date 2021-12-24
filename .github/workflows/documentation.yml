@@ -15,7 +15,7 @@ jobs:
       env:
         BUNDLE_WITH: maintenance
       with:
-        ruby-version: 3.0.2
+        ruby-version: ruby-head
         bundler-cache: true
     
     - name: Installing packages
