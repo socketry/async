@@ -30,7 +30,7 @@ jobs:
             experimental: true
           - os: ubuntu
             ruby: head
-            experimental: false
+            experimental: true
 
     steps:
     - uses: actions/checkout@v2
