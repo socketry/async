@@ -36,5 +36,18 @@ RSpec.describe Async::Scheduler, if: Async::Scheduler.supported? do
 			s1.close
 			s2.close
 		end
+		
+		it "can read a single character" do
+			s1, s2 = Socket.pair :UNIX, :STREAM, 0
+			
+			child = reactor.async do
+				c = s2.getc
+				expect(c).to be == 'a'
+			end
+			
+			s1.putc('a')
+			
+			child.wait
+		end
 	end
 end
