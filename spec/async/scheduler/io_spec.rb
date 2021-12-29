@@ -19,6 +19,7 @@
 # THE SOFTWARE.
 
 require 'async/scheduler'
+require 'io/nonblock'
 
 RSpec.describe Async::Scheduler, if: Async::Scheduler.supported? do
 	include_context Async::RSpec::Reactor
@@ -46,6 +47,25 @@ RSpec.describe Async::Scheduler, if: Async::Scheduler.supported? do
 			end
 			
 			s1.putc('a')
+			
+			child.wait
+		end
+		
+		it "can perform blocking read" do
+			s1, s2 = Socket.pair :UNIX, :STREAM, 0
+			
+			s1.nonblock = false
+			s2.nonblock = false
+			
+			child = reactor.async do
+				expect(s2.read(1)).to be == 'a'
+				expect(s2.read(1)).to be == nil
+			end
+			
+			sleep(0.1)
+			s1.write('a')
+			sleep(0.1)
+			s1.close
 			
 			child.wait
 		end
