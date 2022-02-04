@@ -62,9 +62,11 @@ module Async
 		# Create a new task.
 		# @parameter reactor [Reactor] the reactor this task will run within.
 		# @parameter parent [Task] the parent task.
-		def initialize(parent = Task.current?, finished: nil, **options, &block)
+		def initialize(parent = Task.current?, raise_errors: false, finished: nil, **options, &block)
 			super(parent, **options)
-			
+
+			@raise_errors = raise_errors
+
 			@status = :initialized
 			@result = nil
 			@finished = finished
@@ -261,7 +263,7 @@ module Async
 				rescue Stop
 					stop!
 				rescue StandardError => error
-					fail!(error, false)
+					fail!(error, @raise_errors)
 				rescue Exception => exception
 					fail!(exception, true)
 				ensure

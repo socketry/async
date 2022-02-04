@@ -90,7 +90,29 @@ RSpec.describe Async::Task do
 				end.to raise_exception RuntimeError, /boom/
 			end
 		end
-		
+
+		it "can raise errors" do
+			expect do
+				Async do |task|
+					task.async(raise_errors: true) do |task|
+						raise "boom"
+					end
+				end
+			end.to raise_exception RuntimeError, /boom/
+		end
+
+		it "can raise nested errors" do
+			expect do
+				Async do |task|
+					task.async do |task|
+						task.async(raise_errors: true) do
+							raise "boom"
+						end
+					end
+				end
+			end.to raise_exception RuntimeError, /boom/
+		end
+
 		it "can raise exception after asynchronous operation" do
 			task = nil
 			
