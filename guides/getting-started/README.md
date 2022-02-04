@@ -192,7 +192,7 @@ Async do
 end
 ~~~
 
-You can also specify that all unhandled exceptions including `StandardError` be raised immediately using the `:propagate_errors` option. If this option is set in a subtask it will apply to the parent task.
+You can also specify that all unhandled exceptions including `StandardError` be raised immediately using the `:raise_errors` option. If this option is set in a subtask it will apply to the parent task.
 
 ~~~ruby
 require 'async'
