@@ -90,6 +90,28 @@ RSpec.describe Async::Task do
 				end.to raise_exception RuntimeError, /boom/
 			end
 		end
+
+		it "can propagate exceptions" do
+			reactor.run do
+				expect do
+					reactor.async(propagate_exceptions: true) do |task|
+						raise "boom"
+					end
+				end.to raise_exception RuntimeError, /boom/
+			end
+		end
+
+		it "can propagate nested exceptions" do
+			reactor.run do
+				expect do
+					reactor.async do |task|
+						task.async(propagate_exceptions: true) do |task|
+							raise "boom"
+						end
+					end
+				end.to raise_exception RuntimeError, /boom/
+			end
+		end
 		
 		it "can raise exception after asynchronous operation" do
 			task = nil

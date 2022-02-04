@@ -192,6 +192,19 @@ Async do
 end
 ~~~
 
+You can also specify that all unhandled exceptions including `StandardError` be raised immediately using the `:propagate_exceptions` option. If this option is set in a subtask it will apply to the parent task.
+
+~~~ruby
+require 'async'
+
+task = Async(propagate_exceptions: true) do
+	# Exception will be logged and task will be failed.
+	raise "Boom"
+end
+
+# raises RuntimeError: Boom
+~~~
+
 ## Timeouts
 
 You can wrap asynchronous operations in a timeout. This ensures that malicious services don't cause your code to block indefinitely.

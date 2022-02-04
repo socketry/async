@@ -64,7 +64,9 @@ module Async
 		# @parameter parent [Task] the parent task.
 		def initialize(parent = Task.current?, finished: nil, **options, &block)
 			super(parent, **options)
-			
+
+			@propagate_exceptions = options.fetch(:propagate_exceptions, false)
+
 			@status = :initialized
 			@result = nil
 			@finished = finished
@@ -261,7 +263,7 @@ module Async
 				rescue Stop
 					stop!
 				rescue StandardError => error
-					fail!(error, false)
+					fail!(error, @propagate_exceptions)
 				rescue Exception => exception
 					fail!(exception, true)
 				ensure
