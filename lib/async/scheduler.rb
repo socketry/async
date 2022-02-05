@@ -291,7 +291,7 @@ module Async
 				end
 			end
 			
-			yield timer
+			yield timeout
 		ensure
 			timer.cancel if timer
 		end
