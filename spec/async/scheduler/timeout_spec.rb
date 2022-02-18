@@ -1,4 +1,4 @@
-# Copyright, 2020, by Samuel G. D. Williams. <http://www.codeotaku.com>
+# Copyright, 2021, by Samuel G. D. Williams. <http://www.codeotaku.com>
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -18,22 +18,18 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-require_relative 'scheduler'
+require 'async/scheduler'
 
-module Async
-	# A wrapper around the the scheduler which binds it to the current thread automatically.
-	class Reactor < Scheduler
-		# @deprecated Replaced by {Kernel::Async}.
-		def self.run(...)
-			Async(...)
+require 'timeout'
+
+RSpec.describe Async::Scheduler, if: Async::Scheduler.supported? do
+	include_context Async::RSpec::Reactor
+	
+	describe ::Timeout do
+		it "can invoke timeout and receive timeout as block argument" do
+			::Timeout.timeout(1.0) do |duration|
+				expect(duration).to be == 1.0
+			end
 		end
-		
-		def initialize(...)
-			super
-			
-			Fiber.set_scheduler(self)
-		end
-		
-		public :sleep
 	end
 end
