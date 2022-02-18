@@ -1,6 +1,6 @@
 # ![Async](logo.svg)
 
-Async is a composable asynchronous I/O framework for Ruby based on [nio4r](https://github.com/socketry/nio4r) and [timers](https://github.com/socketry/timers).
+Async is a composable asynchronous I/O framework for Ruby based on [io-event](https://github.com/socketry/io-event) and [timers](https://github.com/socketry/timers).
 
 > "Lately I've been looking into `async`, as one of my projects – [tus-ruby-server](https://github.com/janko/tus-ruby-server) – would really benefit from non-blocking I/O. It's really beautifully designed." *– [janko](https://github.com/janko)*
 
