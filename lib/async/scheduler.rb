@@ -282,10 +282,10 @@ module Async
 		
 		# Invoke the block, but after the specified timeout, raise {TimeoutError} in any currenly blocking operation. If the block runs to completion before the timeout occurs or there are no non-blocking operations after the timeout expires, the code will complete without any exception.
 		# @parameter duration [Numeric] The time in seconds, in which the task should complete.
-		def timeout_after(timeout, exception = TimeoutError, message = "execution expired", &block)
+		def with_timeout(duration, exception = TimeoutError, message = "execution expired", &block)
 			fiber = Fiber.current
 			
-			timer = @timers.after(timeout) do
+			timer = @timers.after(duration) do
 				if fiber.alive?
 					fiber.raise(exception, message)
 				end
@@ -294,6 +294,12 @@ module Async
 			yield timer
 		ensure
 			timer.cancel if timer
+		end
+		
+		def timeout_after(duration, exception, message, &block)
+			with_timeout(duration, exception, message) do |timer|
+				yield duration
+			end
 		end
 	end
 end
