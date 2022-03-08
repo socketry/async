@@ -218,7 +218,7 @@ module Async
 		end
 		
 		def description
-			@object_name ||= "#{self.class}:0x#{object_id.to_s(16)}#{@transient ? ' transient' : nil}"
+			@object_name ||= "#{self.class}:#{format '%#018x', object_id}#{@transient ? ' transient' : nil}"
 			
 			if @annotation
 				"#{@object_name} #{@annotation}"
