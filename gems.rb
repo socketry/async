@@ -16,5 +16,3 @@ end
 
 # gem "async-rspec", path: "../async-rspec"
 # gem "rspec-files", path: "../rspec-files"
-
-gem "diffy"
