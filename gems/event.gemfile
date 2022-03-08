@@ -1,4 +1,0 @@
-
-eval_gemfile("../Gemfile")
-
-gem 'event', '~> 1.1'

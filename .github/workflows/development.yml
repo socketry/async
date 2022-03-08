@@ -1,0 +1,44 @@
+name: Development
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    name: ${{matrix.ruby}} on ${{matrix.os}}
+    runs-on: ${{matrix.os}}-latest
+    continue-on-error: ${{matrix.experimental}}
+
+    strategy:
+      matrix:
+        os:
+          - ubuntu
+          - macos
+
+        ruby:
+          - "3.1.1"
+
+        experimental: [false]
+        env: [""]
+
+        include:
+          - os: ubuntu
+            ruby: truffleruby
+            experimental: true
+          - os: ubuntu
+            ruby: jruby
+            env: JRUBY_OPTS="--debug -X+O"
+            experimental: true
+          - os: ubuntu
+            ruby: head
+            experimental: true
+
+    steps:
+    - uses: actions/checkout@v2
+    - uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: ${{matrix.ruby}}
+        bundler-cache: true
+
+    - name: Run tests
+      timeout-minutes: 5
+      run: ${{matrix.env}} bundle exec rspec

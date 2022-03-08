@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Copyright, 2017, by Samuel G. D. Williams. <http://www.codeotaku.com>
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -19,47 +21,57 @@
 # THE SOFTWARE.
 
 require 'fiber'
-require 'forwardable'
 require_relative 'node'
 
 module Async
-	# A synchronization primative, which allows fibers to wait until a particular condition is triggered. Signalling the condition directly resumes the waiting fibers and thus blocks the caller.
+	# A synchronization primitive, which allows fibers to wait until a particular condition is (edge) triggered.
+	# @public Since `stable-v1`.
 	class Condition
 		def initialize
 			@waiting = []
 		end
 		
+		Queue = Struct.new(:fiber) do
+			def transfer(*arguments)
+				fiber&.transfer(*arguments)
+			end
+			
+			def alive?
+				fiber&.alive?
+			end
+			
+			def nullify
+				self.fiber = nil
+			end
+		end
+		
+		private_constant :Queue
+		
 		# Queue up the current fiber and wait on yielding the task.
-		# @return [Object]
+		# @returns [Object]
 		def wait
-			fiber = Fiber.current
-			@waiting << fiber
+			queue = Queue.new(Fiber.current)
+			@waiting << queue
 			
-			Task.yield
-			
-			# It would be nice if there was a better construct for this. We only need to invoke #delete if the task was not resumed normally. This can only occur with `raise` and `throw`. But there is no easy way to detect this.
-		# ensure when not return or ensure when raise, throw
-		rescue Exception
-			@waiting.delete(fiber)
-			raise
+			Fiber.scheduler.transfer
+		ensure
+			queue.nullify
 		end
 		
 		# Is any fiber waiting on this notification?
-		# @return [Boolean]
+		# @returns [Boolean]
 		def empty?
 			@waiting.empty?
 		end
 		
 		# Signal to a given task that it should resume operations.
-		# @param value The value to return to the waiting fibers.
-		# @see Task.yield which is responsible for handling value.
-		# @return [void]
+		# @parameter value [Object | Nil] The value to return to the waiting fibers.
 		def signal(value = nil)
 			waiting = @waiting
 			@waiting = []
 			
 			waiting.each do |fiber|
-				fiber.resume(value) if fiber.alive?
+				Fiber.scheduler.resume(fiber, value) if fiber.alive?
 			end
 			
 			return nil

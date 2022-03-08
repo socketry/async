@@ -1,4 +1,4 @@
-# Copyright, 2017, by Samuel G. D. Williams. <http://www.codeotaku.com>
+# Copyright, 2021, by Samuel G. D. Williams. <http://www.codeotaku.com>
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -18,46 +18,32 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-require 'async'
-require 'async/logger'
-require 'console/capture'
+require 'async/scheduler'
 
-RSpec.describe 'Async.logger' do
-	let(:name) {"nested"}
-	let(:message) {"Talk is cheap. Show me the code."}
+RSpec.describe Async::Scheduler, if: Async::Scheduler.supported? do
+	include_context Async::RSpec::Reactor
 	
-	let(:capture) {Console::Capture.new}
-	let(:logger) {Console::Logger.new(capture, name: name)}
-	
-	it "can use nested logger" do
-		Async(logger: logger) do |task|
-			expect(task.logger).to be == logger
-			logger.warn message
-		end.wait
+	describe ::Kernel do
+		let(:duration) {0.1}
 		
-		expect(capture.events.last).to include({
-			severity: :warn,
-			name: name,
-			subject: message,
-		})
-	end
-	
-	it "can change nested logger" do
-		Async do |parent|
-			parent.async(logger: logger) do |task|
-				expect(task.logger).to be == logger
-				expect(Async.logger).to be == logger
-			end.wait
-		end.wait
-	end
-	
-	it "can use parent logger" do
-		Async(logger: logger) do |parent|
-			child = parent.async{|task| task.yield}
+		it "can sleep for a short duration" do
+			expect(reactor).to receive(:kernel_sleep).with(duration).and_call_original
 			
-			expect(parent.logger).to be == logger
-			expect(child.logger).to be == logger
-			expect(Async.logger).to be == logger
-		end.wait
+			time_taken = Async::Clock.measure do
+				sleep(duration)
+			end
+			
+			expect(time_taken).to be_within(Q).of(duration)
+		end
+		
+		it "can sleep forever" do
+			expect(reactor).to receive(:kernel_sleep).with(no_args).and_call_original
+			
+			sleeping = reactor.async do
+				sleep
+			end
+			
+			sleeping.stop
+		end
 	end
 end

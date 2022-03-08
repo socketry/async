@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Copyright, 2019, by Samuel G. D. Williams. <http://www.codeotaku.com>
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -25,6 +27,12 @@ RSpec.describe Async do
 		it "can run an asynchronous task" do
 			Async do |task|
 				expect(task).to be_a Async::Task
+			end
+		end
+		
+		it "passes options through to initial task" do
+			Async(transient: true) do |task|
+				expect(task).to be_transient
 			end
 		end
 	end

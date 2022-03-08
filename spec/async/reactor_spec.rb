@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Copyright, 2017, by Samuel G. D. Williams. <http://www.codeotaku.com>
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -47,7 +49,7 @@ RSpec.describe Async::Reactor do
 		end
 	end
 	
-	describe '#run_once' do
+	describe '#run' do
 		it "can run the reactor" do
 			# Run the reactor for 1 second:
 			task = subject.async do |task|
@@ -57,24 +59,60 @@ RSpec.describe Async::Reactor do
 			expect(task).to be_running
 			
 			# This will resume the task, and then the reactor will be finished.
-			expect(subject.run_once).to be false
+			subject.run
 			
 			expect(task).to be_finished
 		end
 		
 		it "can run one iteration" do
-			state = nil
-	
+			state = :started
+			
 			subject.async do |task|
-				state = :started
 				task.yield
 				state = :finished
 			end
-	
+			
 			expect(state).to be :started
-	
-			subject.run_once
+			
+			subject.run
+			
 			expect(state).to be :finished
+		end
+	end
+	
+	describe '#print_hierarchy' do
+		it "can print hierarchy" do
+			subject.async do |parent|
+				parent.async do |child|
+					child.yield
+				end
+				
+				output = StringIO.new
+				subject.print_hierarchy(output, backtrace: false)
+				lines = output.string.lines
+				
+				expect(lines[0]).to be =~ /#<Async::Reactor/
+				expect(lines[1]).to be =~ /\t#<Async::Task.*(running)/
+				expect(lines[2]).to be =~ /\t\t#<Async::Task.*(running)/
+			end
+			
+			subject.run
+		end
+		
+		it "can include backtrace", if: Fiber.current.respond_to?(:backtrace) do
+			subject.async do |parent|
+				child = parent.async do |child|
+					child.sleep 1
+				end
+				
+				output = StringIO.new
+				subject.print_hierarchy(output, backtrace: true)
+				lines = output.string.lines
+				
+				expect(lines).to include(/in `sleep'/)
+				
+				child.stop
+			end
 		end
 	end
 	
@@ -82,13 +120,13 @@ RSpec.describe Async::Reactor do
 		it "can stop the reactor" do
 			state = nil
 			
-			subject.async do |task|
+			subject.async(annotation: "sleep(10)") do |task|
 				state = :started
 				task.sleep(10)
 				state = :stopped
 			end
 			
-			subject.async do |task|
+			subject.async(annotation: "reactor.stop") do |task|
 				task.sleep(0.1)
 				task.reactor.stop
 			end
@@ -105,19 +143,24 @@ RSpec.describe Async::Reactor do
 			
 			thread = Thread.new do
 				if events.pop
-					subject.stop
+					sleep 0.2
+					subject.interrupt
 				end
 			end
 			
-			subject.async do |task|
+			subject.async do
 				events << true
+				
+				# Wait to be interrupted:
+				sleep
 			end
 			
 			subject.run
 			
 			thread.join
+			expect(thread).to_not be_alive
 			
-			expect(subject).to be_stopped
+			expect(subject).to_not be_stopped
 		end
 	end
 	

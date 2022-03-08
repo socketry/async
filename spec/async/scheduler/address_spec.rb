@@ -1,4 +1,4 @@
-# Copyright, 2019, by Samuel G. D. Williams. <http://www.codeotaku.com>
+# Copyright, 2021, by Samuel G. D. Williams. <http://www.codeotaku.com>
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -18,14 +18,16 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-require 'async'
+require 'async/scheduler'
 
-RSpec.describe Async do
-	describe '.run' do
-		it "can run an asynchronous task" do
-			Async.run do |task|
-				expect(task).to be_a Async::Task
-			end
+RSpec.describe Async::Scheduler, if: Async::Scheduler.supported? do
+	include_context Async::RSpec::Reactor
+	
+	describe ::Addrinfo do
+		it "can resolve addresses" do
+			addresses = Addrinfo.getaddrinfo("www.google.com", "80")
+			
+			expect(addresses).to_not be_empty
 		end
 	end
 end

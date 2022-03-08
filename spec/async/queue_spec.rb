@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Copyright, 2017, by Samuel G. D. Williams. <http://www.codeotaku.com>
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -49,6 +51,18 @@ RSpec.shared_context Async::Queue do
 		subject.async do |task, item|
 			expect(item).to be 1
 		end
+	end
+	
+	describe '#size' do
+		it 'returns queue size' do
+			expect(subject.size).to be == 0
+			subject.enqueue("Hello World")
+			expect(subject.size).to be == 1
+		end
+	end
+	
+	context 'with an empty queue' do
+		it {is_expected.to be_empty}
 	end
 	
 	context 'with semaphore' do
@@ -107,6 +121,7 @@ RSpec.describe Async::LimitedQueue do
 	it 'should resume waiting tasks in order' do
 		total_resumed = 0
 		total_dequeued = 0
+		
 		Async do |producer|
 			10.times do
 				producer.async do
@@ -115,13 +130,12 @@ RSpec.describe Async::LimitedQueue do
 				end
 			end
 		end
-		Async do |consumer|
-			10.times do
-				subject.dequeue
-				total_dequeued += 1
-
-				expect(total_resumed).to be == total_dequeued
-			end
+		
+		10.times do
+			item = subject.dequeue
+			total_dequeued += 1
+			
+			expect(total_resumed).to be == total_dequeued
 		end
 	end
 end

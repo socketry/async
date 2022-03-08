@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Copyright, 2017, by Samuel G. D. Williams. <http://www.codeotaku.com>
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -19,14 +21,10 @@
 # THE SOFTWARE.
 
 require_relative "async/version"
-require_relative "async/logger"
 require_relative "async/reactor"
 
 require_relative "kernel/async"
+require_relative "kernel/sync"
 
 module Async
-	# Invoke `Reactor.run` with all arguments/block.
-	def self.run(*arguments, &block)
-		Reactor.run(*arguments, &block)
-	end
 end

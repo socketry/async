@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Copyright, 2019, by Samuel G. D. Williams. <http://www.codeotaku.com>
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -18,6 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
+require 'kernel/async'
 require 'kernel/sync'
 
 RSpec.describe Kernel do
@@ -25,8 +28,9 @@ RSpec.describe Kernel do
 		let(:value) {10}
 		
 		it "can run a synchronous task" do
-			result = Sync do
+			result = Sync do |task|
 				expect(Async::Task.current).to_not be nil
+				expect(Async::Task.current).to be task
 				
 				next value
 			end
@@ -36,14 +40,25 @@ RSpec.describe Kernel do
 		
 		it "can run inside reactor" do
 			Async do |task|
-				result = Sync do
+				result = Sync do |sync_task|
 					expect(Async::Task.current).to be task
+					expect(sync_task).to be task
 					
 					next value
 				end
 				
 				expect(result).to be == value
 			end
+		end
+		
+		it "can propagate error without logging them" do
+			expect(Console.logger).to_not receive(:error)
+			
+			expect do
+				Sync do
+					raise StandardError, "brain not provided"
+				end
+			end.to raise_exception(StandardError, /brain/)
 		end
 	end
 end

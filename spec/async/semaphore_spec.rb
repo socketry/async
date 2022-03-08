@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Copyright, 2018, by Samuel G. D. Williams. <http://www.codeotaku.com>
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -44,7 +46,7 @@ RSpec.describe Async::Semaphore do
 					
 					i
 				end
-			end.collect(&:result)
+			end.collect(&:wait)
 			
 			# Verify that the maximum number of concurrent tasks was the specificed limit:
 			expect(maximum).to be == limit
@@ -63,7 +65,7 @@ RSpec.describe Async::Semaphore do
 					task.sleep(0.1)
 					order << i
 				end
-			end.collect(&:result)
+			end.collect(&:wait)
 			
 			expect(order).to be == [0, 0, 1, 1, 2, 2]
 		end
@@ -78,7 +80,7 @@ RSpec.describe Async::Semaphore do
 					task.sleep(0.1)
 					order << i
 				end
-			end.collect(&:result)
+			end.collect(&:wait)
 			
 			expect(order).to be == [0, 1, 2, 0, 1, 2]
 		end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Copyright, 2017, by Samuel G. D. Williams. <http://www.codeotaku.com>
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -22,6 +24,7 @@ require_relative 'notification'
 
 module Async
 	# A queue which allows items to be processed in order.
+	# @public Since `stable-v1`.
 	class Queue < Notification
 		def initialize(parent: nil)
 			super()
@@ -32,13 +35,23 @@ module Async
 		
 		attr :items
 		
-		def enqueue item
+		def size
+			@items.size
+		end
+
+		def empty?
+			@items.empty?
+		end
+		
+		def enqueue(item)
 			@items.push(item)
 			
 			self.signal unless self.empty?
 		end
 		
-		alias << enqueue
+		def <<(item)
+			enqueue(item)
+		end
 		
 		def dequeue
 			while @items.empty?
@@ -61,6 +74,7 @@ module Async
 		end
 	end
 	
+	# @public Since `stable-v1`.
 	class LimitedQueue < Queue
 		def initialize(limit = 1, **options)
 			super(**options)
@@ -72,7 +86,7 @@ module Async
 		
 		attr :limit
 		
-		# @return [Boolean] Whether trying to enqueue an item would block.
+		# @returns [Boolean] Whether trying to enqueue an item would block.
 		def limited?
 			@items.size >= @limit
 		end

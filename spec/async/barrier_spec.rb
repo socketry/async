@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Copyright, 2019, by Samuel G. D. Williams. <http://www.codeotaku.com>
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -21,7 +23,6 @@
 require 'async/barrier'
 require 'async/clock'
 require 'async/rspec'
-
 require 'async/semaphore'
 
 require_relative 'chainable_async_examples'
@@ -29,7 +30,7 @@ require_relative 'chainable_async_examples'
 RSpec.describe Async::Barrier do
 	include_context Async::RSpec::Reactor
 	
-	context '#async' do
+	describe '#async' do
 		let(:repeats) {40}
 		let(:delay) {0.1}
 		
@@ -53,13 +54,13 @@ RSpec.describe Async::Barrier do
 			
 			duration = Async::Clock.measure{subject.wait}
 			
-			expect(duration).to be < (delay * 2)
+			expect(duration).to be < (delay * 2 * Q)
 			expect(finished).to be == repeats
 			expect(subject).to be_empty
 		end
 	end
 	
-	context '#wait' do
+	describe '#wait' do
 		it 'should wait for tasks even after exceptions' do
 			task1 = subject.async do
 				raise "Boom"
@@ -90,6 +91,70 @@ RSpec.describe Async::Barrier do
 			subject.wait
 			
 			expect(order).to be == [0, 1, 2, 3, 4]
+		end
+	end
+	
+	describe '#stop' do
+		it "can stop several tasks" do
+			task1 = subject.async do |task|
+				task.sleep(10)
+			end
+			
+			task2 = subject.async do |task|
+				task.sleep(10)
+			end
+			
+			subject.stop
+			
+			expect(task1).to be_stopped
+			expect(task2).to be_stopped
+		end
+		
+		it "can stop several tasks when waiting on barrier" do
+			task1 = subject.async do |task|
+				task.sleep(10)
+			end
+			
+			task2 = subject.async do |task|
+				task.sleep(10)
+			end
+			
+			task3 = reactor.async do
+				subject.wait
+			end
+			
+			subject.stop
+			
+			task1.wait
+			task2.wait
+			
+			expect(task1).to be_stopped
+			expect(task2).to be_stopped
+			
+			task3.wait
+		end
+		
+		it "several tasks can wait on the same barrier" do
+			task1 = subject.async do |task|
+				task.sleep(10)
+			end
+			
+			task2 = reactor.async do |task|
+				subject.wait
+			end
+			
+			task3 = reactor.async do
+				subject.wait
+			end
+			
+			subject.stop
+			
+			task1.wait
+			
+			expect(task1).to be_stopped
+			
+			task2.wait
+			task3.wait
 		end
 	end
 	

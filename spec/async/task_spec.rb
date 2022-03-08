@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Copyright, 2017, by Samuel G. D. Williams. <http://www.codeotaku.com>
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -20,6 +22,7 @@
 
 require 'async'
 require 'async/clock'
+require 'async/queue'
 
 RSpec.describe Async::Task do
 	let(:reactor) {Async::Reactor.new}
@@ -46,33 +49,46 @@ RSpec.describe Async::Task do
 	
 	describe '#async' do
 		it "can start child async tasks" do
-			child = nil
-			
 			parent = reactor.async do |task|
 				child = task.async do
 					task.sleep(1)
 				end
+				
+				expect(child).to_not be_nil
+				expect(child.parent).to_not be_nil
 			end
 			
 			expect(parent).to_not be_nil
-			expect(child).to_not be_nil
-			expect(child.parent).to be parent
+			
+			reactor.run
 		end
 		
 		it "can pass in arguments" do
 			reactor.async do |task|
 				task.async(:arg) do |task, arg|
 					expect(arg).to be == :arg
-				end.wait
-			end.wait
+				end
+			end
+			
+			reactor.run
+		end
+		
+		it "can set initial annotation" do
+			reactor.async(annotation: "Hello World") do |task|
+				expect(task.annotation).to be == "Hello World"
+			end
+			
+			reactor.run
 		end
 		
 		it "can raise exceptions" do
-			expect do
-				reactor.async do |task|
-					raise "boom"
-				end.wait
-			end.to raise_exception RuntimeError, /boom/
+			reactor.run do
+				expect do
+					reactor.async do |task|
+						raise "boom"
+					end.wait
+				end.to raise_exception RuntimeError, /boom/
+			end
 		end
 		
 		it "can raise exception after asynchronous operation" do
@@ -102,15 +118,19 @@ RSpec.describe Async::Task do
 				end
 			end.to_not raise_exception
 			
-			expect do
-				task.wait
-			end.to raise_exception RuntimeError, /boom/
+			reactor.run do
+				expect do
+					task.wait
+				end.to raise_exception RuntimeError, /boom/
+			end
 		end
 		
 		it "won't consume non-StandardError exceptions" do
 			expect do
-				reactor.async do |task|
-					raise SignalException.new(:TERM)
+				reactor.run do
+					reactor.async do |task|
+						raise SignalException.new(:TERM)
+					end
 				end
 			end.to raise_exception(SignalException, /TERM/)
 		end
@@ -136,113 +156,131 @@ RSpec.describe Async::Task do
 		it "can be stopped" do
 			state = nil
 			
-			task = reactor.async do |task|
-				state = :started
-				task.sleep(10)
-				state = :finished
+			reactor.run do
+				task = reactor.async do |task|
+					state = :started
+					task.sleep(10)
+					state = :finished
+				end
+				
+				task.stop
+				
+				expect(task).to be_stopped
 			end
 			
-			task.stop
-			
 			expect(state).to be == :started
-			expect(task).to be_stopped
 		end
 		
 		it "can stop nested tasks with exception handling" do
-			task = reactor.async do |task|
-				child = task.async do |subtask|
-					subtask.sleep(1)
+			reactor.run do
+				task = reactor.async do |task|
+					child = task.async do |subtask|
+						subtask.sleep(1)
+					end
+					
+					begin
+						child.wait
+					ensure
+						child.stop
+					end
 				end
 				
-				begin
-					child.wait
-				ensure
-					child.stop
-				end
+				subtask = task.children.first
+				task.stop
+				
+				expect(task.status).to be :stopped
+				expect(subtask.status).to be :stopped
 			end
-			
-			subtask = task.children.first
-			task.stop
-			
-			expect(task.status).to be :stopped
-			expect(subtask.status).to be :stopped
 		end
 		
 		it "can stop current task" do
 			state = nil
 			
-			task = reactor.async do |task|
-				state = :started
-				task.stop
-				state = :finished
+			reactor.run do
+				task = reactor.async do |task|
+					state = :started
+					task.stop
+					state = :finished
+				end
+				
+				expect(state).to be == :started
+				expect(task).to be_stopped
 			end
-			
-			expect(state).to be == :started
-			expect(task).to be_stopped
 		end
 		
 		it "can stop current task using exception" do
 			state = nil
 			
-			task = reactor.async do |task|
-				state = :started
-				raise Async::Stop, "I'm finished."
-				state = :finished
+			reactor.run do
+				task = reactor.async do |task|
+					state = :started
+					raise Async::Stop, "I'm finished."
+					state = :finished
+				end
+				
+				expect(task).to be_stopped
 			end
 			
 			expect(state).to be == :started
-			expect(task).to be_stopped
 		end
 		
 		it "should stop direct child" do
 			parent_task = child_task = nil
 			
-			reactor.async do |task|
-				parent_task = task
+			reactor.run do
 				reactor.async do |task|
-					child_task = task
+					parent_task = task
+					
+					task.async do |task|
+						child_task = task
+						
+						task.sleep(10)
+					end
+					
 					task.sleep(10)
 				end
-				task.sleep(10)
+				
+				expect(parent_task).to_not be_nil
+				expect(child_task).to_not be_nil
+				
+				expect(parent_task.fiber).to be_alive
+				expect(child_task.fiber).to be_alive
+				
+				parent_task.stop
+				
+				# We need to yield here to allow the tasks to be terminated. The parent task raises an exception in the child task and adds itself to the selector ready queue. It takes at least one iteration for the parent task to exit as well:
+				reactor.yield
+				
+				expect(parent_task).to_not be_alive
+				expect(child_task).to_not be_alive
 			end
-			
-			expect(parent_task).to_not be_nil
-			expect(child_task).to_not be_nil
-			
-			expect(parent_task.fiber).to be_alive
-			expect(child_task.fiber).to be_alive
-			
-			parent_task.stop
-			
-			expect(parent_task).to_not be_alive
-			expect(child_task).to_not be_alive
 		end
 		
 		it "can stop nested parent" do
 			parent_task = nil
 			children_tasks = []
 			
-			reactor.async do |task|
-				parent_task = task
-				
+			reactor.run do
 				reactor.async do |task|
-					children_tasks << task
-					task.sleep(2)
-				end
-				
-				reactor.async do |task|
-					children_tasks << task
-					task.sleep(1)
-					parent_task.stop
-				end
-				
-				reactor.async do |task|
-					children_tasks << task
-					task.sleep(2)
+					parent_task = task
+					
+					task.async do |task|
+						children_tasks << task
+						task.sleep(2)
+					end
+					
+					task.async do |task|
+						children_tasks << task
+						task.sleep(1)
+						parent_task.stop
+					end
+					
+					task.async do |task|
+						children_tasks << task
+						task.sleep(2)
+					end
 				end
 			end
-			
-			reactor.run
 			
 			expect(parent_task).to_not be_alive
 		end
@@ -250,27 +288,43 @@ RSpec.describe Async::Task do
 		it "should not remove running task" do
 			top_task = middle_task = bottom_task = nil
 			
-			top_task = reactor.async do |task|
-				middle_task = reactor.async do |task|
-					bottom_task = reactor.async do |task|
+			reactor.run do
+				ready = Async::Queue.new
+				
+				reactor.async do |task|
+					top_task = task
+					
+					top_task.async do |task|
+						middle_task = task
+						
+						middle_task.async do |task|
+							bottom_task = task
+							
+							ready.enqueue(true)
+							
+							task.sleep(10)
+						end
 						task.sleep(10)
 					end
 					task.sleep(10)
 				end
-				task.sleep(10)
+				
+				ready.dequeue
+				
+				bottom_task.stop
+				expect(top_task.children).to include(middle_task)
+				
+				top_task.stop
 			end
-			
-			bottom_task.stop
-			expect(top_task.children).to include(middle_task)
 		end
 		
 		it "can stop resumed task" do
 			items = [1, 2, 3]
 			
-			Async do
+			reactor.run do
 				condition = Async::Condition.new
 				
-				producer = Async do |subtask|
+				producer = reactor.async do |subtask|
 					while item = items.pop
 						subtask.yield # (1) Fiber.yield, (3) Reactor -> producer.resume
 						condition.signal(item) # (4) consumer.resume(value)
@@ -282,7 +336,7 @@ RSpec.describe Async::Task do
 				producer.stop # (5) [producer is resumed already] producer.stop
 			end
 			
-			expect(items).to be == [1]
+			expect(items).to be == [1, 2]
 		end
 	end
 	
@@ -314,11 +368,11 @@ RSpec.describe Async::Task do
 				task.with_timeout(0.2) do |timer|
 					task.sleep(0.1)
 					
-					expect(timer.fires_in).to be_within(10).percent_of(0.1)
+					expect(timer.fires_in).to be_within(10 * Q).percent_of(0.1)
 					
 					timer.reset
 					
-					expect(timer.fires_in).to be_within(10).percent_of(0.2)
+					expect(timer.fires_in).to be_within(10 * Q).percent_of(0.2)
 				end
 			end
 			
@@ -376,9 +430,30 @@ RSpec.describe Async::Task do
 			
 			expect{task.wait}.to raise_error(Async::TimeoutError)
 			
-			# TODO replace this with task.result
-			task.wait rescue error = $!
+			error = task.result
 			expect(error.backtrace).to include(/sleep_forever/)
+		end
+	end
+	
+	describe '#backtrace', if: Fiber.current.respond_to?(:backtrace) do
+		it "has a backtrace" do
+			Async do
+				task = Async do |task|
+					task.sleep(1)
+				end
+				
+				expect(task.backtrace).to include(/sleep/)
+				
+				task.stop
+			end
+		end
+		
+		context "finished task" do
+			it "has no backtrace" do
+				task = Async{}
+				
+				expect(task.backtrace).to be_nil
+			end
 		end
 	end
 	
@@ -408,17 +483,19 @@ RSpec.describe Async::Task do
 		it "will raise exceptions when checking result" do
 			error_task = nil
 			
-			error_task = reactor.async do |task|
-				raise RuntimeError, "brain not provided"
+			reactor.run do
+				error_task = reactor.async do |task|
+					raise RuntimeError, "brain not provided"
+				end
+				
+				expect do
+					error_task.wait
+				end.to raise_exception(RuntimeError, /brain/)
 			end
-			
-			expect do
-				error_task.wait
-			end.to raise_exception(RuntimeError, /brain/)
 		end
 		
 		it "will propagate exceptions after async operation" do
-			error_task = nil
+			error_task = innocent_task = nil
 			
 			error_task = reactor.async do |task|
 				task.sleep(0.1)
@@ -439,6 +516,40 @@ RSpec.describe Async::Task do
 		end
 	end
 	
+	describe '#result' do
+		it 'does not raise exception' do
+			reactor.async do
+				task = reactor.async do
+					raise "The space time converter has failed."
+				end
+				
+				expect(task.result).to be_kind_of(RuntimeError)
+			end
+		end
+		
+		it 'does not wait for task completion' do
+			reactor.async do
+				task = reactor.async do |task|
+					task.sleep(1)
+				end
+				
+				expect(task.result).to be_nil
+				
+				task.stop
+			end
+		end
+	end
+	
+	describe '#children' do
+		it "enumerates children in same order they are created" do
+			tasks = 10.times.map do |i|
+				reactor.async(annotation: "Task #{i}") {|task| task.sleep(1)}
+			end
+			
+			expect(reactor.children.each.to_a).to be == tasks
+		end
+	end
+	
 	describe '#to_s' do
 		it "should show running" do
 			apples_task = reactor.async do |task|
@@ -449,10 +560,12 @@ RSpec.describe Async::Task do
 		end
 		
 		it "should show complete" do
-			apples_task = reactor.async do |task|
+			reactor.run do
+				apples_task = reactor.async do |task|
+				end
+				
+				expect(apples_task.to_s).to include "complete"
 			end
-			
-			expect(apples_task.to_s).to include "complete"
 		end
 	end
 end

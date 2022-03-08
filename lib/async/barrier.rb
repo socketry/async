@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Copyright, 2019, by Samuel G. D. Williams. <http://www.codeotaku.com>
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -21,8 +23,12 @@
 require_relative 'task'
 
 module Async
-	# A semaphore is used to control access to a common resource in a concurrent system. A useful way to think of a semaphore as used in the real-world systems is as a record of how many units of a particular resource are available, coupled with operations to adjust that record safely (i.e. to avoid race conditions) as units are required or become free, and, if necessary, wait until a unit of the resource becomes available.
+	# A synchronization primitive, which allows one task to wait for a number of other tasks to complete. It can be used in conjunction with {Semaphore}.
+	# @public Since `stable-v1`.
 	class Barrier
+		# Initialize the barrier.
+		# @parameter parent [Task | Semaphore | Nil] The parent for holding any children tasks.
+		# @public Since `stable-v1`.
 		def initialize(parent: nil)
 			@tasks = []
 			
@@ -32,10 +38,13 @@ module Async
 		# All tasks which have been invoked into the barrier.
 		attr :tasks
 		
+		# The number of tasks currently held by the barrier.
 		def size
 			@tasks.size
 		end
 		
+		# Execute a child task and add it to the barrier.
+		# @asynchronous Executes the given block concurrently.
 		def async(*arguments, parent: (@parent or Task.current), **options, &block)
 			task = parent.async(*arguments, **options, &block)
 			
@@ -44,15 +53,34 @@ module Async
 			return task
 		end
 		
+		# Whether there are any tasks being held by the barrier.
+		# @returns [Boolean]
 		def empty?
 			@tasks.empty?
 		end
 		
-		# Wait for tasks in FIFO order.
+		# Wait for all tasks.
+		# @asynchronous Will wait for tasks to finish executing.
 		def wait
-			while task = @tasks.shift
-				task.wait
+			# TODO: This would be better with linked list.
+			while @tasks.any?
+				task = @tasks.first
+				
+				begin
+					task.wait
+				ensure
+					# Remove the task from the waiting list if it's finished:
+					@tasks.shift if @tasks.first == task
+				end
 			end
+		end
+		
+		# Stop all tasks held by the barrier.
+		# @asynchronous May wait for tasks to finish executing.
+		def stop
+			# We have to be careful to avoid enumerating tasks while adding/removing to it:
+			tasks = @tasks.dup
+			tasks.each(&:stop)
 		end
 	end
 end

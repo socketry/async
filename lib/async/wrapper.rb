@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Copyright, 2017, by Samuel G. D. Williams. <http://www.codeotaku.com>
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -18,220 +20,60 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-require 'nio'
-
 module Async
 	# Represents an asynchronous IO within a reactor.
+	# @deprecated With no replacement. Prefer native interfaces.
 	class Wrapper
+		# An exception that occurs when the asynchronous operation was cancelled.
 		class Cancelled < StandardError
-			class From
-				def initialize
-					@backtrace = caller[5..-1]
-				end
-				
-				attr :backtrace
-				
-				def cause
-					nil
-				end
-				
-				def message
-					"Cancelled"
-				end
-			end
-			
-			def initialize
-				super "The operation has been cancelled!"
-				
-				@cause = From.new
-			end
-			
-			attr :cause
 		end
 		
-		# wait_readable, wait_writable and wait_any are not re-entrant, and will raise this failure.
-		class WaitError < StandardError
-			def initialize
-				super "A fiber is already waiting!"
-			end
-		end
-		
-		# @param io the native object to wrap.
-		# @param reactor [Reactor] the reactor that is managing this wrapper, or not specified, it's looked up by way of {Task.current}.
+		# @parameter io the native object to wrap.
+		# @parameter reactor [Reactor] the reactor that is managing this wrapper, or not specified, it's looked up by way of {Task.current}.
 		def initialize(io, reactor = nil)
 			@io = io
-			
 			@reactor = reactor
-			@monitor = nil
 			
-			@readable = nil
-			@writable = nil
-			@any = nil
+			@timeout = nil
 		end
+		
+		attr_accessor :reactor
 		
 		def dup
-			self.class.new(@io.dup, @reactor)
-		end
-		
-		def resume(*arguments)
-			# It's possible that the monitor was closed before calling resume.
-			return unless @monitor
-			
-			readiness = @monitor.readiness
-			
-			if @readable and (readiness == :r or readiness == :rw)
-				@readable.resume(*arguments)
-			end
-			
-			if @writable and (readiness == :w or readiness == :rw)
-				@writable.resume(*arguments)
-			end
-			
-			if @any
-				@any.resume(*arguments)
-			end
+			self.class.new(@io.dup)
 		end
 		
 		# The underlying native `io`.
 		attr :io
 		
-		# The reactor this wrapper is associated with, if any.
-		attr :reactor
-		
-		# The monitor for this wrapper, if any.
-		attr :monitor
-		
-		# Bind this wrapper to a different reactor. Assign nil to convert to an unbound wrapper (can be used from any reactor/task but with slightly increased overhead.)
-		# Binding to a reactor is purely a performance consideration. Generally, I don't like APIs that exist only due to optimisations. This is borderline, so consider this functionality semi-private.
-		def reactor= reactor
-			return if @reactor.equal?(reactor)
-			
-			cancel_monitor
-			
-			@reactor = reactor
-		end
-		
 		# Wait for the io to become readable.
-		def wait_readable(timeout = nil)
-			raise WaitError if @readable
-			
-			self.reactor = Task.current.reactor
-			
-			begin
-				@readable = Fiber.current
-				wait_for(timeout)
-			ensure
-				@readable = nil
-				@monitor.interests = interests if @monitor
-			end
+		def wait_readable(timeout = @timeout)
+			@io.to_io.wait_readable(timeout) or raise TimeoutError
 		end
 		
 		# Wait for the io to become writable.
-		def wait_writable(timeout = nil)
-			raise WaitError if @writable
-			
-			self.reactor = Task.current.reactor
-			
-			begin
-				@writable = Fiber.current
-				wait_for(timeout)
-			ensure
-				@writable = nil
-				@monitor.interests = interests if @monitor
-			end
+		def wait_priority(timeout = @timeout)
+			@io.to_io.wait_priority(timeout) or raise TimeoutError
+		end
+		
+		# Wait for the io to become writable.
+		def wait_writable(timeout = @timeout)
+			@io.to_io.wait_writable(timeout) or raise TimeoutError
 		end
 		
 		# Wait fo the io to become either readable or writable.
-		# @param duration [Float] timeout after the given duration if not `nil`.
-		def wait_any(timeout = nil)
-			raise WaitError if @any
-			
-			self.reactor = Task.current.reactor
-			
-			begin
-				@any = Fiber.current
-				wait_for(timeout)
-			ensure
-				@any = nil
-				@monitor.interests = interests if @monitor
-			end
+		# @parameter duration [Float] timeout after the given duration if not `nil`.
+		def wait_any(timeout = @timeout)
+			@io.wait_any(timeout) or raise TimeoutError
 		end
 		
 		# Close the io and monitor.
 		def close
-			cancel_monitor
-			
 			@io.close
 		end
 		
 		def closed?
 			@io.closed?
-		end
-		
-		private
-		
-		# What an abomination.
-		def interests
-			if @any
-				return :rw
-			elsif @readable
-				if @writable
-					return :rw
-				else
-					return :r
-				end
-			elsif @writable
-				return :w
-			end
-			
-			return nil
-		end
-		
-		def cancel_monitor
-			if @readable
-				readable = @readable
-				@readable = nil
-				
-				readable.resume(Cancelled.new)
-			end
-			
-			if @writable
-				writable = @writable
-				@writable = nil
-				
-				writable.resume(Cancelled.new)
-			end
-			
-			if @any
-				any = @any
-				@any = nil
-				
-				any.resume(Cancelled.new)
-			end
-			
-			if @monitor
-				@monitor.close
-				@monitor = nil
-			end
-		end
-		
-		def wait_for(timeout)
-			if @monitor
-				@monitor.interests = interests
-			else
-				@monitor = @reactor.register(@io, interests, self)
-			end
-			
-			# If the user requested an explicit timeout for this operation:
-			if timeout
-				@reactor.with_timeout(timeout) do
-					Task.yield
-				end
-			else
-				Task.yield
-			end
-			
-			return true
 		end
 	end
 end

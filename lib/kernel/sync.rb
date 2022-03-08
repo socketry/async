@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Copyright, 2017, by Samuel G. D. Williams. <http://www.codeotaku.com>
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -20,13 +22,26 @@
 
 require_relative "../async/reactor"
 
+# Extensions to all Ruby objects.
 module Kernel
 	# Run the given block of code synchronously, but within a reactor if not already in one.
+	#
+	# @yields {|task| ...} The block that will execute asynchronously.
+	# 	@parameter task [Async::Task] The task that is executing the given block.
+	#
+	# @public Since `stable-v1`.
+	# @asynchronous Will block until given block completes executing.
 	def Sync(&block)
 		if task = ::Async::Task.current?
-			yield
+			yield task
 		else
-			::Async::Reactor.run(&block).wait
+			reactor = Async::Reactor.new
+			
+			begin
+				return reactor.run(finished: ::Async::Condition.new, &block).wait
+			ensure
+				Fiber.set_scheduler(nil)
+			end
 		end
 	end
 end

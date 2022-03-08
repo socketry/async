@@ -1,4 +1,4 @@
-# Copyright, 2018, by Samuel G. D. Williams. <http://www.codeotaku.com>
+# Copyright, 2021, by Samuel G. D. Williams. <http://www.codeotaku.com>
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -18,30 +18,37 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-module Async
-	module Debug
-		class Monitor
-			def initialize(monitor, selector)
-				@monitor = monitor
-				@selector = selector
+require 'async/scheduler'
+
+RSpec.describe Async::Scheduler, if: Async::Scheduler.supported? do
+	include_context Async::RSpec::Reactor
+	
+	describe ::ConditionVariable do
+		let(:mutex) {Mutex.new}
+		let(:condition) {ConditionVariable.new}
+		let(:timeout) {5.0}
+		
+		it "can signal between tasks" do
+			time_taken = nil
+			
+			waiter = reactor.async do
+				mutex.synchronize do
+					time_taken = Async::Clock.measure do
+						condition.wait(mutex, timeout)
+					end
+				end
 			end
 			
-			def close
-				@selector.deregister(@monitor.io)
-				@monitor.close
+			signaller = reactor.async do
+				mutex.synchronize do
+					condition.signal
+				end
 			end
 			
-			def method_missing(*arguments, &block)
-				@monitor.send(*arguments)
-			end
+			signaller.wait
+			waiter.wait
 			
-			def respond_to?(*arguments)
-				@monitor.respond_to?(*arguments)
-			end
-			
-			def inspect
-				"\#<#{self.class} io=#{@monitor.io.inspect} interests=#{@monitor.interests.inspect} readiness=#{@monitor.readiness.inspect}>"
-			end
+			expect(time_taken).to be < timeout
 		end
 	end
 end

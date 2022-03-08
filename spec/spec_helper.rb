@@ -1,5 +1,15 @@
+# frozen_string_literal: true
 
-require "covered/rspec"
+require 'async/rspec'
+require 'covered/rspec'
+
+require 'console'
+
+if RUBY_PLATFORM =~ /darwin/
+	Q = 20
+else
+	Q = 1
+end
 
 RSpec.configure do |config|
 	# Enable flags like --only-failures and --next-failure
