@@ -5,6 +5,9 @@ on:
     branches:
       - main
 
+env:
+  BUNDLE_WITH: maintenance
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -12,10 +15,8 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - uses: ruby/setup-ruby@v1
-      env:
-        BUNDLE_WITH: maintenance
       with:
-        ruby-version: ruby-head
+        ruby-version: 3.1
         bundler-cache: true
     
     - name: Installing packages
