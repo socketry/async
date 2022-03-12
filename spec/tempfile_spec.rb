@@ -24,7 +24,7 @@ require 'tempfile'
 
 RSpec.describe Tempfile do
 	it "should be able to read and write" do
-		Async do
+		Sync do
 			1_000_000.times{subject.write("Hello World!")}
 			subject.flush
 

@@ -14,5 +14,7 @@ group :maintenance, optional: true do
 	gem "utopia-project"
 end
 
+gem "io-event", git: "https://github.com/socketry/io-event", branch: "debug"
+
 # gem "async-rspec", path: "../async-rspec"
 # gem "rspec-files", path: "../rspec-files"
