@@ -11,7 +11,7 @@ group :maintenance, optional: true do
 	gem "bake-gem"
 	gem "bake-modernize"
 	
-	gem "utopia-project"#, path: '../utopia-project'
+	gem "utopia-project"
 end
 
 # gem "async-rspec", path: "../async-rspec"
