@@ -65,6 +65,18 @@ RSpec.describe Async::Scheduler do
 		end
 	end
 	
+	describe 'Kernel#`' do
+		it "can execute child process and capture output" do
+			expect(`echo OK`).to be == "OK\n"
+			expect($?).to be_success
+		end
+		
+		it "can execute child process with delay and capture output" do
+			expect(`sleep 1; echo OK`).to be == "OK\n"
+			expect($?).to be_success
+		end
+	end
+	
 	describe 'IO.pipe' do
 		let(:message) {"Helloooooo World!"}
 		
