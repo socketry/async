@@ -26,10 +26,10 @@ module Async
 	# A queue which allows items to be processed in order.
 	# @public Since `stable-v1`.
 	class Queue < Notification
-		def initialize(parent: nil, queue: [])
+		def initialize(parent: nil, items: [])
 			super()
 			
-			@items = queue
+			@items = items
 			@parent = parent
 		end
 		

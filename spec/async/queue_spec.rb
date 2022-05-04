@@ -110,7 +110,7 @@ RSpec.shared_context Async::Queue do
 	end
 	
 	context 'with a custom queue' do
-		let(:lifo_queue_class) do
+		let(:lifo_items_class) do
 			Class.new do
 				def initialize
 					@items = []
@@ -134,7 +134,7 @@ RSpec.shared_context Async::Queue do
 			end
 		end
 		
-		subject { described_class.new(queue: lifo_queue_class.new) }
+		subject {described_class.new(items: lifo_items_class.new)}
 		
 		it 'uses passed queue' do
 			Async do
