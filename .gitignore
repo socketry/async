@@ -9,6 +9,7 @@
 /pkg/
 /spec/reports/
 /tmp/
+/external/
 
 .rspec_status
 .covered.db

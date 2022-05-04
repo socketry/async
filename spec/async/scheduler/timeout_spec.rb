@@ -1,6 +1,4 @@
-# frozen_string_literal: true
-
-# Copyright, 2019, by Samuel G. D. Williams. <http://www.codeotaku.com>
+# Copyright, 2021, by Samuel G. D. Williams. <http://www.codeotaku.com>
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -20,53 +18,18 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-require 'benchmark/ips'
-require 'async'
+require 'async/scheduler'
 
-RSpec.describe Async::Wrapper do
-	let(:pipe) {IO.pipe}
+require 'timeout'
+
+RSpec.describe Async::Scheduler, if: Async::Scheduler.supported? do
+	include_context Async::RSpec::Reactor
 	
-	after do
-		pipe.each(&:close)
-	end
-	
-	let(:input) {described_class.new(pipe.first)}
-	let(:output) {described_class.new(pipe.last)}
-	
-	it "should be fast to wait until readable" do
-		Benchmark.ips do |x|
-			x.report('Wrapper#wait_readable') do |repeats|
-				Async do |task|
-					input = Async::Wrapper.new(pipe.first, task.reactor)
-					output = pipe.last
-					
-					repeats.times do
-						output.write(".")
-						input.wait_readable
-						input.io.read(1)
-					end
-					
-					input.reactor = nil
-				end
+	describe ::Timeout do
+		it "can invoke timeout and receive timeout as block argument" do
+			::Timeout.timeout(1.0) do |duration|
+				expect(duration).to be == 1.0
 			end
-			
-			x.report('Reactor#register') do |repeats|
-				Async do |task|
-					input = pipe.first
-					monitor = task.reactor.register(input, :r)
-					output = pipe.last
-					
-					repeats.times do
-						output.write(".")
-						Async::Task.yield
-						input.read(1)
-					end
-					
-					monitor.close
-				end
-			end
-			
-			x.compare!
 		end
 	end
 end

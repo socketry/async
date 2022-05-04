@@ -24,6 +24,7 @@ require_relative 'notification'
 
 module Async
 	# A queue which allows items to be processed in order.
+	# @public Since `stable-v1`.
 	class Queue < Notification
 		def initialize(parent: nil, queue: [])
 			super()
@@ -34,17 +35,25 @@ module Async
 		
 		attr :items
 		
+		def size
+			@items.size
+		end
+
 		def empty?
 			@items.empty?
 		end
 		
-		def enqueue(item)
-			@items.push(item)
+		def <<(item)
+			@items << item
 			
 			self.signal unless self.empty?
 		end
 		
-		alias << enqueue
+		def enqueue(*items)
+			@items.concat(items)
+			
+			self.signal unless self.empty?
+		end
 		
 		def dequeue
 			while @items.empty?
@@ -67,6 +76,7 @@ module Async
 		end
 	end
 	
+	# @public Since `stable-v1`.
 	class LimitedQueue < Queue
 		def initialize(limit = 1, **options)
 			super(**options)
@@ -78,17 +88,30 @@ module Async
 		
 		attr :limit
 		
-		# @return [Boolean] Whether trying to enqueue an item would block.
+		# @returns [Boolean] Whether trying to enqueue an item would block.
 		def limited?
 			@items.size >= @limit
 		end
 		
-		def enqueue item
+		def <<(item)
 			while limited?
 				@full.wait
 			end
 			
 			super
+		end
+		
+		def enqueue *items
+			while !items.empty?
+				while limited?
+					@full.wait
+				end
+				
+				available = @limit - @items.size
+				@items.concat(items.shift(available))
+				
+				self.signal unless self.empty?
+			end
 		end
 		
 		def dequeue

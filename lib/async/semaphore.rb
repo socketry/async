@@ -21,8 +21,11 @@
 # THE SOFTWARE.
 
 module Async
-	# A semaphore is used to control access to a common resource in a concurrent system. A useful way to think of a semaphore as used in the real-world systems is as a record of how many units of a particular resource are available, coupled with operations to adjust that record safely (i.e. to avoid race conditions) as units are required or become free, and, if necessary, wait until a unit of the resource becomes available.
+	# A synchronization primitive, which limits access to a given resource.
+	# @public Since `stable-v1`.
 	class Semaphore
+		# @parameter limit [Integer] The maximum number of times the semaphore can be acquired before it blocks.
+		# @parameter parent [Task | Semaphore | Nil] The parent for holding any children tasks.
 		def initialize(limit = 1, parent: nil)
 			@count = 0
 			@limit = limit
@@ -67,8 +70,8 @@ module Async
 		
 		# Acquire the semaphore, block if we are at the limit.
 		# If no block is provided, you must call release manually.
-		# @yield when the semaphore can be acquired
-		# @return the result of the block if invoked
+		# @yields {...} When the semaphore can be acquired.
+		# @returns The result of the block if invoked.
 		def acquire
 			wait
 			
@@ -89,7 +92,7 @@ module Async
 			
 			while (@limit - @count) > 0 and fiber = @waiting.shift
 				if fiber.alive?
-					fiber.resume
+					Fiber.scheduler.resume(fiber)
 				end
 			end
 		end
@@ -102,7 +105,7 @@ module Async
 			
 			if blocking?
 				@waiting << fiber
-				Task.yield while blocking?
+				Fiber.scheduler.transfer while blocking?
 			end
 		rescue Exception
 			@waiting.delete(fiber)

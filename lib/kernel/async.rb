@@ -24,7 +24,31 @@ require_relative "../async/reactor"
 
 module Kernel
 	# Run the given block of code in a task, asynchronously, creating a reactor if necessary.
-	def Async(*arguments, **options, &block)
-		::Async::Reactor.run(*arguments, **options, &block)
+	#
+	# The preferred method to invoke asynchronous behavior at the top level.
+	#
+	# - When invoked within an existing reactor task, it will run the given block
+	# asynchronously. Will return the task once it has been scheduled.
+	# - When invoked at the top level, will create and run a reactor, and invoke
+	# the block as an asynchronous task. Will block until the reactor finishes
+	# running.
+	#
+	# @yields {|task| ...} The block that will execute asynchronously.
+	# 	@parameter task [Async::Task] The task that is executing the given block.
+	#
+	# @public Since `stable-v1`.
+	# @asynchronous May block until given block completes executing.
+	def Async(...)
+		if current = ::Async::Task.current?
+			return current.async(...)
+		else
+			reactor = ::Async::Reactor.new
+			
+			begin
+				return reactor.run(...)
+			ensure
+				Fiber.set_scheduler(nil)
+			end
+		end
 	end
 end

@@ -23,7 +23,6 @@
 require 'async/barrier'
 require 'async/clock'
 require 'async/rspec'
-
 require 'async/semaphore'
 
 require_relative 'chainable_async_examples'
@@ -31,7 +30,7 @@ require_relative 'chainable_async_examples'
 RSpec.describe Async::Barrier do
 	include_context Async::RSpec::Reactor
 	
-	context '#async' do
+	describe '#async' do
 		let(:repeats) {40}
 		let(:delay) {0.1}
 		
@@ -61,7 +60,7 @@ RSpec.describe Async::Barrier do
 		end
 	end
 	
-	context '#wait' do
+	describe '#wait' do
 		it 'should wait for tasks even after exceptions' do
 			task1 = subject.async do
 				raise "Boom"
@@ -92,6 +91,91 @@ RSpec.describe Async::Barrier do
 			subject.wait
 			
 			expect(order).to be == [0, 1, 2, 3, 4]
+		end
+		
+		# It's possible for Barrier#wait to be interrupted with an unexpected exception, and this should not cause the barrier to incorrectly remove that task from the wait list.
+		it 'waits for tasks with timeouts' do
+			begin
+				reactor.with_timeout(0.25) do
+					5.times do |i|
+						subject.async do |task|
+							task.sleep(i/10.0)
+						end
+					end
+					
+					expect(subject.tasks.size).to be == 5
+					subject.wait
+				end
+			rescue Async::TimeoutError
+				# Expected.
+			ensure
+				expect(subject.tasks.size).to be == 2
+				subject.stop
+			end
+		end
+	end
+	
+	describe '#stop' do
+		it "can stop several tasks" do
+			task1 = subject.async do |task|
+				task.sleep(10)
+			end
+			
+			task2 = subject.async do |task|
+				task.sleep(10)
+			end
+			
+			subject.stop
+			
+			expect(task1).to be_stopped
+			expect(task2).to be_stopped
+		end
+		
+		it "can stop several tasks when waiting on barrier" do
+			task1 = subject.async do |task|
+				task.sleep(10)
+			end
+			
+			task2 = subject.async do |task|
+				task.sleep(10)
+			end
+			
+			task3 = reactor.async do
+				subject.wait
+			end
+			
+			subject.stop
+			
+			task1.wait
+			task2.wait
+			
+			expect(task1).to be_stopped
+			expect(task2).to be_stopped
+			
+			task3.wait
+		end
+		
+		it "several tasks can wait on the same barrier" do
+			task1 = subject.async do |task|
+				task.sleep(10)
+			end
+			
+			task2 = reactor.async do |task|
+				subject.wait
+			end
+			
+			task3 = reactor.async do
+				subject.wait
+			end
+			
+			subject.stop
+			
+			task1.wait
+			
+			expect(task1).to be_stopped
+			
+			task2.wait
+			task3.wait
 		end
 	end
 	

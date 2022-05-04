@@ -21,9 +21,10 @@
 # THE SOFTWARE.
 
 module Async
-	# A double linked list.
+	# A double linked list used for managing tasks.
 	class List
 		def initialize
+			# The list behaves like a list node, so @tail points to the next item (the first one) and head points to the previous item (the last one). This may be slightly confusing but it makes the interface more natural.
 			@head = nil
 			@tail = nil
 			@size = 0
@@ -36,21 +37,21 @@ module Async
 		
 		# Inserts an item at the end of the list.
 		def insert(item)
-			unless @head
-				@head = item
+			unless @tail
 				@tail = item
+				@head = item
 				
 				# Consistency:
 				item.head = nil
 				item.tail = nil
 			else
-				@tail.tail = item
-				item.head = @tail
+				@head.tail = item
+				item.head = @head
 				
 				# Consistency:
 				item.tail = nil
 				
-				@tail = item
+				@head = item
 			end
 			
 			@size += 1
@@ -59,14 +60,14 @@ module Async
 		end
 		
 		def delete(item)
-			if @head.equal?(item)
-				@head = @head.tail
+			if @tail.equal?(item)
+				@tail = @tail.tail
 			else
 				item.head.tail = item.tail
 			end
 			
-			if @tail.equal?(item)
-				@tail = @tail.head
+			if @head.equal?(item)
+				@head = @head.head
 			else
 				item.tail.head = item.head
 			end
@@ -79,15 +80,17 @@ module Async
 			return self
 		end
 		
-		def each
+		def each(&block)
 			return to_enum unless block_given?
 			
-			item = @head
-			while item
-				# We store the tail pointer so we can remove the current item from the linked list:
-				tail = item.tail
-				yield item
-				item = tail
+			current = self
+			while node = current.tail
+				yield node
+				
+				# If the node has deleted itself or any subsequent node, it will no longer be the next node, so don't use it for continued traversal:
+				if current.tail.equal?(node)
+					current = node
+				end
 			end
 		end
 		
@@ -100,24 +103,25 @@ module Async
 		end
 		
 		def first
-			@head
-		end
-		
-		def last
 			@tail
 		end
 		
+		def last
+			@head
+		end
+		
 		def empty?
-			@head.nil?
+			@tail.nil?
 		end
 		
 		def nil?
-			@head.nil?
+			@tail.nil?
 		end
 	end
 	
 	private_constant :List
 	
+	# A list of children tasks.
 	class Children < List
 		def initialize
 			super
@@ -151,10 +155,10 @@ module Async
 		end
 	end
 	
-	# Represents a node in a tree, used for nested {Task} instances.
+	# A node in a tree, used for implementing the task hierarchy.
 	class Node
 		# Create a new node in the tree.
-		# @param parent [Node, nil] This node will attach to the given parent.
+		# @parameter parent [Node | Nil] This node will attach to the given parent.
 		def initialize(parent = nil, annotation: nil, transient: false)
 			@parent = nil
 			@children = nil
@@ -172,15 +176,21 @@ module Async
 			end
 		end
 		
-		# You should not directly rely on these pointers but instead use `#children`.
-		# List pointers:
+		# @returns [Node] the root node in the hierarchy.
+		def root
+			@parent&.root || self
+		end
+		
+		# @private
 		attr_accessor :head
+		
+		# @private
 		attr_accessor :tail
 		
-		# @attr parent [Node, nil]
+		# @attribute [Node] The parent node.
 		attr :parent
 		
-		# @attr children [List<Node>] Optional list of children.
+		# @attribute children [Children | Nil] Optional list of children.
 		attr :children
 		
 		# A useful identifier for the current node.
@@ -208,22 +218,30 @@ module Async
 		end
 		
 		def description
-			@object_name ||= "#{self.class}:0x#{object_id.to_s(16)}#{@transient ? ' transient' : nil}"
+			@object_name ||= "#{self.class}:#{format '%#018x', object_id}#{@transient ? ' transient' : nil}"
 			
 			if @annotation
 				"#{@object_name} #{@annotation}"
+			elsif line = self.backtrace(0, 1)&.first
+				"#{@object_name} #{line}"
 			else
 				@object_name
 			end
 		end
 		
-		def to_s
-			"\#<#{description}>"
+		def backtrace(*arguments)
+			nil
 		end
 		
+		def to_s
+			"\#<#{self.description}>"
+		end
+		
+		alias inspect to_s
+		
 		# Change the parent of this node.
-		# @param parent [Node, nil] the parent to attach to, or nil to detach.
-		# @return [self]
+		# @parameter parent [Node | Nil] the parent to attach to, or nil to detach.
+		# @returns [Node] Itself.
 		def parent=(parent)
 			return if @parent.equal?(parent)
 			
@@ -256,7 +274,7 @@ module Async
 		
 		# Whether the node can be consumed safely. By default, checks if the
 		# children set is empty.
-		# @return [Boolean]
+		# @returns [Boolean]
 		def finished?
 			@children.nil? || @children.finished?
 		end
@@ -272,6 +290,8 @@ module Async
 						if child.finished?
 							delete_child(child)
 						else
+							# In theory we don't need to do this... because we are throwing away the list. However, if you don't correctly update the list when moving the child to the parent, it foobars the enumeration, and subsequent nodes will be skipped, or in the worst case you might start enumerating the parents nodes.
+							delete_child(child)
 							parent.add_child(child)
 						end
 					end
@@ -284,7 +304,7 @@ module Async
 		end
 		
 		# Traverse the tree.
-		# @yield [node, level] The node and the level relative to the given root.
+		# @yields {|node, level| ...} The node and the level relative to the given root.
 		def traverse(level = 0, &block)
 			yield self, level
 			
@@ -293,13 +313,54 @@ module Async
 			end
 		end
 		
-		def stop
-			@children&.each(&:stop)
+		# Immediately terminate all children tasks, including transient tasks.
+		# Internally invokes `stop(false)` on all children.
+		def terminate
+			# Attempt to stop the current task immediately, and all children:
+			stop(false)
+			
+			# If that doesn't work, take more serious action:
+			@children&.each do |child|
+				child.terminate
+			end
 		end
 		
-		def print_hierarchy(out = $stdout)
+		# Attempt to stop the current node immediately, including all non-transient children.
+		# Invokes {#stop_children} to stop all children.
+		# @parameter later [Boolean] Whether to defer stopping until some point in the future.
+		def stop(later = false)
+			# The implementation of this method may defer calling `stop_children`.
+			stop_children(later)
+		end
+		
+		# Attempt to stop all non-transient children.
+		private def stop_children(later = false)
+			@children&.each do |child|
+				child.stop(later) unless child.transient?
+			end
+		end
+		
+		def stopped?
+			@children.nil?
+		end
+		
+		def print_hierarchy(out = $stdout, backtrace: true)
 			self.traverse do |node, level|
-				out.puts "#{"\t" * level}#{node}"
+				indent = "\t" * level
+				
+				out.puts "#{indent}#{node}"
+				
+				print_backtrace(out, indent, node) if backtrace
+			end
+		end
+		
+		private
+		
+		def print_backtrace(out, indent, node)
+			if backtrace = node.backtrace
+				backtrace.each_with_index do |line, index|
+					out.puts "#{indent}#{index.zero? ? "→ " : "  "}#{line}"
+				end
 			end
 		end
 	end

@@ -1,6 +1,4 @@
-# frozen_string_literal: true
-
-# Copyright, 2019, by Samuel G. D. Williams. <http://www.codeotaku.com>
+# Copyright, 2021, by Samuel G. D. Williams. <http://www.codeotaku.com>
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -20,14 +18,32 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-require 'async'
+require 'async/scheduler'
 
-RSpec.describe Async do
-	describe '.run' do
-		it "can run an asynchronous task" do
-			Async.run do |task|
-				expect(task).to be_a Async::Task
+RSpec.describe Async::Scheduler, if: Async::Scheduler.supported? do
+	include_context Async::RSpec::Reactor
+	
+	describe ::Kernel do
+		let(:duration) {0.1}
+		
+		it "can sleep for a short duration" do
+			expect(reactor).to receive(:kernel_sleep).with(duration).and_call_original
+			
+			time_taken = Async::Clock.measure do
+				sleep(duration)
 			end
+			
+			expect(time_taken).to be_within(Q).of(duration)
+		end
+		
+		it "can sleep forever" do
+			expect(reactor).to receive(:kernel_sleep).with(no_args).and_call_original
+			
+			sleeping = reactor.async do
+				sleep
+			end
+			
+			sleeping.stop
 		end
 	end
 end

@@ -1,6 +1,4 @@
-# frozen_string_literal: true
-
-# Copyright, 2018, by Samuel G. D. Williams. <http://www.codeotaku.com>
+# Copyright, 2021, by Samuel G. D. Williams. <http://www.codeotaku.com>
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -20,30 +18,16 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-module Async
-	module Debug
-		class Monitor
-			def initialize(monitor, selector)
-				@monitor = monitor
-				@selector = selector
-			end
+require 'async/scheduler'
+
+RSpec.describe Async::Scheduler, if: Async::Scheduler.supported? do
+	include_context Async::RSpec::Reactor
+	
+	describe ::Addrinfo do
+		it "can resolve addresses" do
+			addresses = Addrinfo.getaddrinfo("www.google.com", "80")
 			
-			def close
-				@selector.deregister(@monitor.io)
-				@monitor.close
-			end
-			
-			def method_missing(*arguments, &block)
-				@monitor.send(*arguments)
-			end
-			
-			def respond_to?(*arguments)
-				@monitor.respond_to?(*arguments)
-			end
-			
-			def inspect
-				"\#<#{self.class} io=#{@monitor.io.inspect} interests=#{@monitor.interests.inspect} readiness=#{@monitor.readiness.inspect}>"
-			end
+			expect(addresses).to_not be_empty
 		end
 	end
 end

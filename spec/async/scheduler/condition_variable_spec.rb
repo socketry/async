@@ -1,6 +1,4 @@
-# frozen_string_literal: true
-
-# Copyright, 2017, by Samuel G. D. Williams. <http://www.codeotaku.com>
+# Copyright, 2021, by Samuel G. D. Williams. <http://www.codeotaku.com>
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -20,46 +18,37 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-require 'async'
-require 'async/logger'
-require 'console/capture'
+require 'async/scheduler'
 
-RSpec.describe 'Async.logger' do
-	let(:name) {"nested"}
-	let(:message) {"Talk is cheap. Show me the code."}
+RSpec.describe Async::Scheduler, if: Async::Scheduler.supported? do
+	include_context Async::RSpec::Reactor
 	
-	let(:capture) {Console::Capture.new}
-	let(:logger) {Console::Logger.new(capture, name: name)}
-	
-	it "can use nested logger" do
-		Async(logger: logger) do |task|
-			expect(task.logger).to be == logger
-			logger.warn message
-		end.wait
+	describe ::ConditionVariable do
+		let(:mutex) {Mutex.new}
+		let(:condition) {ConditionVariable.new}
+		let(:timeout) {5.0}
 		
-		expect(capture.events.last).to include({
-			severity: :warn,
-			name: name,
-			subject: message,
-		})
-	end
-	
-	it "can change nested logger" do
-		Async do |parent|
-			parent.async(logger: logger) do |task|
-				expect(task.logger).to be == logger
-				expect(Async.logger).to be == logger
-			end.wait
-		end.wait
-	end
-	
-	it "can use parent logger" do
-		Async(logger: logger) do |parent|
-			child = parent.async{|task| task.yield}
+		it "can signal between tasks" do
+			time_taken = nil
 			
-			expect(parent.logger).to be == logger
-			expect(child.logger).to be == logger
-			expect(Async.logger).to be == logger
-		end.wait
+			waiter = reactor.async do
+				mutex.synchronize do
+					time_taken = Async::Clock.measure do
+						condition.wait(mutex, timeout)
+					end
+				end
+			end
+			
+			signaller = reactor.async do
+				mutex.synchronize do
+					condition.signal
+				end
+			end
+			
+			signaller.wait
+			waiter.wait
+			
+			expect(time_taken).to be < timeout
+		end
 	end
 end
