@@ -1,4 +1,4 @@
-# Copyright, 2020, by Samuel G. D. Williams. <http://www.codeotaku.com>
+# Copyright, 2021, by Samuel G. D. Williams. <http://www.codeotaku.com>
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -18,22 +18,32 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-require_relative 'scheduler'
+require 'async/scheduler'
 
-module Async
-	# A wrapper around the the scheduler which binds it to the current thread automatically.
-	class Reactor < Scheduler
-		# @deprecated Replaced by {Kernel::Async}.
-		def self.run(...)
-			Async(...)
-		end
+RSpec.describe Async::Scheduler, if: Async::Scheduler.supported? do
+	include_context Async::RSpec::Reactor
+	
+	describe ::Kernel do
+		let(:duration) {0.1}
 		
-		def initialize(...)
-			super
+		it "can sleep for a short duration" do
+			expect(reactor).to receive(:kernel_sleep).with(duration).and_call_original
 			
-			Fiber.set_scheduler(self)
+			time_taken = Async::Clock.measure do
+				sleep(duration)
+			end
+			
+			expect(time_taken).to be_within(Q).of(duration)
 		end
 		
-		public :sleep
+		it "can sleep forever" do
+			expect(reactor).to receive(:kernel_sleep).with(no_args).and_call_original
+			
+			sleeping = reactor.async do
+				sleep
+			end
+			
+			sleeping.stop
+		end
 	end
 end

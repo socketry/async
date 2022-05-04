@@ -1,18 +1,17 @@
 # ![Async](logo.svg)
 
-Async is a composable asynchronous I/O framework for Ruby based on [nio4r] and [timers].
+Async is a composable asynchronous I/O framework for Ruby based on [io-event](https://github.com/socketry/io-event) and [timers](https://github.com/socketry/timers).
 
 > "Lately I've been looking into `async`, as one of my projects – [tus-ruby-server](https://github.com/janko/tus-ruby-server) – would really benefit from non-blocking I/O. It's really beautifully designed." *– [janko](https://github.com/janko)*
 
-[timers]: https://github.com/socketry/timers
-[nio4r]: https://github.com/socketry/nio4r
+[![Development Status](https://github.com/socketry/async/workflows/Development/badge.svg)](https://github.com/socketry/async/actions?workflow=Development)
 
 ## Features
 
-- Scalable event-driven I/O for Ruby. Thousands of clients per process!
-- Light weight fiber-based concurrency. No need for callbacks!
-- Multi-thread/process containers for parallelism.
-- Growing eco-system of event-driven components.
+  - Scalable event-driven I/O for Ruby. Thousands of clients per process\!
+  - Light weight fiber-based concurrency. No need for callbacks\!
+  - Multi-thread/process containers for parallelism.
+  - Growing eco-system of event-driven components.
 
 ## Usage
 

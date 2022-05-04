@@ -75,12 +75,9 @@ RSpec.shared_context Async::Queue do
 	
 	describe '#size' do
 		it 'returns queue size' do
-			reactor.async do |task|
-				10.times do |i|
-					subject.enqueue(i)
-					expect(subject.size).to be i + 1
-				end
-			end
+			expect(subject.size).to be == 0
+			subject.enqueue("Hello World")
+			expect(subject.size).to be == 1
 		end
 	end
 	

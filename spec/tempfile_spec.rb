@@ -1,4 +1,6 @@
-# Copyright, 2020, by Samuel G. D. Williams. <http://www.codeotaku.com>
+# frozen_string_literal: true
+
+# Copyright, 2022, by Samuel G. D. Williams. <http://www.codeotaku.com>
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -18,22 +20,17 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-require_relative 'scheduler'
+require 'tempfile'
 
-module Async
-	# A wrapper around the the scheduler which binds it to the current thread automatically.
-	class Reactor < Scheduler
-		# @deprecated Replaced by {Kernel::Async}.
-		def self.run(...)
-			Async(...)
-		end
-		
-		def initialize(...)
-			super
+RSpec.describe Tempfile do
+	it "should be able to read and write" do
+		Sync do
+			1_000_000.times{subject.write("Hello World!")}
+			subject.flush
+
+			subject.seek(0)
 			
-			Fiber.set_scheduler(self)
+			expect(subject.read(12)).to be == "Hello World!"
 		end
-		
-		public :sleep
 	end
 end

@@ -20,61 +20,35 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-require 'fiber'
-require_relative 'node'
+require 'async/variable'
 
-module Async
-	# A synchronization primitive, which allows fibers to wait until a particular condition is (edge) triggered.
-	# @public Since `stable-v1`.
-	class Condition
-		def initialize
-			@waiting = []
-		end
-		
-		Queue = Struct.new(:fiber) do
-			def transfer(*arguments)
-				fiber&.transfer(*arguments)
-			end
-			
-			def alive?
-				fiber&.alive?
-			end
-			
-			def nullify
-				self.fiber = nil
-			end
-		end
-		
-		private_constant :Queue
-		
-		# Queue up the current fiber and wait on yielding the task.
-		# @returns [Object]
-		def wait
-			queue = Queue.new(Fiber.current)
-			@waiting << queue
-			
-			Fiber.scheduler.transfer
-		ensure
-			queue.nullify
-		end
-		
-		# Is any fiber waiting on this notification?
-		# @returns [Boolean]
-		def empty?
-			@waiting.empty?
-		end
-		
-		# Signal to a given task that it should resume operations.
-		# @parameter value [Object | Nil] The value to return to the waiting fibers.
-		def signal(value = nil)
-			waiting = @waiting
-			@waiting = []
-			
-			waiting.each do |fiber|
-				Fiber.scheduler.resume(fiber, value) if fiber.alive?
-			end
-			
-			return nil
-		end
+RSpec.shared_examples_for Async::Variable do |value|
+	it "can resolve the value to #{value.inspect}" do
+		subject.resolve(value)
+		is_expected.to be_resolved
 	end
+	
+	it "can wait for the value to be resolved" do
+		Async do
+			expect(subject.wait).to be value
+		end
+		
+		subject.resolve(value)
+	end
+	
+	it "can't resolve it a 2nd time" do
+		subject.resolve(value)
+		expect do
+			subject.resolve(value)
+		end.to raise_error(FrozenError)
+	end
+end
+
+RSpec.describe Async::Variable do
+	include_context Async::RSpec::Reactor
+	
+	it_behaves_like Async::Variable, true
+	it_behaves_like Async::Variable, false
+	it_behaves_like Async::Variable, nil
+	it_behaves_like Async::Variable, Object.new
 end

@@ -62,6 +62,30 @@ RSpec.describe Async::Node do
 			expect(lines[1]).to be =~ /\t#<Async::Node:0x\h+>\n/
 		end
 	end
+
+	describe '#inspect' do
+		let(:node) {Async::Node.new}
+		
+		it 'should begin with the class name' do
+			expect(node.inspect).to start_with "#<#{node.class.name}"
+		end
+		
+		it 'should end with hex digits' do
+			expect(node.inspect).to match(/\h>\z/)
+		end
+		
+		it 'should have a standard number of hex digits' do
+			expect(node.inspect).to match(/:0x\h{16}>/)
+		end
+		
+		it 'should have a colon in the middle' do
+			name, middle, hex = node.inspect.rpartition(':')
+			
+			expect(name).to end_with node.class.name
+			expect(middle).to eq ':'
+			expect(hex).to match(/\A\h+/)
+		end
+	end
 	
 	describe '#consume' do
 		it "can't consume middle node" do
@@ -75,13 +99,13 @@ RSpec.describe Async::Node do
 			expect(bottom.parent).to be middle
 		end
 		
-		it "can consume node while enumerating children" do
+		it "can consume nodes while enumerating children" do
 			3.times do
 				Async::Node.new(subject)
 			end
 			
 			children = subject.children.each.to_a
-			expect(subject.children.size).to be 3
+			expect(children.size).to be == 3
 			
 			enumerated = []
 			
@@ -91,6 +115,42 @@ RSpec.describe Async::Node do
 			end
 			
 			expect(enumerated).to be == children
+		end
+		
+		it "can consume multiple nodes while enumerating children" do
+			3.times do
+				Async::Node.new(subject)
+			end
+			
+			children = subject.children.each.to_a
+			expect(children.size).to be == 3
+			
+			enumerated = []
+			
+			subject.children.each do |child|
+				# On the first iteration, we consume the first two children:
+				children[0].consume
+				children[1].consume
+				
+				# This would end up appending the first child, and then the third child:
+				enumerated << child
+			end
+			
+			expect(enumerated).to be == [children[0], children[2]]
+		end
+		
+		it "correctly enumerates finished children" do
+			middle = Async::Node.new(subject)
+			bottom = 2.times.map{Async::Node.new(middle)}
+			
+			allow(bottom[0]).to receive(:finished?).and_return(false)
+			allow(bottom[1]).to receive(:finished?).and_return(false)
+			
+			allow(middle).to receive(:finished?).and_return(true)
+			middle.consume
+			
+			expect(subject.children.size).to be == 2
+			expect(subject.children.each.to_a).to be == bottom
 		end
 	end
 	
@@ -139,7 +199,7 @@ RSpec.describe Async::Node do
 			expect(subject).to be_finished
 			
 			expect(child).to receive(:stop)
-			subject.stop
+			subject.terminate
 		end
 		
 		it 'can move transient sibling to parent' do
@@ -188,6 +248,30 @@ RSpec.describe Async::Node do
 			expect(middle.parent).to be subject
 			expect(subject.children).to include(middle)
 			expect(middle.children).to be_nil
+		end
+		
+		it 'does not stop child transient tasks' do
+			middle = Async::Node.new(subject, annotation: "middle")
+			child1 = Async::Node.new(middle, transient: true, annotation: "child1")
+			child2 = Async::Node.new(middle, annotation: "child2")
+			
+			expect(child1).to_not receive(:stop)
+			expect(child2).to receive(:stop)
+			
+			subject.stop
+		end
+	end
+	
+	describe '#terminate' do
+		it 'stops all tasks' do
+			middle = Async::Node.new(subject, annotation: "middle")
+			child1 = Async::Node.new(middle, transient: true, annotation: "child1")
+			child2 = Async::Node.new(middle, annotation: "child2")
+			
+			expect(child1).to receive(:stop).at_least(:once)
+			expect(child2).to receive(:stop).at_least(:once)
+			
+			subject.terminate
 		end
 	end
 end

@@ -1,4 +1,4 @@
-# Copyright, 2020, by Samuel G. D. Williams. <http://www.codeotaku.com>
+# Copyright, 2021, by Samuel G. D. Williams. <http://www.codeotaku.com>
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -18,22 +18,16 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-require_relative 'scheduler'
+require 'async/scheduler'
 
-module Async
-	# A wrapper around the the scheduler which binds it to the current thread automatically.
-	class Reactor < Scheduler
-		# @deprecated Replaced by {Kernel::Async}.
-		def self.run(...)
-			Async(...)
-		end
-		
-		def initialize(...)
-			super
+RSpec.describe Async::Scheduler, if: Async::Scheduler.supported? do
+	include_context Async::RSpec::Reactor
+	
+	describe ::Addrinfo do
+		it "can resolve addresses" do
+			addresses = Addrinfo.getaddrinfo("www.google.com", "80")
 			
-			Fiber.set_scheduler(self)
+			expect(addresses).to_not be_empty
 		end
-		
-		public :sleep
 	end
 end

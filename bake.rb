@@ -5,6 +5,7 @@ def external
 	
 	Bundler.with_clean_env do
 		clone_and_test("async-io")
+		clone_and_test("async-pool")
 		clone_and_test("async-websocket")
 		clone_and_test("async-dns")
 		clone_and_test("async-http")
@@ -34,5 +35,5 @@ def clone_and_test(name)
 		file.puts('gem "async", path: "../../"')
 	end
 	
-	system("cd #{path} && bundle install && bundle exec rspec")
+	system("cd #{path} && bundle install && bundle exec rspec") or abort("Tests failed!")
 end

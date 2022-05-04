@@ -1,4 +1,4 @@
-# Copyright, 2020, by Samuel G. D. Williams. <http://www.codeotaku.com>
+# Copyright, 2021, by Samuel G. D. Williams. <http://www.codeotaku.com>
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -18,22 +18,42 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-require_relative 'scheduler'
+require 'async/scheduler'
 
-module Async
-	# A wrapper around the the scheduler which binds it to the current thread automatically.
-	class Reactor < Scheduler
-		# @deprecated Replaced by {Kernel::Async}.
-		def self.run(...)
-			Async(...)
-		end
-		
-		def initialize(...)
-			super
+RSpec.describe Async::Scheduler, if: Async::Scheduler.supported? do
+	include_context Async::RSpec::Reactor
+	
+	describe ::Thread do
+		# I saw this hang.
+		it "can wait for value" do
+			value = Thread.new do
+				sleep(0)
+				:value
+			end.value
 			
-			Fiber.set_scheduler(self)
+			expect(value).to be == :value
 		end
 		
-		public :sleep
+		it "can propagate exception" do
+			thread = nil
+			
+			task = Async do
+				begin
+					thread = Thread.new do
+						sleep
+					end
+					
+					thread.join
+				ensure
+					thread.kill
+					thread.join
+				end
+			end
+			
+			task.stop
+			task.wait
+			
+			expect(thread).to_not be_alive
+		end
 	end
 end
