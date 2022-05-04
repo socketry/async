@@ -60,8 +60,11 @@ module Async
 				begin
 					task.wait
 				ensure
-					# Remove the task from the waiting list if it's finished:
-					@tasks.shift if @tasks.first == task
+					# We don't know for sure that the exception was due to the task completion.
+					unless task.running?
+						# Remove the task from the waiting list if it's finished:
+						@tasks.shift if @tasks.first == task
+					end
 				end
 			end
 		end

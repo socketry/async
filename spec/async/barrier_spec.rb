@@ -93,6 +93,27 @@ RSpec.describe Async::Barrier do
 			
 			expect(order).to be == [0, 1, 2, 3, 4]
 		end
+		
+		# It's possible for Barrier#wait to be interrupted with an unexpected exception, and this should not cause the barrier to incorrectly remove that task from the wait list.
+		it 'waits for tasks with timeouts' do
+			begin
+				reactor.with_timeout(0.25) do
+					5.times do |i|
+						subject.async do |task|
+							task.sleep(i/10.0)
+						end
+					end
+					
+					expect(subject.tasks.size).to be == 5
+					subject.wait
+				end
+			rescue Async::TimeoutError
+				# Expected.
+			ensure
+				expect(subject.tasks.size).to be == 2
+				subject.stop
+			end
+		end
 	end
 	
 	describe '#stop' do
