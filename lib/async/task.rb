@@ -92,9 +92,9 @@ module Async
 			super
 		end
 		
-		# @deprecated Replaced by {Scheduler#timeout_after}.
-		def with_timeout(timeout, exception = TimeoutError, message = "execution expired", &block)
-			Fiber.scheduler.timeout_after(timeout, exception, message, &block)
+		# Execute the given block of code, raising the specified exception if it exceeds the given duration during a non-blocking operation.
+		def with_timeout(duration, exception = TimeoutError, message = "execution expired", &block)
+			Fiber.scheduler.with_timeout(duration, exception, message, &block)
 		end
 		
 		# Yield back to the reactor and allow other fibers to execute.
