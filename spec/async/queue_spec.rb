@@ -42,6 +42,18 @@ RSpec.shared_context Async::Queue do
 		end
 	end
 	
+	it 'can enqueue multiple items' do
+		items = Array.new(10) { rand(10) }
+
+		reactor.async do |task|
+			subject.enqueue(*items)
+		end
+
+		items.each do |item|
+			expect(subject.dequeue).to be == item
+		end
+	end
+	
 	it 'can dequeue items asynchronously' do
 		reactor.async do |task|
 			subject << 1
@@ -50,6 +62,14 @@ RSpec.shared_context Async::Queue do
 		
 		subject.async do |task, item|
 			expect(item).to be 1
+		end
+	end
+	
+	describe '#<<' do
+		it 'adds an item to the queue' do
+			subject << :item
+			expect(subject.size).to be == 1
+			expect(subject.dequeue).to be == :item
 		end
 	end
 	
@@ -117,7 +137,17 @@ RSpec.describe Async::LimitedQueue do
 		subject.enqueue(10)
 		expect(subject).to be_limited
 	end
-
+	
+	it 'enqueues items up to a limit' do
+		items = Array.new(2) { rand(10) }
+		reactor.async do
+			subject.enqueue(*items)
+		end
+		
+		expect(subject.size).to be 1
+		expect(subject.dequeue).to be == items.first
+	end
+	
 	it 'should resume waiting tasks in order' do
 		total_resumed = 0
 		total_dequeued = 0
@@ -136,6 +166,29 @@ RSpec.describe Async::LimitedQueue do
 			total_dequeued += 1
 			
 			expect(total_resumed).to be == total_dequeued
+		end
+	end
+	
+	describe '#<<' do
+		context 'when queue is limited' do
+			before do
+				subject << :item1
+				expect(subject.size).to be == 1
+				expect(subject).to be_limited
+			end
+			
+			it 'waits until a queue is dequeued' do
+				reactor.async do
+					subject << :item2
+				end
+				
+				reactor.async do |task|
+					task.sleep 0.01
+					expect(subject.items).to contain_exactly :item1
+					subject.dequeue
+					expect(subject.items).to contain_exactly :item2
+				end
+			end
 		end
 	end
 end
