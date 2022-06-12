@@ -305,6 +305,26 @@ RSpec.describe Async::Task do
 				expect(child_task).to_not be_alive
 			end
 		end
+			
+		it "can stop a currently resumed task" do
+			parent_task = nil
+			
+			reactor.run do
+				reactor.async do |task|
+					parent_task = task
+					
+					Fiber.new do
+						task.async do
+							parent_task.stop
+						end
+					end.resume
+					
+					task.sleep(1)
+				end
+			end
+			
+			expect(parent_task).to be_stopped
+		end
 		
 		it "can stop nested parent" do
 			parent_task = nil
