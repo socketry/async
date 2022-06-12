@@ -27,6 +27,26 @@ require 'async/queue'
 RSpec.describe Async::Task do
 	let(:reactor) {Async::Reactor.new}
 	
+	describe '.yield' do
+		it "can yield back to scheduler" do
+			state = nil
+			
+			reactor.async do |task|
+				child = task.async do
+					state = :yielding
+					Async::Task.yield
+					state = :yielded
+				end
+				
+				Fiber.scheduler.resume(child.fiber)
+			end
+			
+			reactor.run
+			
+			expect(state).to be == :yielded
+		end
+	end
+	
 	describe '#run' do
 		it "can't be invoked twice" do
 			task = reactor.async do |task|
@@ -208,6 +228,20 @@ RSpec.describe Async::Task do
 			end
 		end
 		
+		it "can stop the parent task" do
+			reactor.run do
+				reactor.async do |task|
+					parent_task = task
+					
+					reactor.async do |task|
+						parent_task.stop
+					end
+					
+					sleep(100)
+				end
+			end
+		end
+		
 		it "can stop current task using exception" do
 			state = nil
 			
@@ -222,6 +256,22 @@ RSpec.describe Async::Task do
 			end
 			
 			expect(state).to be == :started
+		end
+		
+		it "can stop the current task later" do
+			state = nil
+			task = nil
+			
+			reactor.run do
+				task = reactor.async do |task|
+					task.stop(true)
+					state = :sleeping
+					sleep(1)
+				end
+			end
+			
+			expect(state).to be == :sleeping
+			expect(task).to be_stopped
 		end
 		
 		it "should stop direct child" do
@@ -279,10 +329,16 @@ RSpec.describe Async::Task do
 						children_tasks << task
 						task.sleep(2)
 					end
+					
+					task.sleep(2)
 				end
 			end
 			
 			expect(parent_task).to_not be_alive
+			
+			children_tasks.each do |child|
+				expect(child).to_not be_alive
+			end
 		end
 		
 		it "should not remove running task" do
@@ -536,6 +592,46 @@ RSpec.describe Async::Task do
 				expect(task.result).to be_nil
 				
 				task.stop
+			end
+		end
+	end
+	
+	describe '#complete?' do
+		context 'with running task' do
+			it 'is not complete?' do
+				reactor.async do |task|
+					expect(task).to_not be_complete
+				end
+			end
+		end
+		
+		context 'with completed task' do
+			it 'is complete?' do
+				task = reactor.async{}
+				expect(task).to be_complete
+			end
+		end
+	end
+	
+	describe '#stopped?' do
+		context 'with running task' do
+			it 'is not stopped?' do
+				reactor.async do |task|
+					expect(task).to_not be_stopped
+				end
+			end
+		end
+		
+		context 'with stopped task' do
+			it 'is stopped?' do
+				reactor.async do |task|
+					child = task.async do |task|
+						sleep(1)
+					end
+					
+					child.stop
+					expect(child).to be_stopped
+				end
 			end
 		end
 	end

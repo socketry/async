@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# Copyright, 2018, by Samuel G. D. Williams. <http://www.codeotaku.com>
+# Copyright, 2022, by Samuel G. D. Williams. <http://www.codeotaku.com>
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -20,52 +20,37 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-require 'async/clock'
+require 'async/rspec'
 
-RSpec.describe Async::Clock do
-	it "can measure durations" do
-		duration = Async::Clock.measure do
-			sleep 0.1
-		end
-		
-		expect(duration).to be_within(0.01 * Q).of(0.1)
-	end
-	
-	it "can get current offset" do
-		expect(Async::Clock.now).to be_kind_of Float
-	end
-	
-	it "can accumulate durations" do
-		2.times do
-			subject.start!
-			sleep(0.1)
-			subject.stop!
-		end
-		
-		expect(subject.total).to be_within(0.02 * Q).of(0.2)
-	end
-	
-	describe '#total' do
-		context 'with initial duration' do
-			let(:clock) {described_class.new(1.5)}
-			subject(:total) {clock.total}
+RSpec.describe Kernel do
+	include_context Async::RSpec::Reactor
+
+	describe '#sleep' do
+		it "can intercept sleep" do
+			expect(reactor).to receive(:kernel_sleep).with(0.001)
 			
-			it{is_expected.to be == 1.5}
-		end
-		
-		it "can accumulate time" do
-			subject.start!
-			total = subject.total
-			expect(total).to be >= 0
-			sleep(0.0001)
-			expect(subject.total).to be >= total
+			sleep(0.001)
 		end
 	end
 	
-	describe '.start' do
-		let(:clock) {described_class.start}
-		subject(:total) {clock.total}
+	describe '#system' do
+		it "can execute child process" do
+			# expect(reactor).to receive(:process_wait).and_call_original
+			
+			::Kernel.system("true")
+			expect($?).to be_success
+		end
+	end
+	
+	describe '#`' do
+		it "can execute child process and capture output" do
+			expect(`echo OK`).to be == "OK\n"
+			expect($?).to be_success
+		end
 		
-		it {is_expected.to be >= 0.0}
+		it "can execute child process with delay and capture output" do
+			expect(`sleep 1; echo OK`).to be == "OK\n"
+			expect($?).to be_success
+		end
 	end
 end

@@ -1,8 +1,6 @@
 # frozen_string_literal: true
 
-require 'async/rspec'
 require 'covered/rspec'
-
 require 'console'
 
 if RUBY_PLATFORM =~ /darwin/

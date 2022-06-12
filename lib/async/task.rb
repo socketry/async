@@ -163,7 +163,7 @@ module Async
 			if self.running?
 				if self.current?
 					if later
-						Fiber.scheduler.push Stop::Later.new(self)
+						Fiber.scheduler.push(Stop::Later.new(self))
 					else
 						raise Stop, "Stopping current task!"
 					end
@@ -171,7 +171,7 @@ module Async
 					begin
 						Fiber.scheduler.raise(@fiber, Stop)
 					rescue FiberError
-						Fiber.scheduler.push Stop::Later.new(self)
+						Fiber.scheduler.push(Stop::Later.new(self))
 					end
 				end
 			else
@@ -206,15 +206,11 @@ module Async
 		# Whether we can remove this node from the reactor graph.
 		# @returns [Boolean]
 		def finished?
-			super && @status != :running
+			super && @fiber.nil?
 		end
 		
 		def failed?
 			@status == :failed
-		end
-		
-		def stopping?
-			@status == :stopping
 		end
 		
 		def stopped?

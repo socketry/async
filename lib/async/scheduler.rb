@@ -102,11 +102,7 @@ module Async
 		end
 		
 		def resume(fiber, *arguments)
-			if Fiber.scheduler
-				@selector.resume(fiber, *arguments)
-			else
-				@selector.push(fiber)
-			end
+			@selector.resume(fiber, *arguments)
 		end
 		
 		# Invoked when a fiber tries to perform a blocking operation which cannot continue. A corresponding call {unblock} must be performed to allow this fiber to continue.

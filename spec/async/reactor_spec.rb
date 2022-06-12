@@ -113,6 +113,8 @@ RSpec.describe Async::Reactor do
 				
 				child.stop
 			end
+			
+			subject.run
 		end
 	end
 	

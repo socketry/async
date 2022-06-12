@@ -22,8 +22,8 @@
 
 require 'kernel/async'
 
-RSpec.describe Async do
-	describe '#Async' do
+RSpec.describe Kernel do
+	describe '.Async' do
 		it "can run an asynchronous task" do
 			Async do |task|
 				expect(task).to be_a Async::Task

@@ -22,7 +22,29 @@
 
 require 'async/node'
 
-RSpec.describe Async::Node do
+RSpec.describe Async::Children do
+	context "with no children" do
+		describe '#nil?' do
+			it {is_expected.to be_nil}
+		end
+		
+		describe '#empty?' do
+			it {is_expected.to be_empty}
+		end
+		
+		describe '#transients?' do
+			it {is_expected.to_not be_transients}
+		end
+	end
+end
+
+RSpec.describe Async::Node do	
+	describe '#children?' do
+		context "with no children" do
+			it {is_expected.to_not be_children}
+		end
+	end
+	
 	describe '#parent=' do
 		let(:child) {Async::Node.new(subject)}
 		
@@ -43,6 +65,14 @@ RSpec.describe Async::Node do
 			
 			expect(child.parent).to be_nil
 			expect(subject.children).to be_nil
+		end
+		
+		it "can move a child from one parent to another" do
+			another_parent = Async::Node.new
+			child.parent = another_parent
+			
+			expect(subject.children).to be_empty
+			expect(child.parent).to be == another_parent
 		end
 	end
 	
@@ -151,6 +181,20 @@ RSpec.describe Async::Node do
 			
 			expect(subject.children.size).to be == 2
 			expect(subject.children.each.to_a).to be == bottom
+		end
+		
+		it "deletes children that are also finished" do
+			middle = Async::Node.new(subject)
+			bottom = Async::Node.new(middle)
+			
+			allow(middle).to receive(:finished?).and_return(true)
+			allow(bottom).to receive(:finished?).and_return(true)
+			
+			middle.consume
+			
+			expect(subject.children).to be_empty
+			expect(middle.children).to be_nil
+			expect(bottom.parent).to be_nil
 		end
 	end
 	

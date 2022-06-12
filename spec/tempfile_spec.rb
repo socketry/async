@@ -20,17 +20,20 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
+require 'async/rspec'
 require 'tempfile'
 
 RSpec.describe Tempfile do
+	include_context Async::RSpec::Reactor
+	
 	it "should be able to read and write" do
-		Sync do
-			1_000_000.times{subject.write("Hello World!")}
-			subject.flush
+		1_000.times{subject.write("Hello World!")}
+		subject.flush
 
-			subject.seek(0)
-			
-			expect(subject.read(12)).to be == "Hello World!"
-		end
+		subject.seek(0)
+		
+		expect(subject.read(12)).to be == "Hello World!"
+	ensure
+		subject.close
 	end
 end

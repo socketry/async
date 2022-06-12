@@ -29,6 +29,26 @@ require_relative 'condition_examples'
 require_relative 'chainable_async_examples'
 
 RSpec.shared_context Async::Queue do
+	describe '#each' do
+		it 'can enumerate queue items' do
+			reactor.async do |task|
+				10.times do |item|
+					task.sleep(0.0001)
+					subject.enqueue(item)
+				end
+				
+				subject.enqueue(nil)
+			end
+			
+			items = []
+			subject.each do |item|
+				items << item
+			end
+			
+			expect(items).to be == 10.times.to_a
+		end
+	end
+	
 	it 'should process items in order' do
 		reactor.async do |task|
 			10.times do |i|
