@@ -40,7 +40,7 @@ RSpec.shared_examples_for Async::Variable do |value|
 		subject.resolve(value)
 		expect do
 			subject.resolve(value)
-		end.to raise_error(FrozenError)
+		end.to raise_exception(FrozenError)
 	end
 end
 

@@ -94,7 +94,7 @@ RSpec.describe Async::Semaphore do
 					subject.acquire do
 					end
 				end
-			end.to raise_error(Async::TimeoutError)
+			end.to raise_exception(Async::TimeoutError)
 			
 			expect(subject.waiting).to be_empty
 		end

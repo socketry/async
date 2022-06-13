@@ -56,7 +56,7 @@ RSpec.describe Async::Condition, timeout: 1000 do
 			condition.wait
 			expect do
 				producer.stop
-			end.to_not raise_error
+			end.to_not raise_exception
 		end
 		
 		consumer.wait

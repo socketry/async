@@ -504,7 +504,7 @@ RSpec.describe Async::Task do
 				end
 			end
 			
-			expect{task.wait}.to raise_error(Async::TimeoutError)
+			expect{task.wait}.to raise_exception(Async::TimeoutError)
 			
 			error = task.result
 			expect(error.backtrace).to include(/sleep_forever/)

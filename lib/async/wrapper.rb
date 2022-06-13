@@ -64,7 +64,7 @@ module Async
 		# Wait fo the io to become either readable or writable.
 		# @parameter duration [Float] timeout after the given duration if not `nil`.
 		def wait_any(timeout = @timeout)
-			@io.wait_any(timeout) or raise TimeoutError
+			@io.to_io.wait(::IO::READABLE|::IO::WRITABLE|::IO::PRIORITY, timeout) or raise TimeoutError
 		end
 		
 		# Close the io and monitor.
