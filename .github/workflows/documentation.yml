@@ -5,7 +5,11 @@ on:
     branches:
       - main
 
+permissions:
+  contents: write
+
 env:
+  CONSOLE_OUTPUT: Text
   BUNDLE_WITH: maintenance
 
 jobs:

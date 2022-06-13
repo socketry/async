@@ -2,9 +2,12 @@ name: Coverage
 
 on: [push, pull_request]
 
+permissions:
+  contents: read
+
 env:
-  COVERAGE: PartialSummary
   CONSOLE_OUTPUT: Text
+  COVERAGE: PartialSummary
 
 jobs:
   test:

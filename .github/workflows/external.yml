@@ -2,6 +2,12 @@ name: External
 
 on: [push, pull_request]
 
+permissions:
+  contents: read
+
+env:
+  CONSOLE_OUTPUT: Text
+
 jobs:
   test:
     name: ${{matrix.ruby}} on ${{matrix.os}}
