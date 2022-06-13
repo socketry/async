@@ -86,11 +86,16 @@ RSpec.describe Async::Wrapper do
 	describe '#wait_priority' do
 		let(:pipe) {::Socket.pair(:UNIX, :STREAM)}
 		
-		it "can wait to be priority" do
+		it "can invoke wait_priority on the underlying io" do
+			expect(output.io).to receive(:wait_priority).and_return(true)
+			output.wait_priority
+		end
+		
+		it "can wait for out of band data" do
 			begin
 				# I've tested this successfully on Linux but it fails on Darwin.
 				input.io.send('!', Socket::MSG_OOB)
-			rescue Errno::EOPNOTSUPP => error
+			rescue => error
 				skip error.message
 			end
 			
