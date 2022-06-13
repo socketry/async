@@ -7,12 +7,15 @@ Gem::Specification.new do |spec|
 	spec.version = Async::VERSION
 	
 	spec.summary = "A concurrency framework for Ruby."
-	spec.authors = ["Samuel Williams", "Devin Christensen", "Bruno Sutic", "Jeremy Jung", "Kent Gruber", "jeremyjung", "Brian Morearty", "Jiang Jinyang", "Julien Portalier", "Olle Jonsson", "Patrik Wenger", "Ryan Musgrave", "Salim Semaoune", "Shannon Skipper", "Sokolov Yura aka funny_falcon", "Stefan Wrobel", "jasl", "muryoimpl"]
+	spec.authors = ["Samuel Williams", "Bruno Sutic", "Devin Christensen", "Jeremy Jung", "Kent Gruber", "jeremyjung", "Brian Morearty", "Jiang Jinyang", "Julien Portalier", "Olle Jonsson", "Patrik Wenger", "Ryan Musgrave", "Salim Semaoune", "Shannon Skipper", "Sokolov Yura aka funny_falcon", "Stefan Wrobel", "jasl", "muryoimpl"]
 	spec.license = "MIT"
+	
+	spec.cert_chain  = ['release.cert']
+	spec.signing_key = File.expand_path('~/.gem/release.pem')
 	
 	spec.homepage = "https://github.com/socketry/async"
 	
-	spec.files = Dir.glob('{lib}/**/*.rb', File::FNM_DOTMATCH, base: __dir__)
+	spec.files = Dir.glob('{lib}/**/*', File::FNM_DOTMATCH, base: __dir__)
 	
 	spec.required_ruby_version = ">= 3.1.1"
 	
