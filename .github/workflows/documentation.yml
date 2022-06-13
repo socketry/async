@@ -1,5 +1,8 @@
 name: Documentation
 
+permissions:
+  contents: write
+
 on:
   push:
     branches:
@@ -21,7 +24,7 @@ jobs:
 
     - uses: ruby/setup-ruby@v1
       with:
-        ruby-version: 3.1
+        ruby-version: "3.1"
         bundler-cache: true
     
     - name: Installing packages
