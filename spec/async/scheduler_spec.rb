@@ -23,7 +23,7 @@ require 'async/reactor'
 require 'async/barrier'
 require 'net/http'
 
-RSpec.describe Async::Scheduler do	
+RSpec.describe Async::Scheduler do
 	describe 'Fiber.schedule' do
 		it "can start child task" do
 			fiber = nil
@@ -54,6 +54,24 @@ RSpec.describe Async::Scheduler do
 			thread.join
 			
 			expect(sequence).to be == [:running]
+		end
+	end
+	
+	describe '#run_once' do
+		it "can run the scheduler with a specific timeout" do
+			scheduler = Async::Scheduler.new
+			Fiber.set_scheduler(scheduler)
+			
+			task = scheduler.async do |task|
+				sleep 1
+			end
+			
+			duration = Async::Clock.measure do
+				scheduler.run_once(0.001)
+			end
+			
+			expect(task).to be_running
+			expect(duration).to be <= 0.01
 		end
 	end
 end
