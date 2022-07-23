@@ -1,3 +1,5 @@
+#!/usr/bin/env ruby
+
 # frozen_string_literal: true
 
 require 'async/reactor'
@@ -12,14 +14,12 @@ class Callback
 	end
 	
 	# If duration is 0, it will happen immediately after the task is started.
-	def run(duration = 0)
-		@reactor.run do |task|
-			@reactor.after(duration) do
-				@reactor.stop
-			end
-			
-			yield(task) if block_given?
+	def run(duration = 0, &block)
+		if block_given?
+			@reactor.async(&block)
 		end
+		
+		@reactor.run_once(duration)
 	end
 end
 
