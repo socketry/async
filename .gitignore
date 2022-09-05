@@ -1,15 +1,7 @@
-.tags
-
 /.bundle/
-/.yardoc
-/gems.locked
-/_yardoc/
-/coverage/
-/doc/
 /pkg/
-/spec/reports/
-/tmp/
-/external/
+/gems.locked
+/.covered.db
+/external
 
-.rspec_status
-.covered.db
+/.rspec_status

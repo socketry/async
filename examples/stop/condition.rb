@@ -1,7 +1,8 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
-# require 'async'; require 'async/queue'
+# Released under the MIT License.
+# Copyright, 2019-2022, by Samuel Williams.
 
 require_relative '../../lib/async'; require_relative '../../lib/async/queue'
 

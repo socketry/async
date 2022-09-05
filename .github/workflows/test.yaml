@@ -1,4 +1,4 @@
-name: Development
+name: Test
 
 on: [push, pull_request]
 
@@ -6,7 +6,7 @@ permissions:
   contents: read
 
 env:
-  CONSOLE_OUTPUT: Text
+  CONSOLE_OUTPUT: XTerm
 
 jobs:
   test:
@@ -30,7 +30,7 @@ jobs:
             ruby: truffleruby
             experimental: true
           - os: ubuntu
-            ruby: jruby
+            ruby: jruby-head
             experimental: true
           - os: ubuntu
             ruby: head
@@ -44,5 +44,5 @@ jobs:
         bundler-cache: true
     
     - name: Run tests
-      timeout-minutes: 5
-      run: bundle exec rspec
+      timeout-minutes: 10
+      run: bundle exec bake test
