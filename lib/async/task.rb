@@ -117,7 +117,9 @@ module Async
 			if @status == :initialized
 				@status = :running
 				
-				schedule(arguments)
+				schedule do
+					@block.call(self, *arguments)
+				end
 			else
 				raise RuntimeError, "Task already running!"
 			end
@@ -247,12 +249,12 @@ module Async
 			stop_children(true)
 		end
 		
-		def schedule(arguments)
+		def schedule(&block)
 			@fiber = Fiber.new do
 				set!
 				
 				begin
-					@result = @block.call(self, *arguments)
+					@result = yield
 					@status = :complete
 					# Console.logger.debug(self) {"Task was completed with #{@children.size} children!"}
 				rescue Stop
