@@ -40,7 +40,7 @@ We welcome contributions to this project.
 
   - [ciri](https://github.com/ciri-ethereum/ciri) — An Ethereum implementation written in Ruby.
   - [falcon](https://github.com/socketry/falcon) — A rack compatible server built on top of `async-http`.
-  - [rubydns](https://github.com/ioquatix/rubydns) — A easy to use Ruby DNS server.
+  - [rubydns](https://github.com/ioquatix/rubydns) — An easy to use Ruby DNS server.
   - [slack-ruby-bot](https://github.com/slack-ruby/slack-ruby-bot) — A client for making slack bots.
 
 ## License
