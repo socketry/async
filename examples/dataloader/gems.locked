@@ -1,0 +1,21 @@
+GEM
+  remote: https://rubygems.org/
+  specs:
+    async (2.1.0)
+      console (~> 1.10)
+      io-event (~> 1.0.0)
+      timers (~> 4.1)
+    console (1.15.3)
+      fiber-local
+    fiber-local (1.0.0)
+    io-event (1.0.9)
+    timers (4.3.4)
+
+PLATFORMS
+  x86_64-linux
+
+DEPENDENCIES
+  async
+
+BUNDLED WITH
+   2.3.22
