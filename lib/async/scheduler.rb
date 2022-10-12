@@ -160,13 +160,13 @@ module Async
 			timer&.cancel
 		end
 
-		if IO.const_defined?(:Buffer)
-			def io_read(io, buffer, length)
-				@selector.io_read(Fiber.current, io, buffer, length)
+		if IO::Event::Support.buffer?
+			def io_read(io, buffer, length, offset)
+				@selector.io_read(Fiber.current, io, buffer, length, offset)
 			end
 			
-			def io_write(io, buffer, length)
-				@selector.io_write(Fiber.current, io, buffer, length)
+			def io_write(io, buffer, length, offset)
+				@selector.io_write(Fiber.current, io, buffer, length, offset)
 			end
 		end
 		
