@@ -34,6 +34,9 @@ RSpec.describe Async::Scheduler, if: Async::Scheduler.supported? do
 			s1.putc('a')
 			
 			child.wait
+		ensure
+			s1.close
+			s2.close
 		end
 		
 		it "can perform blocking read" do
@@ -53,6 +56,8 @@ RSpec.describe Async::Scheduler, if: Async::Scheduler.supported? do
 			s1.close
 			
 			child.wait
+		ensure
+			s2.close
 		end
 	end
 end
