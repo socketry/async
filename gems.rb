@@ -9,6 +9,7 @@ gemspec
 
 # gem "event", path: "../event"
 # gem "async-rspec", path: "../async-rspec"
+gem "io-event", git: "https://github.com/socketry/io-event.git"
 
 group :maintenance, optional: true do
 	gem "bake-gem"
