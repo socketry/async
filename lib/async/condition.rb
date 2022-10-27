@@ -12,20 +12,16 @@ module Async
 	# @public Since `stable-v1`.
 	class Condition
 		def initialize
-			@waiting = []
+      @waiting = Set.new
 		end
 		
 		Queue = Struct.new(:fiber) do
 			def transfer(*arguments)
-				fiber&.transfer(*arguments)
+				fiber.transfer(*arguments)
 			end
 			
 			def alive?
-				fiber&.alive?
-			end
-			
-			def nullify
-				self.fiber = nil
+				fiber.alive?
 			end
 		end
 		
@@ -35,11 +31,11 @@ module Async
 		# @returns [Object]
 		def wait
 			queue = Queue.new(Fiber.current)
-			@waiting << queue
-			
+      @waiting << queue
+
 			Fiber.scheduler.transfer
 		ensure
-			queue.nullify
+      @waiting.delete(queue)
 		end
 		
 		# Is any fiber waiting on this notification?
@@ -51,9 +47,9 @@ module Async
 		# Signal to a given task that it should resume operations.
 		# @parameter value [Object | Nil] The value to return to the waiting fibers.
 		def signal(value = nil)
-			waiting = @waiting
-			@waiting = []
-			
+      waiting = @waiting.dup
+      @waiting.clear
+
 			waiting.each do |fiber|
 				Fiber.scheduler.resume(fiber, value) if fiber.alive?
 			end

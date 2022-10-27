@@ -12,11 +12,11 @@ module Async
 		# Signal to a given task that it should resume operations.
 		def signal(value = nil, task: Task.current)
 			return if @waiting.empty?
-			
-			Fiber.scheduler.push Signal.new(@waiting, value)
-			
-			@waiting = []
-			
+
+      Fiber.scheduler.push Signal.new(@waiting.dup, value)
+
+      @waiting.clear
+
 			return nil
 		end
 		
