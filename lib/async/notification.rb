@@ -13,9 +13,7 @@ module Async
 		def signal(value = nil, task: Task.current)
 			return if @waiting.empty?
 			
-			Fiber.scheduler.push Signal.new(@waiting, value)
-			
-			@waiting = []
+			Fiber.scheduler.push Signal.new(self.exchange, value)
 			
 			return nil
 		end
