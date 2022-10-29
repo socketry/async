@@ -45,7 +45,7 @@ module Async
 		end
 		
 		def empty?
-			@tail == self
+			@tail.equal?(self)
 		end
 		
 		def each
@@ -80,14 +80,6 @@ module Async
 		
 		def last
 			@head
-		end
-		
-		def empty?
-			@tail == self
-		end
-		
-		def nil?
-			@tail == self
 		end
 	end
 	

@@ -44,6 +44,10 @@ module Async
 			@size == @transient_count
 		end
 		
+		def nil?
+			empty?
+		end
+		
 		private
 		
 		def added(node)
@@ -106,7 +110,7 @@ module Async
 		
 		# Whether there are children?
 		def children?
-			!@children.nil?
+			@children && !@children.empty?
 		end
 		
 		# Is this node transient?
