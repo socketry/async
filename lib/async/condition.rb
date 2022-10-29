@@ -29,6 +29,8 @@ module Async
 			end
 		end
 		
+		private_constant :Waiter
+		
 		# Queue up the current fiber and wait on yielding the task.
 		# @returns [Object]
 		def wait
