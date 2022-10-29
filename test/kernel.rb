@@ -1,0 +1,39 @@
+# frozen_string_literal: true
+
+# Released under the MIT License.
+# Copyright, 2022, by Samuel Williams.
+
+require 'sus/fixtures/async'
+
+describe Kernel do
+	include Sus::Fixtures::Async::ReactorContext
+	
+	with '#sleep' do
+		it "can intercept sleep" do
+			expect(reactor).to receive(:kernel_sleep).with(0.001)
+			
+			sleep(0.001)
+		end
+	end
+	
+	with '#system' do
+		it "can execute child process" do
+			# expect(reactor).to receive(:process_wait)
+			
+			::Kernel.system("true")
+			expect($?).to be(:success?)
+		end
+	end
+	
+	with '#`' do
+		it "can execute child process and capture output" do
+			expect(`echo OK`).to be == "OK\n"
+			expect($?).to be(:success?)
+		end
+		
+		it "can execute child process with delay and capture output" do
+			expect(`sleep 0.01; echo OK`).to be == "OK\n"
+			expect($?).to be(:success?)
+		end
+	end
+end
