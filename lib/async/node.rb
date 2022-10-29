@@ -41,7 +41,7 @@ module Async
 		end
 		
 		def finished?
-			@count == @transient_count
+			@size == @transient_count
 		end
 		
 		private

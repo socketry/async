@@ -40,16 +40,8 @@ module Async
 			node.tail.head = node.head
 			node.head = nil
 			node.tail = nil
-		end
-		
-		# Delete the node from the list.
-		def delete!
-			@head.tail = @tail
-			@tail.head = @head
-			@head = nil
-			@tail = nil
 			
-			return self
+			return node
 		end
 		
 		def empty?
@@ -96,6 +88,21 @@ module Async
 		
 		def nil?
 			@tail == self
+		end
+	end
+	
+	class List::Node
+		attr_accessor :head
+		attr_accessor :tail
+		
+		# Delete the node from the list.
+		def delete!
+			@head.tail = @tail
+			@tail.head = @head
+			@head = nil
+			@tail = nil
+			
+			return self
 		end
 	end
 end

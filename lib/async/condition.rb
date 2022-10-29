@@ -5,7 +5,7 @@
 # Copyright, 2017, by Kent Gruber.
 
 require 'fiber'
-require_relative 'node'
+require_relative 'list'
 
 module Async
 	# A synchronization primitive, which allows fibers to wait until a particular condition is (edge) triggered.
@@ -15,15 +15,29 @@ module Async
 			@waiting = List.new
 		end
 		
+		class Waiter < List::Node
+			def initialize(fiber)
+				@fiber = fiber
+			end
+			
+			def transfer(*arguments)
+				@fiber.transfer(*arguments)
+			end
+			
+			def alive?
+				@fiber.alive?
+			end
+		end
+		
 		# Queue up the current fiber and wait on yielding the task.
 		# @returns [Object]
 		def wait
-			queue = Queue.new(Fiber.current)
-			@waiting.insert(queue)
+			waiter = Waiter.new(Fiber.current)
+			@waiting.append(waiter)
 			
 			Fiber.scheduler.transfer
 		ensure
-			queue.delete!
+			waiter.delete!
 		end
 		
 		# Is any fiber waiting on this notification?
