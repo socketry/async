@@ -5,138 +5,65 @@
 # Copyright, 2017, by Kent Gruber.
 # Copyright, 2022, by Shannon Skipper.
 
+require_relative 'list'
+
 module Async
-	# A double linked list used for managing tasks.
-	class List
-		def initialize
-			# The list behaves like a list node, so @tail points to the next item (the first one) and head points to the previous item (the last one). This may be slightly confusing but it makes the interface more natural.
-			@head = nil
-			@tail = nil
-			@size = 0
-		end
-		
-		attr :size
-		
-		attr_accessor :head
-		attr_accessor :tail
-		
-		# Inserts an item at the end of the list.
-		def insert(item)
-			unless @tail
-				@tail = item
-				@head = item
-				
-				# Consistency:
-				item.head = nil
-				item.tail = nil
-			else
-				@head.tail = item
-				item.head = @head
-				
-				# Consistency:
-				item.tail = nil
-				
-				@head = item
-			end
-			
-			@size += 1
-			
-			return self
-		end
-		
-		def delete(item)
-			if @tail.equal?(item)
-				@tail = @tail.tail
-			else
-				item.head.tail = item.tail
-			end
-			
-			if @head.equal?(item)
-				@head = @head.head
-			else
-				item.tail.head = item.head
-			end
-			
-			item.head = nil
-			item.tail = nil
-			
-			@size -= 1
-			
-			return self
-		end
-		
-		def each(&block)
-			return to_enum unless block_given?
-			
-			current = self
-			while node = current.tail
-				yield node
-				
-				# If the node has deleted itself or any subsequent node, it will no longer be the next node, so don't use it for continued traversal:
-				if current.tail.equal?(node)
-					current = node
-				end
-			end
-		end
-		
-		def include?(needle)
-			self.each do |item|
-				return true if needle.equal?(item)
-			end
-			
-			return false
-		end
-		
-		def first
-			@tail
-		end
-		
-		def last
-			@head
-		end
-		
-		def empty?
-			@tail.nil?
-		end
-		
-		def nil?
-			@tail.nil?
-		end
-	end
-	
-	private_constant :List
-	
 	# A list of children tasks.
 	class Children < List
 		def initialize
 			super
 			
+			@size = 0
 			@transient_count = 0
 		end
+		
+		attr :size
 		
 		# Does this node have (direct) transient children?
 		def transients?
 			@transient_count > 0
 		end
 		
-		def insert(item)
-			if item.transient?
-				@transient_count += 1
-			end
-			
-			super
+		def insert(child)
+			append(child)
 		end
 		
-		def delete(item)
-			if item.transient?
-				@transient_count -= 1
-			end
-			
-			super
+		def append(node)
+			added(super)
+		end
+		
+		def prepend(node)
+			added(super)
+		end
+		
+		def delete(node)
+			removed(super)
 		end
 		
 		def finished?
 			@size == @transient_count
+		end
+		
+		def nil?
+			empty?
+		end
+		
+		private
+		
+		def added(node)
+			if node.transient?
+				@transient_count += 1
+			end
+			
+			@size += 1
+		end
+		
+		def removed(node)
+			if node.transient?
+				@transient_count -= 1
+			end
+			
+			@size -= 1
 		end
 	end
 	
@@ -183,7 +110,7 @@ module Async
 		
 		# Whether there are children?
 		def children?
-			@children != nil && !@children.empty?
+			@children && !@children.empty?
 		end
 		
 		# Is this node transient?
