@@ -11,62 +11,6 @@ module Async
 	# A synchronization primitive, which allows fibers to wait until a particular condition is (edge) triggered.
 	# @public Since `stable-v1`.
 	class Condition
-		class List
-			def initialize
-				@head = self
-				@tail = self
-			end
-			
-			# @private
-			attr_accessor :head
-			
-			# @private
-			attr_accessor :tail
-			
-			def insert(node)
-				node.tail = self
-				@head.tail = node
-				node.head = @head
-				@head = node
-			end
-			
-			def delete!
-				@head.tail = @tail
-				@tail.head = @head
-				@head = nil
-				@tail = nil
-			end
-			
-			def empty?
-				@tail == self
-			end
-			
-			def each
-				node = @tail
-				
-				while node != self
-					tail = node.tail
-					yield node
-					node = tail
-				end
-			end
-		end
-	
-		class Queue < List
-			def initialize(fiber)
-				super()
-				@fiber = fiber
-			end
-			
-			def transfer(*arguments)
-				@fiber.transfer(*arguments)
-			end
-			
-			def alive?
-				@fiber.alive?
-			end
-		end
-		
 		def initialize
 			@waiting = List.new
 		end
