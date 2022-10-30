@@ -65,7 +65,7 @@ ACondition = Sus::Shared("a condition") do
 			@state = nil
 			
 			@task = reactor.async do |task|
-				task.with_timeout(0.1) do
+				task.with_timeout(0.01) do
 					begin
 						@state = :waiting
 						waiting.resolve

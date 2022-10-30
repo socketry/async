@@ -114,7 +114,7 @@ describe Async::Reactor do
 			end
 			
 			reactor.async(annotation: "reactor.stop") do |task|
-				task.sleep(0.1)
+				task.sleep(0.01)
 				task.reactor.stop
 			end
 			
@@ -130,7 +130,6 @@ describe Async::Reactor do
 			
 			thread = Thread.new do
 				if events.pop
-					sleep 0.2
 					reactor.interrupt
 				end
 			end

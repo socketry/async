@@ -18,7 +18,7 @@ describe Async::Barrier do
 	
 	with '#async' do
 		let(:repeats) {40}
-		let(:delay) {0.1}
+		let(:delay) {0.01}
 		
 		it 'should wait for all jobs to complete' do
 			finished = 0
@@ -82,10 +82,10 @@ describe Async::Barrier do
 		# It's possible for Barrier#wait to be interrupted with an unexpected exception, and this should not cause the barrier to incorrectly remove that task from the wait list.
 		it 'waits for tasks with timeouts' do
 			begin
-				reactor.with_timeout(0.25) do
+				reactor.with_timeout(5/100.0/2) do
 					5.times do |i|
 						barrier.async do |task|
-							task.sleep(i/10.0)
+							task.sleep(i/100.0)
 						end
 					end
 					
@@ -173,7 +173,7 @@ describe Async::Barrier do
 		it 'should execute several tasks and wait using a barrier' do
 			repeats.times do
 				barrier.async(parent: semaphore) do |task|
-					task.sleep 0.1
+					task.sleep 0.01
 				end
 			end
 			

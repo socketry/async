@@ -12,10 +12,10 @@ describe Async::Clock do
 	
 	it "can measure durations" do
 		duration = Async::Clock.measure do
-			sleep 0.1
+			sleep 0.01
 		end
 		
-		expect(duration).to be_within(Q).of(0.1)
+		expect(duration).to be_within(Q).of(0.01)
 	end
 	
 	it "can get current offset" do
@@ -25,11 +25,11 @@ describe Async::Clock do
 	it "can accumulate durations" do
 		2.times do
 			clock.start!
-			sleep(0.1)
+			sleep(0.01)
 			clock.stop!
 		end
 		
-		expect(clock.total).to be_within(2 * Q).of(0.2)
+		expect(clock.total).to be_within(2 * Q).of(0.02)
 	end
 	
 	with '#total' do

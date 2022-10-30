@@ -50,9 +50,9 @@ describe Async::Scheduler do
 				expect(s2.read(1)).to be == nil
 			end
 			
-			sleep(0.1)
+			sleep(0.01)
 			s1.write('a')
-			sleep(0.1)
+			sleep(0.01)
 			s1.close
 			
 			child.wait

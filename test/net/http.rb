@@ -18,7 +18,7 @@ describe Net::HTTP do
 		3.times do |i|
 			barrier.async do
 				events << i
-				response = Net::HTTP.get(URI "https://www.google.com/search?q=ruby")
+				response = Net::HTTP.get(URI "https://github.com/")
 				expect(response).not.to be == nil
 				events << i
 			end

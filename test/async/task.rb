@@ -103,7 +103,8 @@ describe Async::Task do
 			
 			expect do
 				task = reactor.async do |task|
-					task.sleep 0.1
+					# Let the other operation get scheduled:
+					task.yield
 					
 					raise "boom"
 				end
@@ -428,14 +429,14 @@ describe Async::Task do
 	with '#with_timeout' do
 		it "can extend timeout" do
 			reactor.async do |task|
-				task.with_timeout(0.2) do |timer|
-					task.sleep(0.1)
+				task.with_timeout(0.02) do |timer|
+					task.sleep(0.01)
 					
-					expect(timer.fires_in).to be_within(Q).of(0.1)
+					expect(timer.fires_in).to be_within(Q).of(0.01)
 					
 					timer.reset
 					
-					expect(timer.fires_in).to be_within(Q).of(0.2)
+					expect(timer.fires_in).to be_within(Q).of(0.02)
 				end
 			end
 			
@@ -523,7 +524,7 @@ describe Async::Task do
 	with '#wait' do
 		it "will wait on another task to complete" do
 			apples_task = reactor.async do |task|
-				task.sleep(0.1)
+				task.sleep(0.01)
 				
 				:apples
 			end
@@ -561,7 +562,7 @@ describe Async::Task do
 			error_task = innocent_task = nil
 			
 			error_task = reactor.async do |task|
-				task.sleep(0.1)
+				task.yield
 				
 				raise "boom"
 			end

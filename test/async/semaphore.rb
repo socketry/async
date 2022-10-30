@@ -8,13 +8,14 @@ require 'async/barrier'
 require 'sus/fixtures/async'
 
 require 'chainable_async'
+require 'timer_quantum'
 
 describe Async::Semaphore do
 	include Sus::Fixtures::Async::ReactorContext
 	let(:semaphore) {subject.new}
 	
 	with '#async' do
-		let(:repeats) {40}
+		let(:repeats) {10}
 		let(:limit) {4}
 		
 		it 'should process work in batches' do
@@ -25,7 +26,7 @@ describe Async::Semaphore do
 				semaphore.async do |task|
 					current += 1
 					maximum = [current, maximum].max
-					task.sleep(rand * 0.1)
+					task.sleep(rand * 0.01)
 					current -= 1
 					
 					i
@@ -46,7 +47,7 @@ describe Async::Semaphore do
 			3.times.map do |i|
 				semaphore.async do |task|
 					order << i
-					task.sleep(0.1)
+					task.sleep(0.01)
 					order << i
 				end
 			end.collect(&:wait)
@@ -61,7 +62,7 @@ describe Async::Semaphore do
 			3.times.map do |i|
 				semaphore.async do |task|
 					order << i
-					task.sleep(0.1)
+					task.sleep(0.001)
 					order << i
 				end
 			end.collect(&:wait)
@@ -75,7 +76,7 @@ describe Async::Semaphore do
 		
 		it 'handles exceptions thrown while waiting' do
 			expect do
-				reactor.with_timeout(0.1) do
+				reactor.with_timeout(0.001) do
 					semaphore.acquire do
 					end
 				end
@@ -141,7 +142,7 @@ describe Async::Semaphore do
 		it 'should execute several tasks and wait using a barrier' do
 			repeats.times do
 				semaphore.async(parent: barrier) do |task|
-					task.sleep 0.1
+					task.sleep(0.01)
 				end
 			end
 			

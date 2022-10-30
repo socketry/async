@@ -32,7 +32,7 @@ describe Async::Wrapper do
 		
 		it "can timeout if no event occurs" do
 			expect do
-				output.wait_readable(0.1)
+				output.wait_readable(0.001)
 			end.to raise_exception(Async::TimeoutError)
 		end
 		

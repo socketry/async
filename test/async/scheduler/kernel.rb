@@ -11,7 +11,7 @@ describe Async::Scheduler do
 	include Sus::Fixtures::Async::ReactorContext
 	
 	describe ::Kernel do
-		let(:duration) {0.1}
+		let(:duration) {0.01}
 		
 		it "can sleep for a short duration" do
 			expect(reactor).to receive(:kernel_sleep).with(duration)

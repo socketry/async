@@ -56,7 +56,7 @@ describe Async::Scheduler do
 			end
 			
 			expect(task).to be(:running?)
-			expect(duration).to be <= 0.01
+			expect(duration).to be <= 0.1
 		end
 	end
 end
