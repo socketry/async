@@ -37,7 +37,7 @@ describe Async::Task do
 			task = reactor.async do |task|
 			end
 			
-			expect{task.run}.to raise_exception(RuntimeError, /already running/)
+			expect{task.run}.to raise_exception(RuntimeError, message: be =~ /already running/)
 		end
 	end
 	
@@ -61,6 +61,8 @@ describe Async::Task do
 				
 				expect(child).not.to be_nil
 				expect(child.parent).not.to be_nil
+			ensure
+				child.stop
 			end
 			
 			expect(parent).not.to be_nil
@@ -137,7 +139,7 @@ describe Async::Task do
 						raise SignalException.new(:TERM)
 					end
 				end
-			end.to raise_exception(SignalException, /TERM/)
+			end.to raise_exception(SignalException, message: be =~ /TERM/)
 		end
 	end
 	
@@ -321,21 +323,21 @@ describe Async::Task do
 					
 					task.async do |task|
 						children_tasks << task
-						task.sleep(2)
+						task.sleep(0.02)
 					end
 					
 					task.async do |task|
 						children_tasks << task
-						task.sleep(1)
+						task.sleep(0.01)
 						parent_task.stop
 					end
 					
 					task.async do |task|
 						children_tasks << task
-						task.sleep(2)
+						task.sleep(0.02)
 					end
 					
-					task.sleep(2)
+					task.sleep(0.02)
 				end
 			end
 			
@@ -484,7 +486,7 @@ describe Async::Task do
 		
 		it "contains useful backtrace" do
 			task = Async do |task|
-				task.with_timeout(1.0) do
+				task.with_timeout(0.001) do
 					sleep_forever
 				end
 			end
@@ -492,7 +494,7 @@ describe Async::Task do
 			expect{task.wait}.to raise_exception(Async::TimeoutError)
 			
 			error = task.result
-			expect(error.backtrace).to include(/sleep_forever/)
+			expect(error.backtrace).to have_value(be =~ /sleep_forever/)
 		end
 	end
 	
@@ -503,7 +505,7 @@ describe Async::Task do
 					task.sleep(1)
 				end
 				
-				expect(task.backtrace).to include(/sleep/)
+				expect(task.backtrace).to have_value(be =~ /sleep/)
 				
 				task.stop
 			end
@@ -551,7 +553,7 @@ describe Async::Task do
 				
 				expect do
 					error_task.wait
-				end.to raise_exception(RuntimeError, /brain/)
+				end.to raise_exception(RuntimeError, message: be =~ /brain/)
 			end
 		end
 		
@@ -565,7 +567,7 @@ describe Async::Task do
 			end
 			
 			innocent_task = reactor.async do |task|
-				expect{error_task.wait}.to raise_exception RuntimeError, /boom/
+				expect{error_task.wait}.to raise_exception(RuntimeError, message: be =~ /boom/)
 			end
 			
 			expect do
@@ -657,7 +659,7 @@ describe Async::Task do
 				task.sleep(0.1)
 			end
 			
-			expect(apples_task.to_s).to include "running"
+			expect(apples_task.to_s).to be =~ /running/
 		end
 		
 		it "should show complete" do
@@ -665,7 +667,7 @@ describe Async::Task do
 				apples_task = reactor.async do |task|
 				end
 				
-				expect(apples_task.to_s).to include "complete"
+				expect(apples_task.to_s).to be =~ /complete/
 			end
 		end
 	end

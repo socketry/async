@@ -88,7 +88,9 @@ AQueue = Sus::Shared("a queue") do
 	end
 	
 	with 'an empty queue' do
-		it {is_expected.to be_empty}
+		it "is expected to be empty" do
+			expect(queue).to be(:empty?)
+		end
 	end
 	
 	with 'semaphore' do
@@ -115,19 +117,17 @@ AQueue = Sus::Shared("a queue") do
 		end
 	end
 	
-	with "an item" do
+	it_behaves_like ChainableAsync do
 		def before
-			queue.enqueue(:item)
+			chainable.enqueue(:item)
 			
 			# The limited queue may block.
 			Async do
-				queue.enqueue(nil)
+				chainable.enqueue(nil)
 			end
 			
 			super
 		end
-		
-		it_behaves_like ChainableAsync
 	end
 end
 

@@ -63,11 +63,8 @@ ACondition = Sus::Shared("a condition") do
 		
 		def before
 			@state = nil
-			super
-		end
-		
-		let(:task) do
-			reactor.async do |task|
+			
+			@task = reactor.async do |task|
 				task.with_timeout(0.1) do
 					begin
 						@state = :waiting
@@ -80,10 +77,12 @@ ACondition = Sus::Shared("a condition") do
 					end
 				end
 			end
+			
+			super
 		end
 		
 		it 'can timeout while waiting' do
-			task.wait
+			@task.wait
 			
 			expect(@state).to be == :timeout
 		end
@@ -92,7 +91,7 @@ ACondition = Sus::Shared("a condition") do
 			waiting.wait
 			ready.resolve
 			
-			task.wait
+			@task.wait
 			
 			expect(@state).to be == :signalled
 		end

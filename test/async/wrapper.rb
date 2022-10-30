@@ -23,7 +23,7 @@ describe Async::Wrapper do
 	with '#wait_readable' do
 		it "can wait to be readable" do
 			reader = reactor.async do
-				expect(output.wait_readable).to be == true
+				expect(output.wait_readable).to be_truthy
 			end
 			
 			input.io.write('Hello World')
@@ -145,7 +145,7 @@ describe Async::Wrapper do
 			
 			expect do
 				output.wait_readable
-			end.to raise_exception(IOError, /closed stream/)
+			end.to raise_exception(IOError, message: be =~ /closed stream/)
 		end
 	end
 end

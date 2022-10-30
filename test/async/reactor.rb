@@ -94,7 +94,7 @@ describe Async::Reactor do
 				reactor.print_hierarchy(output, backtrace: true)
 				lines = output.string.lines
 				
-				expect(lines).to include(/in `sleep'/)
+				expect(lines).to have_value(be =~ /in `sleep'/)
 				
 				child.stop
 			end
@@ -233,23 +233,6 @@ describe Async::Reactor do
 					end
 				end.wait
 			end.to raise_exception(timeout_class)
-		end
-		
-		it "should be fast to use timeouts" do
-			Benchmark.ips do |x|
-				x.report('Reactor#with_timeout') do |repeats|
-					Async do |task|
-						reactor = task.reactor
-						
-						repeats.times do
-							reactor.with_timeout(1) do
-							end
-						end
-					end
-				end
-				
-				x.compare!
-			end
 		end
 	end
 	

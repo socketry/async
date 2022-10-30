@@ -16,11 +16,11 @@ describe Async::Reactor do
 			end
 			
 			expect(outer_reactor).to be_a(subject)
-			expect(outer_reactor).to be_eql(inner_reactor)
+			expect(outer_reactor).to be_equal(inner_reactor)
 		end
 	end
 	
-	describe '::run' do
+	with '::run' do
 		it "should nest reactor" do
 			expect(Async::Task.current?).to be_nil
 			inner_reactor = nil

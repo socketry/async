@@ -5,13 +5,13 @@
 
 ChainableAsync = Sus::Shared("chainable async") do
 	let(:parent) {Object.new}
+	let(:chainable) {subject.new(parent: parent)}
 	
 	it 'should chain async to parent' do
-		instance = subject.new(parent: parent)
-		
 		expect(parent).to receive(:async).and_return(nil)
 		
-		instance.async do
+		chainable.async do
+			# Nothing.
 		end
 	end
 end

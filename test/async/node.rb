@@ -65,26 +65,26 @@ describe Async::Node do
 			
 			node.print_hierarchy(buffer)
 			
-			expect(lines.size).to be 2
+			expect(lines.size).to be == 2
 			
 			expect(lines[0]).to be =~ /#<Async::Node:0x\h+>\n/
 			expect(lines[1]).to be =~ /\t#<Async::Node:0x\h+>\n/
 		end
 	end
 
-	with '#inspect' do
-		let(:node) {Async::Node.new}
+with '#inspect' do
+	let(:node) {Async::Node.new}
 		
 		it 'should begin with the class name' do
-			expect(node.inspect).to start_with "#<#{node.class.name}"
+			expect(node.inspect).to be(:start_with?, "#<#{node.class.name}")
 		end
 		
 		it 'should end with hex digits' do
-			expect(node.inspect).to match(/\h>\z/)
+			expect(node.inspect).to be =~ /\h>\z/
 		end
 		
 		it 'should have a standard number of hex digits' do
-			expect(node.inspect).to match(/:0x\h{16}>/)
+			expect(node.inspect).to be =~ /:0x\h{16}>/
 		end
 		
 		it 'should have a colon in the middle' do
@@ -101,11 +101,11 @@ describe Async::Node do
 			middle = Async::Node.new(node)
 			bottom = Async::Node.new(middle)
 			
-			expect(bottom.parent).to be middle
+			expect(bottom.parent).to be_equal(middle)
 			
 			middle.consume
 			
-			expect(bottom.parent).to be middle
+			expect(bottom.parent).to be_equal(middle)
 		end
 		
 		it "can consume nodes while enumerating children" do
@@ -152,10 +152,10 @@ describe Async::Node do
 			middle = Async::Node.new(node)
 			bottom = 2.times.map{Async::Node.new(middle)}
 			
-			allow(bottom[0]).to receive(:finished?).and_return(false)
-			allow(bottom[1]).to receive(:finished?).and_return(false)
+			expect(bottom[0]).to receive(:finished?).and_return(false)
+			expect(bottom[1]).to receive(:finished?).and_return(false)
+			expect(middle).to receive(:finished?).and_return(true)
 			
-			allow(middle).to receive(:finished?).and_return(true)
 			middle.consume
 			
 			expect(node.children.size).to be == 2
@@ -166,12 +166,12 @@ describe Async::Node do
 			middle = Async::Node.new(node)
 			bottom = Async::Node.new(middle)
 			
-			allow(middle).to receive(:finished?).and_return(true)
-			allow(bottom).to receive(:finished?).and_return(true)
+			expect(middle).to receive(:finished?).and_return(true)
+			expect(bottom).to receive(:finished?).and_return(true)
 			
 			middle.consume
 			
-			expect(node.children).to be_empty
+			expect(node.children).to be(:empty?)
 			expect(middle.children).to be_nil
 			expect(bottom.parent).to be_nil
 		end
@@ -186,7 +186,7 @@ describe Async::Node do
 		
 		it 'should output annotation when invoking #to_s' do
 			node.annotate(annotation) do
-				expect(node.to_s).to include(annotation)
+				expect(node.to_s).to be(:include?, annotation)
 			end
 		end
 		
@@ -206,20 +206,20 @@ describe Async::Node do
 			middle = Async::Node.new(node)
 			child = Async::Node.new(middle, transient: true)
 			
-			expect(child).to be_transient
-			expect(middle).to be_finished
+			expect(child).to be(:transient?)
+			expect(middle).to be(:finished?)
 			
-			allow(child).to receive(:finished?).and_return(false)
+			expect(child).to receive(:finished?).with_call_count(be >= 1).and_return(false)
 			
 			middle.consume
 			
 			# node -> child (transient)
-			expect(child.parent).to be node
-			expect(node.children).to include(child)
-			expect(node.children).to_not include(middle)
+			expect(child.parent).to be_equal(node)
+			expect(node.children).to be(:include?, child)
+			expect(node.children).not.to be(:include?, middle)
 			
-			expect(child).to_not be_finished
-			expect(node).to be_finished
+			expect(child).not.to be(:finished?)
+			expect(node).to be(:finished?)
 			
 			expect(child).to receive(:stop)
 			node.terminate
@@ -234,26 +234,26 @@ describe Async::Node do
 			child1 = Async::Node.new(middle, transient: true, annotation: "child1")
 			child2 = Async::Node.new(middle, annotation: "child2")
 			
-			allow(child1).to receive(:finished?).and_return(false)
+			expect(child1).to receive(:finished?).and_return(false)
 			
 			middle.consume
 			
 			# node -> middle -> child1 (transient)
 			#                   -> child2
-			expect(child1.parent).to be middle
-			expect(child2.parent).to be middle
-			expect(middle.parent).to be node
-			expect(node.children).to include(middle)
-			expect(middle.children).to include(child1)
-			expect(middle.children).to include(child2)
+			expect(child1.parent).to be_equal(middle)
+			expect(child2.parent).to be_equal(middle)
+			expect(middle.parent).to be_equal(node)
+			expect(node.children).to be(:include?, middle)
+			expect(middle.children).to be(:include?, child1)
+			expect(middle.children).to be(:include?, child2)
 			
 			child2.consume
 			
 			# node -> child1 (transient)
-			expect(child1.parent).to be node
+			expect(child1.parent).to be_equal(node)
 			expect(child2.parent).to be_nil
 			expect(middle.parent).to be_nil
-			expect(node.children).to include(child1)
+			expect(node.children).to be(:include?, child1)
 			expect(middle.children).to be_nil
 		end
 		
@@ -262,14 +262,14 @@ describe Async::Node do
 			middle = Async::Node.new(node, transient: true)
 			child = Async::Node.new(middle)
 			
-			allow(middle).to receive(:finished?).and_return(false)
+			expect(middle).to receive(:finished?).and_return(false)
 			
 			child.consume
 			
 			# node -> middle (transient)
 			expect(child.parent).to be_nil
-			expect(middle.parent).to be node
-			expect(node.children).to include(middle)
+			expect(middle.parent).to be_equal(node)
+			expect(node.children).to be(:include?, middle)
 			expect(middle.children).to be_nil
 		end
 		
@@ -278,7 +278,7 @@ describe Async::Node do
 			child1 = Async::Node.new(middle, transient: true, annotation: "child1")
 			child2 = Async::Node.new(middle, annotation: "child2")
 			
-			expect(child1).to_not receive(:stop)
+			expect(child1).not.to receive(:stop)
 			expect(child2).to receive(:stop)
 			
 			node.stop
@@ -292,7 +292,7 @@ describe Async::Node do
 			child2 = Async::Node.new(middle, annotation: "child2")
 			
 			expect(child1).to receive(:stop)
-			expect(child2).to receive(:stop).with_call_count(be == 1)
+			expect(child2).to receive(:stop).with_call_count(be >= 1)
 			
 			node.terminate
 		end
