@@ -431,11 +431,11 @@ describe Async::Task do
 				task.with_timeout(0.2) do |timer|
 					task.sleep(0.1)
 					
-					expect(timer.fires_in).to be_within(10 * Q).percent_of(0.1)
+					expect(timer.fires_in).to be_within(Q).of(0.1)
 					
 					timer.reset
 					
-					expect(timer.fires_in).to be_within(10 * Q).percent_of(0.2)
+					expect(timer.fires_in).to be_within(Q).of(0.2)
 				end
 			end
 			
