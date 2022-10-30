@@ -420,8 +420,7 @@ describe Async::Task do
 			end
 			
 			# This is too unstable on travis.
-			# expect(time).to be_within(50).percent_of(duration)
-			expect(time).to be >= duration
+			expect(time).to be_within(Q).of(duration)
 			expect(state).to be == :finished
 		end
 	end

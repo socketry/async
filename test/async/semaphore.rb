@@ -62,7 +62,7 @@ describe Async::Semaphore do
 			3.times.map do |i|
 				semaphore.async do |task|
 					order << i
-					task.sleep(0.001)
+					task.sleep(0.01)
 					order << i
 				end
 			end.collect(&:wait)
