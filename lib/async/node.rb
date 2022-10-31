@@ -169,11 +169,11 @@ module Async
 			return self
 		end
 		
-		protected def set_parent parent
+		protected def set_parent(parent)
 			@parent = parent
 		end
 		
-		protected def add_child child
+		protected def add_child(child)
 			@children ||= Children.new
 			@children.insert(child)
 			child.set_parent(self)

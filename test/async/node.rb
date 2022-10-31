@@ -71,9 +71,9 @@ describe Async::Node do
 			expect(lines[1]).to be =~ /\t#<Async::Node:0x\h+>\n/
 		end
 	end
-
-with '#inspect' do
-	let(:node) {Async::Node.new}
+	
+	with '#inspect' do
+		let(:node) {Async::Node.new}
 		
 		it 'should begin with the class name' do
 			expect(node.inspect).to be(:start_with?, "#<#{node.class.name}")

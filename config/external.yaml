@@ -1,0 +1,21 @@
+async-io:
+  url: https://github.com/socketry/async-io.git
+  command: bundle exec rspec
+async-pool:
+  url: https://github.com/socketry/async-pool.git
+  command: bundle exec sus
+async-websocket:
+  url: https://github.com/socketry/async-websocket.git
+  command: bundle exec sus
+async-dns:
+  url: https://github.com/socketry/async-dns.git
+  command: bundle exec rspec
+async-http:
+  url: https://github.com/socketry/async-http.git
+  command: bundle exec rspec
+falcon:
+  url: https://github.com/socketry/falcon.git
+  command: bundle exec rspec
+async-rest:
+  url: https://github.com/socketry/async-rest.git
+  command: bundle exec rspec
