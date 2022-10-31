@@ -3,6 +3,7 @@
 # Released under the MIT License.
 # Copyright, 2019-2022, by Samuel Williams.
 
+require_relative 'list'
 require_relative 'task'
 
 module Async
@@ -13,25 +14,33 @@ module Async
 		# @parameter parent [Task | Semaphore | Nil] The parent for holding any children tasks.
 		# @public Since `stable-v1`.
 		def initialize(parent: nil)
-			@tasks = []
+			@tasks = List.new
 			
 			@parent = parent
 		end
 		
-		# All tasks which have been invoked into the barrier.
-		attr :tasks
+		class Waiting < List::Node
+			def initialize(task)
+				@task = task
+			end
+			
+			attr :task
+		end
 		
-		# The number of tasks currently held by the barrier.
+		# Number of tasks being held by the barrier.
 		def size
 			@tasks.size
 		end
+		
+		# All tasks which have been invoked into the barrier.
+		attr :tasks
 		
 		# Execute a child task and add it to the barrier.
 		# @asynchronous Executes the given block concurrently.
 		def async(*arguments, parent: (@parent or Task.current), **options, &block)
 			task = parent.async(*arguments, **options, &block)
 			
-			@tasks << task
+			@tasks.append(Waiting.new(task))
 			
 			return task
 		end
@@ -42,31 +51,22 @@ module Async
 			@tasks.empty?
 		end
 		
-		# Wait for all tasks.
+		# Wait for all tasks to complete. You will still want to wait for individual tasks to complete if you want to handle errors.
 		# @asynchronous Will wait for tasks to finish executing.
 		def wait
-			# TODO: This would be better with linked list.
-			while @tasks.any?
-				task = @tasks.first
-				
-				begin
-					task.wait
-				ensure
-					# We don't know for sure that the exception was due to the task completion.
-					unless task.running?
-						# Remove the task from the waiting list if it's finished:
-						@tasks.shift if @tasks.first == task
-					end
-				end
+			while waiting = @tasks.first
+				task = waiting.task
+				task.join
+				@tasks.remove?(waiting)
 			end
 		end
 		
 		# Stop all tasks held by the barrier.
 		# @asynchronous May wait for tasks to finish executing.
 		def stop
-			# We have to be careful to avoid enumerating tasks while adding/removing to it:
-			tasks = @tasks.dup
-			tasks.each(&:stop)
+			@tasks.each do |waiting|
+				waiting.task.stop
+			end
 		end
 	end
 end

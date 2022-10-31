@@ -34,12 +34,9 @@ module Async
 		# Queue up the current fiber and wait on yielding the task.
 		# @returns [Object]
 		def wait
-			waiter = Waiter.new(Fiber.current)
-			@waiting.append(waiter)
-			
-			Fiber.scheduler.transfer
-		ensure
-			waiter.delete!
+			@waiting.stack(Waiter.new(Fiber.current)) do
+				Fiber.scheduler.transfer
+			end
 		end
 		
 		# Is any fiber waiting on this notification?

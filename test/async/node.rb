@@ -162,7 +162,7 @@ describe Async::Node do
 			expect(node.children.each.to_a).to be == bottom
 		end
 		
-		it "deletes children that are also finished" do
+		it "removes children that are also finished" do
 			middle = Async::Node.new(node)
 			bottom = Async::Node.new(middle)
 			
