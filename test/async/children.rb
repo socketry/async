@@ -20,7 +20,7 @@ describe Async::Children do
 	with "one child" do
 		it "can add a child" do
 			child = Async::Node.new
-			children.insert(child)
+			children.append(child)
 			
 			expect(children).not.to be(:empty?)
 		end
@@ -33,7 +33,7 @@ describe Async::Children do
 		
 		it "can't delete the child twice" do
 			child = Async::Node.new
-			children.insert(child)
+			children.append(child)
 			
 			children.delete(child)
 			

@@ -16,6 +16,3 @@ group :maintenance, optional: true do
 	gem "bake-github-pages"
 	gem "utopia-project"
 end
-
-# gem "async-rspec", path: "../async-rspec"
-# gem "rspec-files", path: "../rspec-files"
