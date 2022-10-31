@@ -209,14 +209,14 @@ module Async
 			end
 		end
 		
+		# Traverse the task tree.
+		# @yields {|node, level| ...} The node and the level relative to the given root.
 		def traverse(&block)
 			return enum_for(:traverse) unless block_given?
 			
 			self.traverse_recurse(&block)
 		end
 		
-		# Traverse the tree.
-		# @yields {|node, level| ...} The node and the level relative to the given root.
 		protected def traverse_recurse(level = 0, &block)
 			yield self, level
 			
