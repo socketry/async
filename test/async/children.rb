@@ -25,19 +25,19 @@ describe Async::Children do
 			expect(children).not.to be(:empty?)
 		end
 		
-		it "can't delete a child that hasn't been inserted" do
+		it "can't remove a child that hasn't been inserted" do
 			child = Async::Node.new
 			
-			expect{children.delete(child)}.to raise_exception(ArgumentError, message: be =~ /not in a list/)
+			expect{children.remove(child)}.to raise_exception(ArgumentError, message: be =~ /not in a list/)
 		end
 		
-		it "can't delete the child twice" do
+		it "can't remove the child twice" do
 			child = Async::Node.new
 			children.append(child)
 			
-			children.delete(child)
+			children.remove(child)
 			
-			expect{children.delete(child)}.to raise_exception(ArgumentError, message: be =~ /not in a list/)
+			expect{children.remove(child)}.to raise_exception(ArgumentError, message: be =~ /not in a list/)
 		end
 	end
 end

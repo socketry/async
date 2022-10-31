@@ -56,12 +56,12 @@ describe Async::List do
 		end
 	end
 	
-	with '#delete' do
-		it "can delete items" do
+	with '#remove' do
+		it "can remove items" do
 			item = Item.new(1)
 			
 			list.append(item)
-			list.delete(item)
+			list.remove(item)
 			
 			expect(list.each.map(&:value)).to be(:empty?)
 		end
@@ -70,36 +70,23 @@ describe Async::List do
 			item = Item.new(1)
 			
 			list.append(item)
-			list.delete(item)
+			list.remove(item)
 			
 			expect do
-				list.delete(item)
+				list.remove(item)
 			end.to raise_exception(ArgumentError, message: be =~ /not in a list/)
 		end
 		
-		it "can delete item from the middle" do
+		it "can remove an item from the middle" do
 			item = Item.new(1)
 			
 			list.append(Item.new(2))
 			list.append(item)
 			list.append(Item.new(3))
 			
-			list.delete(item)
+			list.remove(item)
 			
 			expect(list.each.map(&:value)).to be == [2, 3]
-		end
-	end
-	
-	with 'Node#delete!' do
-		it "can't remove an item twice" do
-			item = Item.new(1)
-			
-			list.append(item)
-			item.delete!
-			
-			expect do
-				item.delete!
-			end.to raise_exception(NoMethodError)
 		end
 	end
 	
@@ -119,13 +106,37 @@ describe Async::List do
 				# This tests that enumeration is tolerant of deletion:
 				if index == 1
 					# When we are indexing child 1, it means the current node is child 0 - deleting it shouldn't break enumeration:
-					list.delete(nodes.first)
+					list.remove(nodes.first)
 				end
 				
 				index += 1
 			end
 			
 			expect(enumerated).to be == nodes
+		end
+	end
+	
+	with '#first' do
+		it "can return the first item" do
+			item = Item.new(1)
+			
+			list.append(item)
+			list.append(Item.new(2))
+			list.append(Item.new(3))
+			
+			expect(list.first).to be == item
+		end
+	end
+	
+	with '#last' do
+		it "can return the last item" do
+			item = Item.new(1)
+			
+			list.append(Item.new(2))
+			list.append(Item.new(3))
+			list.append(item)
+			
+			expect(list.last).to be == item
 		end
 	end
 end

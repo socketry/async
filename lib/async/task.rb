@@ -119,10 +119,7 @@ module Async
 			return task
 		end
 		
-		# Retrieve the current result of the task. Will cause the caller to wait until result is available. If the result was an exception, raise that exception.
-		# @raises [RuntimeError] If the task's fiber is the current fiber.
-		# @returns [Object] The final expression/result of the task's block.
-		def wait
+		def join
 			raise "Cannot wait on own fiber" if Fiber.current.equal?(@fiber)
 			
 			if running?
@@ -130,11 +127,18 @@ module Async
 				@finished.wait
 			end
 			
-			case @result
+			return @result
+		end
+		
+		# Retrieve the current result of the task. Will cause the caller to wait until result is available. If the result was an exception, raise that exception.
+		# @raises [RuntimeError] If the task's fiber is the current fiber.
+		# @returns [Object] The final expression/result of the task's block.
+		def wait
+			case result = self.join
 			when Exception
-				raise @result
+				raise result
 			else
-				return @result
+				return result
 			end
 		end
 		

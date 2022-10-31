@@ -12,26 +12,12 @@ module Async
 	class Children < List
 		def initialize
 			super
-			
-			@size = 0
 			@transient_count = 0
 		end
-		
-		attr :size
 		
 		# Does this node have (direct) transient children?
 		def transients?
 			@transient_count > 0
-		end
-		
-		def append(node)
-			added(super)
-		end
-		
-		undef prepend
-		
-		def delete(node)
-			removed(super)
 		end
 		
 		def finished?
@@ -49,7 +35,7 @@ module Async
 				@transient_count += 1
 			end
 			
-			@size += 1
+			return super
 		end
 		
 		def removed(node)
@@ -57,7 +43,7 @@ module Async
 				@transient_count -= 1
 			end
 			
-			@size -= 1
+			return super
 		end
 	end
 	
@@ -152,7 +138,7 @@ module Async
 			return if @parent.equal?(parent)
 			
 			if @parent
-				@parent.delete_child(self)
+				@parent.remove_child(self)
 				@parent = nil
 			end
 			
@@ -173,8 +159,8 @@ module Async
 			child.set_parent(self)
 		end
 		
-		protected def delete_child(child)
-			@children.delete(child)
+		protected def remove_child(child)
+			@children.remove(child)
 			child.set_parent(nil)
 		end
 		
@@ -189,15 +175,15 @@ module Async
 		# the parent.
 		def consume
 			if parent = @parent and finished?
-				parent.delete_child(self)
+				parent.remove_child(self)
 				
 				if @children
 					@children.each do |child|
 						if child.finished?
-							delete_child(child)
+							remove_child(child)
 						else
 							# In theory we don't need to do this... because we are throwing away the list. However, if you don't correctly update the list when moving the child to the parent, it foobars the enumeration, and subsequent nodes will be skipped, or in the worst case you might start enumerating the parents nodes.
-							delete_child(child)
+							remove_child(child)
 							parent.add_child(child)
 						end
 					end

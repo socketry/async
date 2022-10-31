@@ -8,6 +8,7 @@ module Async
 		def initialize
 			@head = self
 			@tail = self
+			@size = 0
 		end
 		
 		# @private
@@ -15,6 +16,13 @@ module Async
 		
 		# @private
 		attr_accessor :tail
+		
+		attr :size
+		
+		def added(node)
+			@size += 1
+			return node
+		end
 		
 		# Append a node to the end of the list.
 		def append(node)
@@ -27,7 +35,7 @@ module Async
 			node.head = @head
 			@head = node
 			
-			return node
+			return added(node)
 		end
 		
 		def prepend(node)
@@ -40,24 +48,48 @@ module Async
 			node.tail = @tail
 			@tail = node
 			
+			return added(node)
+		end
+		
+		# Add the node, yield, and the remove the node.
+		def stack(node, &block)
+			append(node)
+			yield
+		ensure
+			remove!(node)
+		end
+		
+		def removed(node)
+			@size -= 1
 			return node
 		end
 		
-		def delete(node)
-			# One downside of this interface is we don't actually check if the node is part of the list defined by `self`. This means that there is a potential for a node to be deleted from a different list using this method, which in can throw off book-keeping when lists track size, etc.
-			
+		# Remove the node if it is in the list.
+		def remove?(node)
+			if node.head
+				remove!(node)
+			end
+		end
+		
+		# Remove the node.
+		def remove(node)
+			# One downside of this interface is we don't actually check if the node is part of the list defined by `self`. This means that there is a potential for a node to be removed from a different list using this method, which in can throw off book-keeping when lists track size, etc.
 			unless node.head
 				raise ArgumentError, "Node is not in a list!"
 			end
 			
+			remove!(node)
+		end
+		
+		private def remove!(node)
 			node.head.tail = node.tail
 			node.tail.head = node.head
 			
-			# This marks the node as being deleted, and causes delete to fail if called a 2nd time.
+			# This marks the node as being removed, and causes remove to fail if called a 2nd time.
 			node.head = nil
 			# node.tail = nil
 			
-			return node
+			return removed(node)
 		end
 		
 		def empty?
@@ -92,28 +124,20 @@ module Async
 		end
 		
 		def first
-			@tail
+			unless @tail.equal?(self)
+				@tail
+			end
 		end
 		
 		def last
-			@head
+			unless @head.equal?(self)
+				@head
+			end
 		end
 	end
 	
 	class List::Node
 		attr_accessor :head
 		attr_accessor :tail
-		
-		# Delete the node from the list.
-		def delete!
-			@head.tail = @tail
-			@tail.head = @head
-			@head = nil
-			
-			# See above deletion implementation for more details:
-			# @tail = nil
-			
-			return self
-		end
 	end
 end
