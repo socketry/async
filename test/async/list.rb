@@ -56,7 +56,7 @@ describe Async::List do
 			
 			expect do
 				list.delete(item)
-			end.to raise_exception(NoMethodError)
+			end.to raise_exception(ArgumentError, message: be =~ /not in a list/)
 		end
 		
 		it "can delete item from the middle" do
