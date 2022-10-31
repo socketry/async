@@ -26,7 +26,7 @@ module Async
 			return @done.shift(count)
 		end
 		
-		def wait(count, exception: false)
+		def wait(count)
 			wait_for(count).map(&:result)
 		end
 	end
