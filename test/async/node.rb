@@ -72,31 +72,6 @@ describe Async::Node do
 		end
 	end
 	
-	with '#each' do
-		it "can iterate over all nodes while deleting them" do
-			children = 3.times.map do
-				Async::Node.new(node)
-			end
-			
-			enumerated = []
-			
-			index = 0
-			node.children.each do |child|
-				enumerated << child
-				
-				# This tests that enumeration is tolerant of deletion:
-				if index == 1
-					# When we are indexing child 1, it means the current node is child 0 - deleting it shouldn't break enumeration:
-					node.children.delete(children.first)
-				end
-				
-				index += 1
-			end
-			
-			expect(enumerated).to be == children
-		end
-	end
-	
 	with '#inspect' do
 		let(:node) {Async::Node.new}
 		
