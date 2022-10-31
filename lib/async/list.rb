@@ -38,8 +38,8 @@ module Async
 		def delete(node)
 			node.head.tail = node.tail
 			node.tail.head = node.head
-			node.head = nil
-			node.tail = nil
+			# node.head = nil
+			# node.tail = nil
 			
 			return node
 		end
@@ -55,6 +55,7 @@ module Async
 			
 			while true
 				node = current.tail
+				# binding.irb if node.nil? && !node.equal?(self)
 				break if node.equal?(self)
 				
 				yield node
