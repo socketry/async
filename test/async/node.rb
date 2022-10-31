@@ -301,4 +301,14 @@ describe Async::Node do
 			node.terminate
 		end
 	end
+	
+	with '#traverse' do
+		it 'can traverse without a block' do
+			middle = Async::Node.new(node, annotation: "middle")
+			child1 = Async::Node.new(middle, transient: true, annotation: "child1")
+			child2 = Async::Node.new(middle, annotation: "child2")
+			
+			expect(node.traverse.to_a).to be == [[node, 0], [middle, 1], [child1, 2], [child2, 2]]
+		end
+	end
 end
