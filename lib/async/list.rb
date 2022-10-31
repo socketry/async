@@ -38,7 +38,9 @@ module Async
 		def delete(node)
 			node.head.tail = node.tail
 			node.tail.head = node.head
-			# node.head = nil
+			
+			# This marks the node as being deleted, and causes delete to fail if called a 2nd time.
+			node.head = nil
 			# node.tail = nil
 			
 			return node
@@ -93,7 +95,9 @@ module Async
 			@head.tail = @tail
 			@tail.head = @head
 			@head = nil
-			@tail = nil
+			
+			# See above deletion implementation for more details:
+			# @tail = nil
 			
 			return self
 		end
