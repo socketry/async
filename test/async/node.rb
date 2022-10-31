@@ -273,10 +273,14 @@ describe Async::Node do
 			expect(middle.children).to be_nil
 		end
 		
+		let(:timeout) {nil}
+		
 		it 'does not stop child transient tasks' do
 			middle = Async::Node.new(node, annotation: "middle")
 			child1 = Async::Node.new(middle, transient: true, annotation: "child1")
 			child2 = Async::Node.new(middle, annotation: "child2")
+			
+			expect(middle.children).to be(:transients?)
 			
 			expect(child1).not.to receive(:stop)
 			expect(child2).to receive(:stop)

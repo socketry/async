@@ -24,17 +24,11 @@ module Async
 			@transient_count > 0
 		end
 		
-		def insert(child)
-			append(child)
-		end
-		
 		def append(node)
 			added(super)
 		end
 		
-		def prepend(node)
-			added(super)
-		end
+		undef prepend
 		
 		def delete(node)
 			removed(super)
@@ -175,7 +169,7 @@ module Async
 		
 		protected def add_child(child)
 			@children ||= Children.new
-			@children.insert(child)
+			@children.append(child)
 			child.set_parent(self)
 		end
 		
