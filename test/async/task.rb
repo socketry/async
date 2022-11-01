@@ -180,7 +180,7 @@ describe Async::Task do
 		end
 		
 		it "can stop nested tasks with exception handling" do
-			reactor.run do
+			reactor.run do |task|
 				task = reactor.async do |task|
 					child = task.async do |subtask|
 						subtask.sleep(1)
@@ -195,6 +195,8 @@ describe Async::Task do
 				
 				subtask = task.children.first
 				task.stop
+				
+				task.yield
 				
 				expect(task.status).to be == :stopped
 				expect(subtask.status).to be == :stopped

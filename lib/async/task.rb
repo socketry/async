@@ -153,22 +153,22 @@ module Async
 			end
 			
 			if self.running?
-				if self.current?
-					if later
-						Fiber.scheduler.push(Stop::Later.new(self))
-					else
+				if later
+					Fiber.scheduler.push(Stop::Later.new(self))
+				else
+					if self.current?
 						raise Stop, "Stopping current task!"
-					end
-				elsif @fiber&.alive?
-					begin
-						Fiber.scheduler.raise(@fiber, Stop)
-					rescue FiberError
-						Fiber.scheduler.push(Stop::Later.new(self))
+					elsif @fiber&.alive?
+						begin
+							Fiber.scheduler.raise(@fiber, Stop)
+						rescue FiberError
+							Fiber.scheduler.push(Stop::Later.new(self))
+						end
 					end
 				end
 			else
 				# We are not running, but children might be, so transition directly into stopped state:
-				stop!
+				stop!(later)
 			end
 		end
 		
@@ -232,11 +232,11 @@ module Async
 			end
 		end
 		
-		def stop!
+		def stop!(later = true)
 			# Console.logger.info(self, self.annotation) {"Task was stopped with #{@children&.size.inspect} children!"}
 			@status = :stopped
 			
-			stop_children(true)
+			stop_children(later)
 		end
 		
 		def schedule(&block)

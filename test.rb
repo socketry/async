@@ -2,6 +2,8 @@
 
 require_relative 'lib/async'
 
+p pid: Process.pid
+
 class Server
   def initialize
     @running = false
