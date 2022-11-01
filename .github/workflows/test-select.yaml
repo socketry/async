@@ -11,7 +11,7 @@ env:
 
 jobs:
   test:
-    name: ${{matrix.ruby}} on ${{matrix.os}} [IO_EVENT_SELECTOR=Select]
+    name: ${{matrix.ruby}} on ${{matrix.os}} / IO_EVENT_SELECTOR=Select
     runs-on: ${{matrix.os}}-latest
     
     strategy:
@@ -34,6 +34,7 @@ jobs:
       timeout-minutes: 10
       run: bundle exec bake test
     
-    - name: Run external tests
-      timeout-minutes: 10
-      run: bundle exec bake test:external
+    # Maybe buggy.
+    # - name: Run external tests
+    #   timeout-minutes: 10
+    #   run: bundle exec bake test:external
