@@ -11,9 +11,8 @@ env:
 
 jobs:
   test:
-    name: ${{matrix.ruby}} on ${{matrix.os}} (Select)
+    name: ${{matrix.ruby}} on ${{matrix.os}} [IO_EVENT_SELECTOR=Select]
     runs-on: ${{matrix.os}}-latest
-    continue-on-error: ${{matrix.experimental}}
     
     strategy:
       matrix:
@@ -23,8 +22,6 @@ jobs:
         
         ruby:
           - "3.1"
-        
-        experimental: [true]
     
     steps:
     - uses: actions/checkout@v3
@@ -36,3 +33,7 @@ jobs:
     - name: Run tests
       timeout-minutes: 10
       run: bundle exec bake test
+    
+    - name: Run external tests
+      timeout-minutes: 10
+      run: bundle exec bake test:external
