@@ -1,0 +1,40 @@
+name: Test
+
+on: [push, pull_request]
+
+permissions:
+  contents: read
+
+env:
+  CONSOLE_OUTPUT: XTerm
+  IO_EVENT_SELECTOR: Select
+
+jobs:
+  test:
+    name: ${{matrix.ruby}} on ${{matrix.os}} / IO_EVENT_SELECTOR=Select
+    runs-on: ${{matrix.os}}-latest
+    
+    strategy:
+      matrix:
+        os:
+          - ubuntu
+          - macos
+        
+        ruby:
+          - "3.1"
+    
+    steps:
+    - uses: actions/checkout@v3
+    - uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: ${{matrix.ruby}}
+        bundler-cache: true
+    
+    - name: Run tests
+      timeout-minutes: 10
+      run: bundle exec bake test
+    
+    # Maybe buggy.
+    # - name: Run external tests
+    #   timeout-minutes: 10
+    #   run: bundle exec bake test:external
