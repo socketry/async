@@ -1,6 +1,8 @@
 getting-started:
   order: 1
 compatibility:
-  order: 2
+  order: 4
 event-loop:
   order: 3
+asynchronous-tasks:
+  order: 2

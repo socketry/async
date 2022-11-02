@@ -1,6 +1,6 @@
 # Getting Started
 
-This guide explains how to use `async` for event-driven systems.
+This guide gives shows how to add async to your project and run code asynchronously.
 
 ## Installation
 
@@ -16,10 +16,11 @@ $ bundle add async
 
 - A {ruby Async::Task} instance which captures your sequential computations.
 - A {ruby Async::Reactor} instance which implements the core event loop.
+- A {ruby Fiber} is an object which executes user code with cooperative concurrency, i.e. you can transfer execution from one fiber to another and back again.
 
-## Creating Tasks
+## Creating an Asynchronous Tasks
 
-The main entry point for creating tasks is the {ruby Kernel#Async} method. Because this method is defined on `Kernel`, it's available in all areas of your program.
+The main entry point for creating tasks is the {ruby Kernel#Async} method. Because this method is defined on `Kernel`, it's available in all parts of your program.
 
 ~~~ ruby
 require 'async'
@@ -29,196 +30,90 @@ Async do |task|
 end
 ~~~
 
-An {ruby Async::Task} runs using a {ruby Fiber} and blocking operations e.g. `sleep`, `read`, `write` yield control until the operation can complete.
+An {ruby Async::Task} runs using a {ruby Fiber} and blocking operations e.g. `sleep`, `read`, `write` yield control until the operation can complete. When a blocking operation yields control, it means another fiber can execute, giving the illusion of simultaneous execution.
 
-At the top level, `Async do ... end` will create an event loop, and nested `Async` blocks will reuse the existing event loop. This allows the caller to have either blocking or non-blocking behaviour.
+### Waiting for Results
 
-~~~ ruby
-require 'async'
+Similar to a promise, {ruby Async::Task} produces results. In order to wait for these results, you must invoke {ruby Async::Task#wait}:
 
-def sleepy(duration = 1)
-	Async do |task|
-		task.sleep duration
-		puts "I'm done sleeping, time for action!"
-	end
-end
-
-# Synchronous operation:
-sleepy
-
-# Asynchronous operation:
-Async do
-	# These two functions will sleep simultaneously.
-	sleepy
-	sleepy
-end
-~~~
-
-If you want to guarantee synchronous execution, you can use {ruby Kernel#Sync} which is semantically identical to `Async` except that in all cases it will wait until the given block completes execution.
-
-### Nested Tasks
-
-Sometimes it's convenient to explicitly nest tasks. There are a variety of reasons to do this, including grouping tasks in order to wait for completion. In the most basic case, you can make a child task using the {ruby Async::Task#async} method.
-
-~~~ ruby
-require 'async'
-
-def nested_sleepy(task: Async::Task.current)
-	# Block caller
-	task.sleep 0.1
-	
-	# Schedule nested task:
-	subtask = task.async(annotation: "Sleeping") do |subtask|
-		puts "I'm going to sleep..."
-		subtask.sleep 1.0
-	ensure
-		puts "I'm waking up!"
-	end
-end
-
-Async(annotation: "Top Level") do |task|
-	subtask = nested_sleepy(task: task)
-	
-	task.reactor.print_hierarchy
-	#<Async::Reactor:0x64 1 children (running)>
-				#<Async::Task:0x78 Top Level (running)>
-								#<Async::Task:0x8c Sleeping (running)>
-end
-~~~
-
-This example creates a child `subtask` from the given parent `task`. It's the most efficient way to schedule a task. The task is executed until the first blocking operation, at which point it will yield control and `#async` will return. The result of this method is the task itself.
-
-## Waiting For Results
-
-Like promises, {ruby Async::Task} produces results. In order to wait for these results, you must invoke {ruby Async::Task#wait}:
-
-~~~ ruby
+``` ruby
 require 'async'
 
 task = Async do
 	rand
 end
 
-puts task.wait
-~~~
+puts "The number was: #{task.wait}"
+```
 
-### Waiting For Multiple Tasks
+## Creating a Fiber Scheduler
 
-You can use {ruby Async::Barrier#async} to create multiple child tasks, and wait for them all to complete using {ruby Async::Barrier#wait}.
-
-{ruby Async::Barrier} and {ruby Async::Semaphore} are designed to be compatible with each other, and with other tasks that nest `#async` invocations. There are other similar situations where you may want to pass in a parent task, e.g. {ruby Async::IO::Endpoint#bind}.
+The first (top level) async block will also create an instance of {ruby Async::Reactor} which is a subclass of {ruby Async::Scheduler} to handle the event loop. You can also do this directly using {ruby Fiber.set_scheduler}:
 
 ~~~ ruby
-barrier = Async::Barrier.new
-semaphore = Async::Semaphore.new(2)
+require 'async/scheduler'
 
-semaphore.async(parent: barrier) do
-	# ...
+scheduler = Async::Scheduler.new
+Fiber.set_scheduler(scheduler)
+
+Fiber.schedule do
+	3.times do |i|
+		Fiber.schedule do
+			sleep 1
+			puts "Hello World"
+		end
+	end
 end
 ~~~
 
-A `parent:` in this context is anything that responds to `#async` in the same way that {ruby Async::Task} responds to `#async`. In situations where you strictly depend on the interface of {ruby Async::Task}, use the `task: Task.current` pattern.
+## Synchronous Execution in an existing Fiber Scheduler
 
-### Stopping Tasks
+Unless you need fan-out, map-reduce style concurrency, you can actually use a slightly more efficient {ruby Kernel::Sync} execution model. This method will run your block in the current event loop if one exists, or create an event loop if not. You can use it for code which uses asynchronous primitives, but itself does not need to be asynchronous with respect to other tasks.
 
-Use {ruby Async::Task#stop} to stop tasks. This function raises {ruby Async::Stop} on the target task and all descendent tasks.
+```ruby
+require 'async/http/internet'
 
-~~~ ruby
-require 'async'
+def fetch(url)
+	Sync do
+		internet = Async::HTTP::Internet.new
+		return internet.get(url).read
+	end
+end
+
+# At the level of your program, this method will create an event loop:
+fetch(...)
+
+Sync do
+	# The event loop already exists, and will be reused:
+	fetch(...)
+end
+```
+
+In other words, `Sync{...}` is very similar in behaviour to `Async{...}.wait`.
+
+## Compatibility
+
+The Fiber Scheduler interface is compatible with most pure Ruby code and well-behaved C code. For example, you can use {ruby Net::HTTP} for performing concurrent HTTP requests:
+
+```ruby
+urls = [...]
 
 Async do
-	sleepy = Async do |task|
-		task.sleep 1000
-	end
-	
-	sleepy.stop
+	# Perform several concurrent requests:
+	responses = urls.map do |url|
+		Async do
+			Net::HTTP.get(url)
+		end
+	end.map(&:wait)
 end
-~~~
+```
 
-When you design a server, you should return the task back to the caller. They can use this task to stop the server if needed, independently of any other unrelated tasks within the reactor, and it will correctly clean up all related tasks.
+Unfortunately, some libraries do not integrate well with the fiber scheduler, either they are blocking, processor bound, use thread locals for execution state. To uses these libraries, you may be able to use a background thread.
 
-## Resource Management
-
-In order to ensure your resources are cleaned up correctly, make sure you wrap resources appropriately, e.g.:
-
-~~~ ruby
-Async::Reactor.run do
-	begin
-		socket = connect(remote_address) # May raise Async::Stop
-
-		socket.write(...) # May raise Async::Stop
-		socket.read(...) # May raise Async::Stop
-	ensure
-		socket.close if socket
-	end
-end
-~~~
-
-As tasks run synchronously until they yield back to the reactor, you can guarantee this model works correctly. While in theory `IO#autoclose` allows you to automatically close file descriptors when they go out of scope via the GC, it may produce unpredictable behavour (exhaustion of file descriptors, flushing data at odd times), so it's not recommended.
-
-## Exception Handling
-
-{ruby Async::Task} captures and logs exceptions. All unhandled exceptions will cause the enclosing task to enter the `:failed` state. Non-`StandardError` exceptions are re-raised immediately and will generally cause the reactor to fail. This ensures that exceptions will always be visible and cause the program to fail appropriately.
-
-~~~ ruby
-require 'async'
-
-task = Async do
-	# Exception will be logged and task will be failed.
-	raise "Boom"
-end
-
-puts task.status # failed
-puts task.result # raises RuntimeError: Boom
-~~~
-
-### Propagating Exceptions
-
-If a task has finished due to an exception, calling `Task#wait` will re-raise the exception.
-
-~~~ ruby
-require 'async'
-
+```ruby
 Async do
-	task = Async do
-		raise "Boom"
-	end
-	
-	begin
-		task.wait # Re-raises above exception.
-	rescue
-		puts "It went #{$!}!"
-	end
+	result = Thread.new do
+		# Code which is otherwise unsafe...
+	end.value # Wait for the result of the thread, internally non-blocking.
 end
-~~~
-
-## Timeouts
-
-You can wrap asynchronous operations in a timeout. This ensures that malicious services don't cause your code to block indefinitely.
-
-~~~ ruby
-require 'async'
-
-Async do |task|
-	task.with_timeout(1) do
-		task.sleep 100
-	rescue Async::TimeoutError
-		puts "I timed out!"
-	end
-end
-~~~
-
-### Reoccurring Timers
-
-Sometimes you need to do some periodic work in a loop.
-
-~~~ ruby
-require 'async'
-
-Async do |task|
-	while true
-		puts Time.now
-		task.sleep 1
-	end
-end
-~~~
+```

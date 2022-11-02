@@ -15,15 +15,18 @@ module Async
 			@transient_count = 0
 		end
 		
-		# Does this node have (direct) transient children?
+		# Some children may be marked as transient. Transient children do not prevent the parent from finishing.
+		# @returns [Boolean] Whether the node has transient children.
 		def transients?
 			@transient_count > 0
 		end
 		
+		# Whether all children are considered finished. Ignores transient children.
 		def finished?
 			@size == @transient_count
 		end
 		
+		# Whether the children is empty, preserved for compatibility.
 		def nil?
 			empty?
 		end
@@ -88,12 +91,18 @@ module Async
 		# A useful identifier for the current node.
 		attr :annotation
 		
-		# Whether there are children?
+		# Whether this node has any children.
+		# @returns [Boolean]
 		def children?
 			@children && !@children.empty?
 		end
 		
-		# Is this node transient?
+		# Represents whether a node is transient. Transient nodes are not considered
+		# when determining if a node is finished. This is useful for tasks which are
+		# internal to an object rather than explicit user concurrency. For example,
+		# a child task which is pruning a connection pool is transient, because it
+		# is not directly related to the parent task, and should not prevent the
+		# parent task from finishing.
 		def transient?
 			@transient
 		end
@@ -132,7 +141,8 @@ module Async
 		alias inspect to_s
 		
 		# Change the parent of this node.
-		# @parameter parent [Node | Nil] the parent to attach to, or nil to detach.
+		#
+		# @parameter parent [Node | Nil] The parent to attach to, or nil to detach.
 		# @returns [Node] Itself.
 		def parent=(parent)
 			return if @parent.equal?(parent)
@@ -164,8 +174,8 @@ module Async
 			child.set_parent(nil)
 		end
 		
-		# Whether the node can be consumed safely. By default, checks if the
-		# children set is empty.
+		# Whether the node can be consumed (deleted) safely. By default, checks if the children set is empty.
+		#
 		# @returns [Boolean]
 		def finished?
 			@children.nil? || @children.finished?
@@ -196,6 +206,8 @@ module Async
 		end
 		
 		# Traverse the task tree.
+		#
+		# @returns [Enumerator] An enumerator which will traverse the tree if no block is given.
 		# @yields {|node, level| ...} The node and the level relative to the given root.
 		def traverse(&block)
 			return enum_for(:traverse) unless block_given?
@@ -211,8 +223,7 @@ module Async
 			end
 		end
 		
-		# Immediately terminate all children tasks, including transient tasks.
-		# Internally invokes `stop(false)` on all children.
+		# Immediately terminate all children tasks, including transient tasks. Internally invokes `stop(false)` on all children. This should be considered a last ditch effort and is used when closing the scheduler.
 		def terminate
 			# Attempt to stop the current task immediately, and all children:
 			stop(false)
@@ -223,8 +234,8 @@ module Async
 			end
 		end
 		
-		# Attempt to stop the current node immediately, including all non-transient children.
-		# Invokes {#stop_children} to stop all children.
+		# Attempt to stop the current node immediately, including all non-transient children. Invokes {#stop_children} to stop all children.
+		#
 		# @parameter later [Boolean] Whether to defer stopping until some point in the future.
 		def stop(later = false)
 			# The implementation of this method may defer calling `stop_children`.
