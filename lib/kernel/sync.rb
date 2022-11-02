@@ -19,6 +19,7 @@ module Kernel
 		if task = ::Async::Task.current?
 			yield task
 		else
+			# This calls Fiber.set_scheduler(self):
 			reactor = Async::Reactor.new
 			
 			begin

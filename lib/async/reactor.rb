@@ -21,6 +21,10 @@ module Async
 			Fiber.set_scheduler(self)
 		end
 		
+		def scheduler_close
+			self.close
+		end
+		
 		public :sleep
 	end
 end
