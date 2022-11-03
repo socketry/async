@@ -51,7 +51,7 @@ module Async
 			@tasks.empty?
 		end
 		
-		# Wait for all tasks to complete. You will still want to wait for individual tasks to complete if you want to handle errors.
+		# Wait for all tasks to complete by invoking {Task#wait} on each waiting task, which may raise an error. As long as the task has completed, it will be removed from the barrier.
 		# @asynchronous Will wait for tasks to finish executing.
 		def wait
 			@tasks.each do |waiting|
@@ -61,6 +61,15 @@ module Async
 				ensure
 					@tasks.remove?(waiting) unless task.alive?
 				end
+			end
+		end
+		
+		# Wait for all tasks co complete by invoking {Task#join} on each waiting task, which does not raise any errors. Tasks will be remoevd from the barrier after joining.
+		def join
+			@tasks.each do |waiting|
+				task = waiting.task
+				task.join
+				@tasks.remove?(waiting)
 			end
 		end
 		

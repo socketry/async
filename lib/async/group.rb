@@ -22,10 +22,17 @@ module Async
 			return task
 		end
 		
-		# Wait for all children tasks to finish.
+		# Wait for all children tasks to finish by calling {Task#wait} on each child, which may raise an error.
 		def wait
 			self.children.each do |child|
 				child.wait
+			end
+		end
+		
+		# Wait for all children to finish by calling {Task#join} on each child, without raising any errors.
+		def join
+			self.children.each do |child|
+				child.join
 			end
 		end
 	end
