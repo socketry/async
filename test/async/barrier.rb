@@ -58,7 +58,9 @@ describe Async::Barrier do
 			expect(task1).to be(:failed?)
 			expect(task2).to be(:finished?)
 			
-			barrier.wait
+			expect{barrier.wait}.to raise_exception(RuntimeError, message: be =~ /Boom/)
+			
+			barrier.wait until barrier.empty?
 			
 			expect{task1.wait}.to raise_exception(RuntimeError, message: be =~ /Boom/)
 			

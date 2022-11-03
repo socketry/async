@@ -54,10 +54,13 @@ module Async
 		# Wait for all tasks to complete. You will still want to wait for individual tasks to complete if you want to handle errors.
 		# @asynchronous Will wait for tasks to finish executing.
 		def wait
-			while waiting = @tasks.first
+			@tasks.each do |waiting|
 				task = waiting.task
-				task.join
-				@tasks.remove?(waiting)
+				begin
+					task.wait
+				ensure
+					@tasks.remove?(waiting) unless task.alive?
+				end
 			end
 		end
 		
