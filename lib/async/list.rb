@@ -11,6 +11,12 @@ module Async
 			@size = 0
 		end
 		
+		def to_s
+			"#<#{self.class.name} size=#{@size}>"
+		end
+		
+		alias inspect to_s
+		
 		# @private
 		attr_accessor :head
 		
