@@ -5,7 +5,7 @@
 
 module Async
 	# A composable synchronization primitive, which allows one task to wait for a number of other tasks to complete. It can be used in conjunction with {Semaphore} and/or {Barrier}.
-	class LimitedBarrier
+	class Waiter
 		def initialize(parent: nil, finished: Async::Condition.new)
 			@finished = finished
 			@done = []
