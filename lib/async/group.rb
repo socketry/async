@@ -35,5 +35,11 @@ module Async
 				child.join
 			end
 		end
+		
+		def remove_child(child)
+			super
+			
+			@done << child
+		end
 	end
 end
