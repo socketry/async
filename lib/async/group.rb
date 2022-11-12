@@ -35,11 +35,21 @@ module Async
 				child.join
 			end
 		end
+	end
+	
+	class WaitGroup < Group
+		def initialize(finished = Queue.new)
+			@finished = finished
+		end
 		
 		def remove_child(child)
 			super
 			
-			@done << child
+			@finished << child
+		end
+		
+		def wait
+			@finished.pop
 		end
 	end
 end
