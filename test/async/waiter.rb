@@ -7,6 +7,14 @@ describe Async::Waiter do
 	
 	let(:waiter) {subject.new}
 	
+	it "can wait for the first task to complete" do
+		waiter.async do
+			:result
+		end
+		
+		expect(waiter.wait).to be == :result
+	end
+	
 	it "can wait for a subset of tasks" do
 		3.times do
 			waiter.async do
