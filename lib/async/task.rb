@@ -111,6 +111,7 @@ module Async
 			end
 		end
 		
+		# Run an asynchronous task as a child of the current task.
 		def async(*arguments, **options, &block)
 			task = Task.new(self, **options, &block)
 			
@@ -119,22 +120,21 @@ module Async
 			return task
 		end
 		
-		def join
-			raise "Cannot wait on own fiber" if Fiber.current.equal?(@fiber)
+		# Retrieve the current result of the task. Will cause the caller to wait until result is available. If the result was an exception, raise that exception.
+		#
+		# Conceptually speaking, waiting on a task should return a result, and if it throws an exception, this is certainly an exceptional case that should represent a failure in your program, not an expected outcome. In other words, you should not design your programs to expect exceptions from `#wait` as a normal flow control, and prefer to catch known exceptions within the task itself and return a result that captures the intention of the failure, e.g. a `TimeoutError` might simply return `nil` or `false` to indicate that the operation did not generate a valid result (as a timeout was an expected outcome of the internal operation in this case).
+		#
+		# @raises [RuntimeError] If the task's fiber is the current fiber.
+		# @returns [Object] The final expression/result of the task's block.
+		def wait
+			raise "Cannot wait on own fiber!" if Fiber.current.equal?(@fiber)
 			
 			if running?
 				@finished ||= Condition.new
 				@finished.wait
 			end
 			
-			return @result
-		end
-		
-		# Retrieve the current result of the task. Will cause the caller to wait until result is available. If the result was an exception, raise that exception.
-		# @raises [RuntimeError] If the task's fiber is the current fiber.
-		# @returns [Object] The final expression/result of the task's block.
-		def wait
-			case result = self.join
+			case @result
 			when Exception
 				raise result
 			else
@@ -272,7 +272,7 @@ module Async
 			
 			# If this task was being used as a future, signal completion here:
 			if @finished
-				@finished.signal(@result)
+				@finished.signal(self)
 			end
 		end
 		

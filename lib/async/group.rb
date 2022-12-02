@@ -7,6 +7,7 @@ require_relative 'list'
 require_relative 'task'
 
 module Async
+	# A group is a collection of child tasks, similar to how a task has a collection of child tasks.
 	class Group < Node
 		def initialize(parent = Task.current, **options)
 			super(parent, **options)
@@ -22,7 +23,7 @@ module Async
 			return task
 		end
 		
-		# Wait for all children tasks to finish.
+		# Wait for all children tasks to finish by calling {Task#wait} on each child, which may raise an error.
 		def wait
 			self.children.each do |child|
 				child.wait

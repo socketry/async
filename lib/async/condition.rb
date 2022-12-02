@@ -15,7 +15,7 @@ module Async
 			@waiting = List.new
 		end
 		
-		class Waiter < List::Node
+		class FiberNode < List::Node
 			def initialize(fiber)
 				@fiber = fiber
 			end
@@ -29,12 +29,12 @@ module Async
 			end
 		end
 		
-		private_constant :Waiter
+		private_constant :FiberNode
 		
 		# Queue up the current fiber and wait on yielding the task.
 		# @returns [Object]
 		def wait
-			@waiting.stack(Waiter.new(Fiber.current)) do
+			@waiting.stack(FiberNode.new(Fiber.current)) do
 				Fiber.scheduler.transfer
 			end
 		end
