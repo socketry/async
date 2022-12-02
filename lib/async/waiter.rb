@@ -22,15 +22,15 @@ module Async
 			end
 		end
 		
-		def first(count)
+		def first(count = nil)
 			while @done.size < count
 				@finished.wait
 			end
 			
-			return @done.shift(count)
+			return @done.shift(*count)
 		end
 		
-		def wait(count)
+		def wait(count = nil)
 			first(count).map(&:wait)
 		end
 	end
