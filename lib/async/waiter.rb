@@ -22,7 +22,7 @@ module Async
 			end
 		end
 		
-		def wait_for(count)
+		def first(count)
 			while @done.size < count
 				@finished.wait
 			end
@@ -31,7 +31,7 @@ module Async
 		end
 		
 		def wait(count)
-			wait_for(count).map(&:result)
+			first(count).map(&:wait)
 		end
 	end
 end

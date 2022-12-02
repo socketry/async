@@ -4,27 +4,31 @@
 # Copyright, 2022, by Samuel Williams.
 
 module Async
+	# A general doublely linked list. This is used internally by {Async::Barrier} and {Async::Condition} to manage child tasks.
 	class List
+		# Initialize a new, empty, list.
 		def initialize
 			@head = self
 			@tail = self
 			@size = 0
 		end
 		
+		# Print a short summary of the list.
 		def to_s
 			"#<#{self.class.name} size=#{@size}>"
 		end
 		
 		alias inspect to_s
 		
-		# @private
+		# Points at the end of the list.
 		attr_accessor :head
 		
-		# @private
+		# Points at the start of the list.
 		attr_accessor :tail
 		
 		attr :size
 		
+		# A callback that is invoked when an item is added to the list.
 		def added(node)
 			@size += 1
 			return node
@@ -58,26 +62,40 @@ module Async
 		end
 		
 		# Add the node, yield, and the remove the node.
+		# @yields {|node| ...} Yields the node.
+		# @returns [Object] Returns the result of the block.
 		def stack(node, &block)
 			append(node)
-			yield
+			return yield(node)
 		ensure
 			remove!(node)
 		end
 		
+		# A callback that is invoked when an item is removed from the list.
 		def removed(node)
 			@size -= 1
 			return node
 		end
 		
-		# Remove the node if it is in the list.
+		# Remove the node if it is in a list.
+		#
+		# You should be careful to only remove nodes that are part of this list.
+		#
+		# @returns [Node] Returns the node if it was removed, otherwise nil.
 		def remove?(node)
 			if node.head
-				remove!(node)
+				return remove!(node)
 			end
+			
+			return nil
 		end
 		
-		# Remove the node.
+		# Remove the node. If it was already removed, this will raise an error.
+		#
+		# You should be careful to only remove nodes that are part of this list.
+		#
+		# @raises [ArgumentError] If the node is not part of this list.
+		# @returns [Node] Returns the node if it was removed, otherwise nil.
 		def remove(node)
 			# One downside of this interface is we don't actually check if the node is part of the list defined by `self`. This means that there is a potential for a node to be removed from a different list using this method, which in can throw off book-keeping when lists track size, etc.
 			unless node.head
@@ -98,10 +116,15 @@ module Async
 			return removed(node)
 		end
 		
+		# @returns [Boolean] Returns true if the list is empty.
 		def empty?
 			@tail.equal?(self)
 		end
 		
+		# Iterate over each node in the linked list. It is generally safe to remove the current node, any previous node or any future node during iteration.
+		#
+		# @yields {|node| ...} Yields each node in the list.
+		# @returns [List] Returns self.
 		def each
 			return to_enum unless block_given?
 			
@@ -119,8 +142,14 @@ module Async
 					current = node
 				end
 			end
+			
+			return self
 		end
 		
+		# Determine whether the given node is included in the list. 
+		#
+		# @parameter needle [Node] The node to search for.
+		# @returns [Boolean] Returns true if the node is in the list.
 		def include?(needle)
 			self.each do |item|
 				return true if needle.equal?(item)
@@ -129,12 +158,14 @@ module Async
 			return false
 		end
 		
+		# @returns [Node] Returns the first node in the list, if it is not empty.
 		def first
 			unless @tail.equal?(self)
 				@tail
 			end
 		end
 		
+		# @returns [Node] Returns the last node in the list, if it is not empty.
 		def last
 			unless @head.equal?(self)
 				@head
@@ -142,6 +173,7 @@ module Async
 		end
 	end
 	
+	# A linked list Node.
 	class List::Node
 		attr_accessor :head
 		attr_accessor :tail

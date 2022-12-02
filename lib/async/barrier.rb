@@ -7,7 +7,8 @@ require_relative 'list'
 require_relative 'task'
 
 module Async
-	# A synchronization primitive, which allows one task to wait for a number of other tasks to complete. It can be used in conjunction with {Semaphore}.
+	# A general purpose synchronisation primitive, which allows one task to wait for a number of other tasks to complete. It can be used in conjunction with {Semaphore}.
+	#
 	# @public Since `stable-v1`.
 	class Barrier
 		# Initialize the barrier.
@@ -19,13 +20,15 @@ module Async
 			@parent = parent
 		end
 		
-		class Waiting < List::Node
+		class TaskNode < List::Node
 			def initialize(task)
 				@task = task
 			end
 			
 			attr :task
 		end
+		
+		private_constant :TaskNode
 		
 		# Number of tasks being held by the barrier.
 		def size
@@ -40,7 +43,7 @@ module Async
 		def async(*arguments, parent: (@parent or Task.current), **options, &block)
 			task = parent.async(*arguments, **options, &block)
 			
-			@tasks.append(Waiting.new(task))
+			@tasks.append(TaskNode.new(task))
 			
 			return task
 		end
@@ -61,15 +64,6 @@ module Async
 				ensure
 					@tasks.remove?(waiting) unless task.alive?
 				end
-			end
-		end
-		
-		# Wait for all tasks co complete by invoking {Task#join} on each waiting task, which does not raise any errors. Tasks will be remoevd from the barrier after joining.
-		def join
-			@tasks.each do |waiting|
-				task = waiting.task
-				task.join
-				@tasks.remove?(waiting)
 			end
 		end
 		
