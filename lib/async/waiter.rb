@@ -13,6 +13,8 @@ module Async
 			@parent = parent
 		end
 		
+		# Execute a child task and add it to the waiter.
+		# @asynchronous Executes the given block concurrently.
 		def async(parent: (@parent or Task.current), &block)
 			parent.async do |task|
 				yield(task)
@@ -22,16 +24,28 @@ module Async
 			end
 		end
 		
+		# Wait for the first `count` tasks to complete.
+		# @parameter count [Integer | Nil] The number of tasks to wait for.
+		# @returns [Array(Async::Task)] If an integer is given, the tasks which have completed.
+		# @returns [Async::Task] Otherwise, the first task to complete.
 		def first(count = nil)
-			while @done.size < count
+			minimum = count || 1
+			
+			while @done.size < minimum
 				@finished.wait
 			end
 			
 			return @done.shift(*count)
 		end
 		
+		# Wait for the first `count` tasks to complete.
+		# @parameter count [Integer | Nil] The number of tasks to wait for.
 		def wait(count = nil)
-			first(count).map(&:wait)
+			if count
+				first(count).map(&:wait)
+			else
+				first.wait
+			end
 		end
 	end
 end
