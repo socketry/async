@@ -13,7 +13,7 @@ describe Async::Children do
 		it "should be empty" do
 			expect(children).to be(:empty?)
 			expect(children).to be(:nil?)
-			expect(children).not.to be(:transients)
+			expect(children).not.to be(:transients?)
 		end
 	end
 	

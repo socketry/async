@@ -33,7 +33,7 @@ ACondition = Sus::Shared("a condition") do
 			condition.wait
 		end
 		
-		expect(condition.empty?).not.to be(:empty?)
+		expect(condition).not.to be(:empty?)
 		
 		task.stop
 		
