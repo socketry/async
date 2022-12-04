@@ -3,6 +3,8 @@
 # Released under the MIT License.
 # Copyright, 2018-2022, by Samuel Williams.
 
+require_relative 'list'
+
 module Async
 	# A synchronization primitive, which limits access to a given resource.
 	# @public Since `stable-v1`.
@@ -12,7 +14,7 @@ module Async
 		def initialize(limit = 1, parent: nil)
 			@count = 0
 			@limit = limit
-			@waiting = []
+			@waiting = List.new
 			
 			@parent = parent
 		end
@@ -73,26 +75,34 @@ module Async
 		def release
 			@count -= 1
 			
-			while (@limit - @count) > 0 and fiber = @waiting.shift
-				if fiber.alive?
-					Fiber.scheduler.resume(fiber)
-				end
+			while (@limit - @count) > 0 and node = @waiting.first
+				node.resume
 			end
 		end
 		
 		private
 		
+		class FiberNode < List::Node
+			def initialize(fiber)
+				@fiber = fiber
+			end
+			
+			def resume
+				if @fiber.alive?
+					Fiber.scheduler.resume(@fiber)
+				end
+			end
+		end
+		
+		private_constant :FiberNode
+		
 		# Wait until the semaphore becomes available.
 		def wait
-			fiber = Fiber.current
+			return unless blocking?
 			
-			if blocking?
-				@waiting << fiber
+			@waiting.stack(FiberNode.new(Fiber.current)) do
 				Fiber.scheduler.transfer while blocking?
 			end
-		rescue Exception
-			@waiting.delete(fiber)
-			raise
 		end
 	end
 end
