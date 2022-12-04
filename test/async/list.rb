@@ -25,6 +25,7 @@ describe Async::List do
 			list.append(Item.new(3))
 			
 			expect(list.each.map(&:value)).to be == [1, 2, 3]
+			expect(list.to_s).to be =~ /size=3/
 		end
 		
 		it "can't append the same item twice" do
