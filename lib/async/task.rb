@@ -134,11 +134,10 @@ module Async
 				@finished.wait
 			end
 			
-			case @result
-			when Exception
-				raise result
+			if @result.is_a?(Exception)
+				raise @result
 			else
-				return result
+				return @result
 			end
 		end
 		
