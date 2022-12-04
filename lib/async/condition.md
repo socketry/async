@@ -25,7 +25,7 @@ end
 ### Output
 
 ~~~
-0.0s     info: Waiting for condition... [ec=0x3c] [pid=47943]
-1.0s     info: Signalling condition... [ec=0x64] [pid=47943]
-1.0s     info: Condition was signalled: Hello World [ec=0x3c] [pid=47943]
+0.0s     info: Waiting for condition...
+1.0s     info: Signalling condition...
+1.0s     info: Condition was signalled: Hello World
 ~~~
