@@ -113,6 +113,8 @@ module Async
 		
 		# Run an asynchronous task as a child of the current task.
 		def async(*arguments, **options, &block)
+			raise "Cannot create child task within a task that has finished execution!" if self.finished?
+			
 			task = Task.new(self, **options, &block)
 			
 			task.run(*arguments)

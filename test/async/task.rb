@@ -12,7 +12,7 @@ require 'timer_quantum'
 describe Async::Task do
 	let(:reactor) {Async::Reactor.new}
 	
-	describe '.yield' do
+	with '.yield' do
 		it "can yield back to scheduler" do
 			state = nil
 			
@@ -141,6 +141,18 @@ describe Async::Task do
 					end
 				end
 			end.to raise_exception(SignalException, message: be =~ /TERM/)
+		end
+		
+		it "can't start child task after finishing" do
+			task = reactor.async do |task|
+			end
+			
+			task.wait
+			
+			expect do
+				task.async do |task|
+				end
+			end.to raise_exception(RuntimeError, message: be =~ /finished/)
 		end
 	end
 	
