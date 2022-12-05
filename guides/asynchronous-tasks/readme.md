@@ -200,6 +200,46 @@ Async do
 end
 ```
 
+### Stopping all Tasks held in a Barrier
+
+To stop (terminate/cancel) the all tasks held in a barrier:
+
+```ruby
+barrier = Async::Barrier.new
+
+Async do
+	tasks = 3.times.map do |i|
+		barrier.async do
+			sleep 1
+			puts "Hello World #{i}"
+		end
+	end
+	
+	barrier.stop
+end
+```
+
+If you're letting individual tasks held by a barrier throw unhandled exceptions, be sure to call ({ruby Async::Barrier#stop}):
+
+```ruby
+barrier = Async::Barrier.new
+
+Async do
+	tasks = 3.times.map do |i|
+		barrier.async do
+			sleep 1
+			puts "Hello World #{i}"
+		end
+	end
+	
+	begin
+		barrier.wait
+	ensure
+		barrier.stop
+	end
+end
+```
+
 ## Resource Management
 
 In order to ensure your resources are cleaned up correctly, make sure you wrap resources appropriately, e.g.:
