@@ -23,6 +23,10 @@ module Async
 			true
 		end
 		
+		def self.windows?
+			::RUBY_PLATFORM =~ /mswin|mingw|cygwin/
+		end
+		
 		def initialize(parent = nil, selector: nil)
 			super(parent)
 			
@@ -166,7 +170,7 @@ module Async
 			timer&.cancel
 		end
 
-		if ::IO::Event::Support.buffer?
+		if ::IO::Event::Support.buffer? and !Scheduler.windows?
 			def io_read(io, buffer, length, offset = 0)
 				@selector.io_read(Fiber.current, io, buffer, length, offset)
 			end
