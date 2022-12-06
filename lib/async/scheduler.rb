@@ -170,13 +170,27 @@ module Async
 			timer&.cancel
 		end
 
-		if ::IO::Event::Support.buffer? and !Scheduler.windows?
-			def io_read(io, buffer, length, offset = 0)
-				@selector.io_read(Fiber.current, io, buffer, length, offset)
-			end
-			
-			def io_write(io, buffer, length, offset = 0)
-				@selector.io_write(Fiber.current, io, buffer, length, offset)
+		if ::IO::Event::Support.buffer?
+			if Scheduler.windows?
+				def io_read(io, buffer, length, offset = 0)
+					Thread.new do
+						buffer.read(io, length, offset)
+					end.value
+				end
+				
+				def io_write(io, buffer, length, offset = 0)
+					Thread.new do
+						buffer.write(io, length, offset)
+					end.value
+				end
+			else
+				def io_read(io, buffer, length, offset = 0)
+					@selector.io_read(Fiber.current, io, buffer, length, offset)
+				end
+				
+				def io_write(io, buffer, length, offset = 0)
+					@selector.io_write(Fiber.current, io, buffer, length, offset)
+				end
 			end
 		end
 		
