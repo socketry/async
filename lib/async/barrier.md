@@ -7,6 +7,7 @@ require 'async'
 require 'async/barrier'
 
 Sync do
+	Console.logger.info("Barrier Example: sleep sort.")
 	barrier = Async::Barrier.new
 	
 	# Generate an array of 10 numbers:
@@ -31,6 +32,7 @@ end
 ### Output
 
 ~~~
-0.0s     info: Sorted
-             | [0, 0, 0, 0, 1, 2, 2, 3, 6, 6]
+0.0s     info: Barrier Example: sleep sort.
+9.0s     info: Sorted
+             | [3, 3, 3, 4, 4, 5, 5, 5, 8, 9]
 ~~~
