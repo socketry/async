@@ -414,6 +414,27 @@ describe Async::Task do
 			
 			expect(items).to be == [1, 2]
 		end
+		
+		it "can stop a child task with transient children" do
+			parent = child = transient = nil
+			
+			reactor.run do |task|
+				parent = task.async do |task|
+					transient = task.async(transient: true) do
+						sleep(1)
+					end
+					
+					child = task.async do
+						sleep(1)
+					end
+				end
+				
+				parent.wait
+				parent.stop
+				expect(parent).to be(:complete?)
+				expect(transient).to be(:running?)
+			end.wait
+		end
 	end
 	
 	with '#sleep' do

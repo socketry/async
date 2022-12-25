@@ -15,7 +15,7 @@ module Async
 		
 		# Print a short summary of the list.
 		def to_s
-			"#<#{self.class.name} size=#{@size}>"
+			sprintf("#<%s:0x%x size=%d>", self.class.name, object_id, @size)
 		end
 		
 		alias inspect to_s
@@ -121,6 +121,35 @@ module Async
 			@tail.equal?(self)
 		end
 		
+		private def validate!(node = nil)
+			previous = self
+			current = @tail
+			found = node.equal?(self)
+			
+			while true
+				break if current.equal?(self)
+				
+				if current.head != previous
+					raise "Invalid previous linked list node!"
+				end
+				
+				if current.is_a?(List) and !current.equal?(self)
+					raise "Invalid list in list node!"
+				end
+				
+				if node
+					found ||= current.equal?(node)
+				end
+				
+				previous = current
+				current = current.tail
+			end
+			
+			if node and !found
+				raise "Node not found in list!"
+			end
+		end
+		
 		# Iterate over each node in the linked list. It is generally safe to remove the current node, any previous node or any future node during iteration.
 		#
 		# @yields {|node| ...} Yields each node in the list.
@@ -130,9 +159,11 @@ module Async
 			
 			current = self
 			
+			$stderr.puts "-> each #{self}", caller
 			while true
+				validate!(current)
+				
 				node = current.tail
-				# binding.irb if node.nil? && !node.equal?(self)
 				break if node.equal?(self)
 				
 				yield node
@@ -144,6 +175,8 @@ module Async
 			end
 			
 			return self
+		ensure
+			$stderr.puts "<- each #{self}"
 		end
 		
 		# Determine whether the given node is included in the list. 
