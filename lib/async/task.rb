@@ -263,7 +263,7 @@ module Async
 			self.root.resume(@fiber)
 		end
 		
-		# Finish the current task, and all bound bound IO objects.
+		# Finish the current task, moving any children to the parent.
 		def finish!
 			# Allow the fiber to be recycled.
 			@fiber = nil
