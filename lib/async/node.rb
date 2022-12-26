@@ -187,13 +187,12 @@ module Async
 			if parent = @parent and finished?
 				parent.remove_child(self)
 				
+				# If we have children, then we need to move them to our the parent if they are not finished:
 				if @children
-					@children.each do |child|
+					while child = @children.shift
 						if child.finished?
-							remove_child(child)
+							child.set_parent(nil)
 						else
-							# In theory we don't need to do this... because we are throwing away the list. However, if you don't correctly update the list when moving the child to the parent, it foobars the enumeration, and subsequent nodes will be skipped, or in the worst case you might start enumerating the parents nodes.
-							remove_child(child)
 							parent.add_child(child)
 						end
 					end

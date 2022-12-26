@@ -159,7 +159,6 @@ module Async
 			
 			current = self
 			
-			$stderr.puts "-> each #{self}", caller
 			while true
 				validate!(current)
 				
@@ -175,8 +174,6 @@ module Async
 			end
 			
 			return self
-		ensure
-			$stderr.puts "<- each #{self}"
 		end
 		
 		# Determine whether the given node is included in the list. 
@@ -202,6 +199,12 @@ module Async
 		def last
 			unless @head.equal?(self)
 				@head
+			end
+		end
+		
+		def shift
+			if node = first
+				remove(node)
 			end
 		end
 	end
