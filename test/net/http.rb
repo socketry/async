@@ -6,6 +6,7 @@
 require 'sus/fixtures/async'
 require 'net/http'
 require 'async/barrier'
+require 'openssl'
 
 describe Net::HTTP do
 	include Sus::Fixtures::Async::ReactorContext
