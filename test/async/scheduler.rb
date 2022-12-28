@@ -9,6 +9,10 @@ require 'async/barrier'
 require 'net/http'
 
 describe Async::Scheduler do
+	it "is supported" do
+		expect(Async::Scheduler).to be(:supported?)
+	end
+	
 	describe 'Fiber.schedule' do
 		it "can start child task" do
 			fiber = nil

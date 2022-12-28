@@ -137,34 +137,34 @@ module Async
 			@size == 0
 		end
 		
-		def validate!(node = nil)
-			previous = self
-			current = @tail
-			found = node.equal?(self)
+		# def validate!(node = nil)
+		# 	previous = self
+		# 	current = @tail
+		# 	found = node.equal?(self)
 			
-			while true
-				break if current.equal?(self)
+		# 	while true
+		# 		break if current.equal?(self)
 				
-				if current.head != previous
-					raise "Invalid previous linked list node!"
-				end
+		# 		if current.head != previous
+		# 			raise "Invalid previous linked list node!"
+		# 		end
 				
-				if current.is_a?(List) and !current.equal?(self)
-					raise "Invalid list in list node!"
-				end
+		# 		if current.is_a?(List) and !current.equal?(self)
+		# 			raise "Invalid list in list node!"
+		# 		end
 				
-				if node
-					found ||= current.equal?(node)
-				end
+		# 		if node
+		# 			found ||= current.equal?(node)
+		# 		end
 				
-				previous = current
-				current = current.tail
-			end
+		# 		previous = current
+		# 		current = current.tail
+		# 	end
 			
-			if node and !found
-				raise "Node not found in list!"
-			end
-		end
+		# 	if node and !found
+		# 		raise "Node not found in list!"
+		# 	end
+		# end
 		
 		# Iterate over each node in the linked list. It is generally safe to remove the current node, any previous node or any future node during iteration.
 		#
@@ -293,8 +293,6 @@ module Async
 			end
 			
 			def self.each(list, &block)
-				list.validate!
-				
 				return if list.empty?
 				
 				iterator = Iterator.new(list)

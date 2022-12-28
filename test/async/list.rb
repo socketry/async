@@ -25,6 +25,7 @@ describe Async::List do
 			list.append(Item.new(3))
 			
 			expect(list.each.map(&:value)).to be == [1, 2, 3]
+			expect(list.to_a.map(&:value)).to be == [1, 2, 3]
 			expect(list.to_s).to be =~ /size=3/
 		end
 		
@@ -114,6 +115,19 @@ describe Async::List do
 			end
 			
 			expect(enumerated).to be == nodes
+		end
+		
+		it "can get #first and #last while enumerating" do
+			list.append(first = Item.new(1))
+			list.append(last = Item.new(2))
+			
+			list.each do |item|
+				if item.equal?(last)
+					# This ensures the last node in the list is an iterator:
+					list.remove(last)
+					expect(list.last).to be == first
+				end
+			end
 		end
 	end
 	
