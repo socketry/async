@@ -128,15 +128,19 @@ describe Async::Reactor do
 		it "can stop reactor from different thread" do
 			events = Thread::Queue.new
 			
+			reactor = self.reactor
+			
 			thread = Thread.new do
 				if events.pop
-					reactor.interrupt
+					2.times do
+						reactor.interrupt
+						sleep(0.01)
+					end
 				end
 			end
 			
 			reactor.async do
 				events << true
-				
 				# Wait to be interrupted:
 				sleep
 			end
