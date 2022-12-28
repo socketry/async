@@ -132,6 +132,7 @@ describe Async::Reactor do
 			
 			thread = Thread.new do
 				if events.pop
+					# The reactor interrupt mechanism is not a guaranteed robust mechanism. Interrupts can be missed if the interrupt is received before entering sleep. Making this more reliable in the future might be useful.
 					2.times do
 						reactor.interrupt
 						sleep(0.01)
