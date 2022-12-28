@@ -20,6 +20,22 @@ module Async
 		
 		alias inspect to_s
 		
+		# Fast, safe, unbounded accumulation of children.
+		def to_a
+			items = []
+			current = self
+			
+			while current.tail != self
+				unless current.tail.is_a?(Iterator)
+					items << current.tail
+				end
+				
+				current = current.tail
+			end
+			
+			return items
+		end
+		
 		# Points at the end of the list.
 		attr_accessor :head
 		
@@ -118,10 +134,10 @@ module Async
 		
 		# @returns [Boolean] Returns true if the list is empty.
 		def empty?
-			@tail.equal?(self)
+			@size == 0
 		end
 		
-		private def validate!(node = nil)
+		def validate!(node = nil)
 			previous = self
 			current = @tail
 			found = node.equal?(self)
@@ -154,24 +170,10 @@ module Async
 		#
 		# @yields {|node| ...} Yields each node in the list.
 		# @returns [List] Returns self.
-		def each
+		def each(&block)
 			return to_enum unless block_given?
 			
-			current = self
-			
-			while true
-				validate!(current)
-				
-				node = current.tail
-				break if node.equal?(self)
-				
-				yield node
-				
-				# If the node has deleted itself or any subsequent node, it will no longer be the next node, so don't use it for continued traversal:
-				if current.tail.equal?(node)
-					current = node
-				end
-			end
+			Iterator.each(self, &block)
 			
 			return self
 		end
@@ -190,28 +192,119 @@ module Async
 		
 		# @returns [Node] Returns the first node in the list, if it is not empty.
 		def first
-			unless @tail.equal?(self)
-				@tail
+			# validate!
+			
+			current = @tail
+			
+			while !current.equal?(self)
+				if current.is_a?(Iterator)
+					current = current.tail
+				else
+					return current
+				end
 			end
+			
+			return nil
 		end
 		
 		# @returns [Node] Returns the last node in the list, if it is not empty.
 		def last
-			unless @head.equal?(self)
-				@head
+			# validate!
+			
+			current = @head
+			
+			while !current.equal?(self)
+				if current.is_a?(Iterator)
+					current = current.head
+				else
+					return current
+				end
 			end
+			
+			return nil
 		end
 		
 		def shift
 			if node = first
-				remove(node)
+				remove!(node)
 			end
 		end
-	end
-	
-	# A linked list Node.
-	class List::Node
-		attr_accessor :head
-		attr_accessor :tail
+		
+		# A linked list Node.
+		class Node
+			attr_accessor :head
+			attr_accessor :tail
+			
+			alias inspect to_s
+		end
+		
+		class Iterator < Node
+			def initialize(list)
+				@list = list
+				
+				# Insert the iterator as the first item in the list:
+				@tail = list.tail
+				@tail.head = self
+				list.tail = self
+				@head = list
+			end
+			
+			def remove!
+				@head.tail = @tail
+				@tail.head = @head
+				@head = nil
+				@tail = nil
+				@list = nil
+			end
+			
+			def move_next
+				# Move to the next item (which could be an iterator or the end):
+				@tail.head = @head
+				@head.tail = @tail
+				@head = @tail
+				@tail = @tail.tail
+				@head.tail = self
+				@tail.head = self
+			end
+			
+			def move_current
+				while true
+					# Are we at the end of the list?
+					if @tail.equal?(@list)
+						return nil
+					end
+					
+					if @tail.is_a?(Iterator)
+						move_next
+					else
+						return @tail
+					end
+				end
+			end
+			
+			def each
+				while current = move_current
+					yield current
+					
+					if current.equal?(@tail)
+						move_next
+					end
+				end
+			end
+			
+			def self.each(list, &block)
+				list.validate!
+				
+				return if list.empty?
+				
+				iterator = Iterator.new(list)
+				
+				iterator.each(&block)
+			ensure
+				iterator&.remove!
+			end
+		end
+		
+		private_constant :Iterator
 	end
 end

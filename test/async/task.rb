@@ -430,8 +430,9 @@ describe Async::Task do
 				end
 				
 				parent.wait
-				parent.stop
 				expect(parent).to be(:complete?)
+				parent.stop
+				expect(parent).to be(:stopped?)
 				expect(transient).to be(:running?)
 			end.wait
 		end
