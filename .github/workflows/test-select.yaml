@@ -31,8 +31,8 @@ jobs:
         bundler-cache: true
     
     - name: Run tests
-      timeout-minutes: 10
-      run: bundle exec bake test
+      timeout-minutes: 20
+      run: bundle exec sus --verbose
     
     # Maybe buggy.
     # - name: Run external tests
