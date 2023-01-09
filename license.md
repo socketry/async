@@ -17,6 +17,9 @@ Copyright, 2020, by Jun Jiang.
 Copyright, 2020-2022, by Bruno Sutic.  
 Copyright, 2021, by Julien Portalier.  
 Copyright, 2022, by Shannon Skipper.  
+Copyright, 2022, by Masafumi Okura.  
+Copyright, 2022, by Trevor Turk.  
+Copyright, 2022, by Masayuki Yamamoto.  
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

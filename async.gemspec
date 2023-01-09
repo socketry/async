@@ -7,7 +7,7 @@ Gem::Specification.new do |spec|
 	spec.version = Async::VERSION
 	
 	spec.summary = "A concurrency framework for Ruby."
-	spec.authors = ["Samuel Williams", "Bruno Sutic", "Devin Christensen", "Jeremy Jung", "Kent Gruber", "jeremyjung", "Brian Morearty", "Jiang Jinyang", "Julien Portalier", "Olle Jonsson", "Patrik Wenger", "Ryan Musgrave", "Salim Semaoune", "Shannon Skipper", "Sokolov Yura aka funny_falcon", "Stefan Wrobel", "jasl", "muryoimpl"]
+	spec.authors = ["Samuel Williams", "Bruno Sutic", "Jeremy Jung", "Devin Christensen", "Kent Gruber", "Brian Morearty", "Jiang Jinyang", "Julien Portalier", "Jun Jiang", "Ken Muryoi", "Masafumi Okura", "Masayuki Yamamoto", "Olle Jonsson", "Patrik Wenger", "Ryan Musgrave", "Salim Semaoune", "Shannon Skipper", "Sokolov Yura", "Stefan Wrobel", "Trevor Turk"]
 	spec.license = "MIT"
 	
 	spec.cert_chain  = ['release.cert']
