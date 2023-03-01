@@ -151,5 +151,49 @@ describe Async::Semaphore do
 		end
 	end
 	
+	with '#limit' do
+		it "has a default limit of 1" do
+			expect(semaphore).to have_attributes(limit: be == 1)
+			expect(semaphore).not.to be(:blocking?)
+		end
+	end
+	
+	with '#limit=' do
+		it "releases tasks when limit is increased" do
+			semaphore.acquire
+			expect(semaphore).to have_attributes(count: be == 1)
+			expect(semaphore).to be(:blocking?)
+			
+			task = Async do
+				semaphore.acquire
+			end
+			
+			semaphore.limit = 2
+			task.wait
+			
+			expect(semaphore.count).to be == 2
+		end
+		
+		it "blocks tasks when limit is decreased" do
+			semaphore.limit = 2
+			semaphore.acquire
+			semaphore.acquire
+			
+			expect(semaphore).to have_attributes(count: be == 2)
+			expect(semaphore).to be(:blocking?)
+			
+			task = Async do
+				semaphore.acquire
+			end
+			
+			semaphore.limit = 1
+			semaphore.release
+			semaphore.release
+			task.wait
+			
+			expect(semaphore.count).to be == 1
+		end
+	end
+	
 	it_behaves_like ChainableAsync
 end
