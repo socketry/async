@@ -1,6 +1,6 @@
 # MIT License
 
-Copyright, 2017-2022, by Samuel Williams.  
+Copyright, 2017-2023, by Samuel Williams.  
 Copyright, 2017, by Kent Gruber.  
 Copyright, 2017, by Devin Christensen.  
 Copyright, 2018, by Sokolov Yura.  
