@@ -40,6 +40,25 @@ module Async
 		# The tasks waiting on this semaphore.
 		attr :waiting
 		
+		# Allow setting the limit. This is useful for cases where the semaphore is used to limit the number of concurrent tasks, but the number of tasks is not known in advance or needs to be modified.
+		#
+		# On increasing the limit, some tasks may be immediately resumed. On decreasing the limit, some tasks may execute until the count is < than the limit. 
+		#
+		# @parameter limit [Integer] The new limit.
+		def limit= limit
+			difference = limit - @limit
+			@limit = limit
+			
+			# We can't suspend 
+			if difference > 0
+				difference.times do
+					break unless fiber = @waiting.shift
+					
+					fiber.resume
+				end
+			end
+		end
+		
 		# Is the semaphore currently acquired?
 		def empty?
 			@count.zero?

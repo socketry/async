@@ -116,6 +116,43 @@ RSpec.describe Async::Semaphore do
 		end
 	end
 	
+	context '#limit=' do
+		it "releases tasks when limit is increased" do
+			subject.acquire
+			expect(subject.count).to be == 1
+			expect(subject.blocking?).to be_truthy
+			
+			task = Async do
+				subject.acquire
+			end
+			
+			subject.limit = 2
+			task.wait
+			
+			expect(subject.count).to be == 2
+		end
+		
+		it "blocks tasks when limit is decreased" do
+			subject.limit = 2
+			subject.acquire
+			subject.acquire
+			
+			expect(subject.count).to be == 2
+			expect(subject.blocking?).to be_truthy
+			
+			task = Async do
+				subject.acquire
+			end
+			
+			subject.limit = 1
+			subject.release
+			subject.release
+			task.wait
+			
+			expect(subject.count).to be == 1
+		end
+	end
+	
 	context '#empty?' do
 		it 'should be empty unless acquired' do
 			expect(subject).to be_empty
