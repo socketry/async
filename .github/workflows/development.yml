@@ -15,9 +15,10 @@ jobs:
           - macos
         
         ruby:
-          - "2.6"
           - "2.7"
           - "3.0"
+          - "3.1"
+          - "3.2"
         
         experimental: [false]
         env: [""]
@@ -34,8 +35,8 @@ jobs:
             ruby: head
             experimental: true
           - os: ubuntu
-            ruby: 2.6
-            env: COVERAGE=PartialSummary,Coveralls
+            ruby: "3.2"
+            env: COVERAGE=PartialSummary
             experimental: true
     
     steps:
