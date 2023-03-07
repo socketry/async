@@ -3,6 +3,9 @@
 # Released under the MIT License.
 # Copyright, 2017-2022, by Samuel Williams.
 
+require 'async/reactor'
+require 'sus/fixtures/async/reactor_context'
+
 describe Async::Reactor do
 	with '.run (in existing reactor)' do
 		include Sus::Fixtures::Async::ReactorContext
