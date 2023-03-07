@@ -50,8 +50,11 @@ module Async
 			# We depend on GVL for consistency:
 			# @guard.synchronize do
 			
-			@selector&.close
+			# We want `@selector = nil` to be a visible side effect from this point forward, specifically in `#interrupt` and `#unblock`. If the selector is closed, then we don't want to push any fibers to it.
+			selector = @selector
 			@selector = nil
+			
+			selector&.close
 			
 			# end
 			
@@ -69,9 +72,10 @@ module Async
 		end
 		
 		# Interrupt the event loop and cause it to exit.
+		# @asynchronous May be called from any thread.
 		def interrupt
 			@interrupted = true
-			@selector.wakeup
+			@selector&.wakeup
 		end
 		
 		# Transfer from the calling fiber to the event loop.
@@ -127,8 +131,10 @@ module Async
 			# $stderr.puts "unblock(#{blocker}, #{fiber})"
 			
 			# This operation is protected by the GVL:
-			@selector.push(fiber)
-			@selector.wakeup
+			if selector = @selector
+				selector.push(fiber)
+				selector.wakeup
+			end
 		end
 		
 		# @asynchronous May be non-blocking..

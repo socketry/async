@@ -63,4 +63,28 @@ describe Async::Scheduler do
 			expect(duration).to be <= 0.1
 		end
 	end
+	
+	with '#interrupt' do
+		it "can interrupt a closed scheduler" do
+			scheduler = Async::Scheduler.new
+			scheduler.close
+			scheduler.interrupt
+		end
+	end
+	
+	with '#block' do
+		it "can block and unblock the scheduler after closing" do
+			scheduler = Async::Scheduler.new
+			
+			fiber = Fiber.new do
+				scheduler.block(:test, nil)
+			end
+			
+			fiber.transfer
+			
+			expect do
+				scheduler.close
+			end.to raise_exception(RuntimeError, message: be =~ /Closing scheduler with blocked operations/)
+		end
+	end
 end
