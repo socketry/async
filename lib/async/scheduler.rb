@@ -42,10 +42,12 @@ module Async
 		
 		# @public Since `stable-v1`.
 		def close
-			# This is a critical step. Because tasks could be stored as instance variables, and since the reactor is (probably) going out of scope, we need to ensure they are stopped. Otherwise, the tasks will belong to a reactor that will never run again and are not stopped.
-			self.terminate
+			# It's critical to stop all tasks. Otherwise they might be holding on to resources which are never closed/released correctly.
+			until self.terminate
+				self.run_once
+			end
 			
-			Kernel::raise "Closing scheduler with blocked operations!" if @blocked > 0
+			Kernel.raise "Closing scheduler with blocked operations!" if @blocked > 0
 			
 			# We depend on GVL for consistency:
 			# @guard.synchronize do

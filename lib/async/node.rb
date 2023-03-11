@@ -231,6 +231,8 @@ module Async
 			@children&.each do |child|
 				child.terminate
 			end
+			
+			return @children.nil?
 		end
 		
 		# Attempt to stop the current node immediately, including all non-transient children. Invokes {#stop_children} to stop all children.

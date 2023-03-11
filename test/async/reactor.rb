@@ -32,6 +32,17 @@ describe Async::Reactor do
 			
 			expect(reactor).to be(:closed?)
 		end
+		
+		it "terminates transient tasks" do
+			task = reactor.async(transient: true) do
+				sleep
+			ensure
+				sleep
+			end
+			
+			reactor.run_once
+			reactor.close
+		end
 	end
 	
 	with '#run' do
