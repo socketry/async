@@ -6,7 +6,9 @@
 
 require 'async'
 require 'sus/fixtures/async'
+
 require 'benchmark/ips'
+require 'tempfile'
 
 describe Async::Reactor do
 	let(:reactor) {subject.new}
@@ -31,6 +33,17 @@ describe Async::Reactor do
 			reactor.close
 			
 			expect(reactor).to be(:closed?)
+		end
+		
+		it "terminates transient tasks" do
+			task = reactor.async(transient: true) do
+				sleep
+			ensure
+				sleep
+			end
+			
+			reactor.run_once
+			reactor.close
 		end
 	end
 	
