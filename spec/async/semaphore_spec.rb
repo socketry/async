@@ -62,7 +62,7 @@ RSpec.describe Async::Semaphore do
 			3.times.map do |i|
 				semaphore.async do |task|
 					order << i
-					task.sleep(0.1)
+					task.yield
 					order << i
 				end
 			end.collect(&:result)
@@ -72,17 +72,22 @@ RSpec.describe Async::Semaphore do
 		
 		it 'allows tasks to execute concurrently' do
 			semaphore = Async::Semaphore.new(3)
-			order = []
+			concurrency = 0
+			latch = Async::Condition.new
 			
 			3.times.map do |i|
 				semaphore.async do |task|
-					order << i
-					task.sleep(0.1)
-					order << i
+					concurrency += 1
+					
+					if concurrency == 3
+						latch.signal
+					else
+						latch.wait
+					end
 				end
-			end.collect(&:result)
+			end.each(&:wait)
 			
-			expect(order).to be == [0, 1, 2, 0, 1, 2]
+			expect(concurrency).to be == 3
 		end
 	end
 	
