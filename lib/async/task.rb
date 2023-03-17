@@ -63,10 +63,8 @@ module Async
 			self.root
 		end
 		
-		if Fiber.current.respond_to?(:backtrace)
-			def backtrace(*arguments)
-				@fiber&.backtrace(*arguments)
-			end
+		def backtrace(*arguments)
+			@fiber&.backtrace(*arguments)
 		end
 		
 		def to_s
