@@ -38,6 +38,25 @@ module Async
 	end
 	
 	# Encapsulates the state of a running task and it's result.
+	#
+	# ```mermaid
+	# stateDiagram-v2
+	# [*] --> Initialized
+	# Initialized --> Running : Run
+	# 
+	# Running --> Completed : Return Value
+	# Running --> Failed : Exception
+	# 
+	# Completed --> [*]
+	# Failed --> [*]
+	# 
+	# Running --> Stopped : Stop
+	# Stopped --> [*]
+	# Completed --> Stopped : Stop
+	# Failed --> Stopped : Stop
+	# Initialized --> Stopped : Stop
+	# ```
+	#
 	# @public Since `stable-v1`.
 	class Task < Node
 		# @deprecated With no replacement.
@@ -51,12 +70,16 @@ module Async
 		def initialize(parent = Task.current?, finished: nil, **options, &block)
 			super(parent, **options)
 			
+			# These instance variables are critical to the state of the task.
+			# In the initialized state, the @block should be set, but the @fiber should be nil.
+			# In the running state, the @fiber should be set.
+			# In a finished state, the @block should be nil, and the @fiber should be nil.
+			@block = block
+			@fiber = nil
+			
 			@status = :initialized
 			@result = nil
 			@finished = finished
-			
-			@block = block
-			@fiber = nil
 		end
 		
 		def reactor
@@ -89,9 +112,39 @@ module Async
 		# @attr fiber [Fiber] The fiber which is being used for the execution of this task.
 		attr :fiber
 		
+		# Whether the internal fiber is alive, i.e. it 
 		def alive?
 			@fiber&.alive?
 		end
+		
+		# Whether we can remove this node from the reactor graph.
+		# @returns [Boolean]
+		def finished?
+			# If the block is nil and the fiber is nil, it means the task has finished execution. This becomes true after `finish!` is called.
+			super && @block.nil? && @fiber.nil?
+		end
+		
+		# Whether the task is running.
+		# @returns [Boolean]
+		def running?
+			@status == :running
+		end
+		
+		def failed?
+			@status == :failed
+		end
+		
+		# The task has been stopped
+		def stopped?
+			@status == :stopped
+		end
+		
+		# The task has completed execution and generated a result.
+		def completed?
+			@status == :completed
+		end
+		
+		alias complete? completed?
 		
 		# @attr status [Symbol] The status of the execution of the fiber, one of `:initialized`, `:running`, `:complete`, `:stopped` or `:failed`.
 		attr :status
@@ -129,7 +182,8 @@ module Async
 		def wait
 			raise "Cannot wait on own fiber!" if Fiber.current.equal?(@fiber)
 			
-			if running?
+			# `finish!` will set both of these to nil before signaling the condition:
+			if @block || @fiber
 				@finished ||= Condition.new
 				@finished.wait
 			end
@@ -151,17 +205,22 @@ module Async
 				return
 			end
 			
-			if self.running?
+			# If the fiber is alive, we need to stop it:
+			if @fiber&.alive?
 				if self.current?
 					if later
+						# If the fiber is the current fiber and we want to stop it later, schedule it:
 						Fiber.scheduler.push(Stop::Later.new(self))
 					else
+						# Otherwise, raise the exception directly:
 						raise Stop, "Stopping current task!"
 					end
-				elsif @fiber&.alive?
+				else
+					# If the fiber is not curent, we can raise the exception directly:
 					begin
 						Fiber.scheduler.raise(@fiber, Stop)
 					rescue FiberError
+						# In some cases, this can cause a FiberError (it might be resumed already), so we schedule it to be stopped later:
 						Fiber.scheduler.push(Stop::Later.new(self))
 					end
 				end
@@ -188,36 +247,34 @@ module Async
 			self.equal?(Thread.current[:async_task])
 		end
 		
-		# Check if the task is running.
-		# @returns [Boolean]
-		def running?
-			@status == :running
-		end
-		
-		# Whether we can remove this node from the reactor graph.
-		# @returns [Boolean]
-		def finished?
-			super && @fiber.nil?
-		end
-		
-		def failed?
-			@status == :failed
-		end
-		
-		def stopped?
-			@status == :stopped
-		end
-		
-		def complete?
-			@status == :complete
-		end
-		
 		private
 		
+		# Finish the current task, moving any children to the parent.
+		def finish!
+			# Don't hold references to the fiber or block after the task has finished:
+			@fiber = nil
+			@block = nil # If some how we went directly from initialized to finished.
+			
+			# Attempt to remove this node from the task tree.
+			consume
+			
+			# If this task was being used as a future, signal completion here:
+			if @finished
+				@finished.signal(self)
+				@finished = nil
+			end
+		end
+		
+		# State transition into the completed state.
+		def completed!(result)
+			@result = result
+			@status = :completed
+		end
+		
 		# This is a very tricky aspect of tasks to get right. I've modelled it after `Thread` but it's slightly different in that the exception can propagate back up through the reactor. If the user writes code which raises an exception, that exception should always be visible, i.e. cause a failure. If it's not visible, such code fails silently and can be very difficult to debug.
-		def fail!(exception = false, propagate = true)
-			@status = :failed
+		def failed!(exception = false, propagate = true)
 			@result = exception
+			@status = :failed
 			
 			if exception
 				if propagate
@@ -231,11 +288,18 @@ module Async
 			end
 		end
 		
-		def stop!
+		def stopped!
 			# Console.logger.info(self, self.annotation) {"Task was stopped with #{@children&.size.inspect} children!"}
 			@status = :stopped
 			
+			# We are not running, but children might be so we should stop them:
 			stop_children(true)
+		end
+		
+		def stop!
+			stopped!
+			
+			finish!
 		end
 		
 		def schedule(&block)
@@ -243,15 +307,14 @@ module Async
 				set!
 				
 				begin
-					@result = yield
-					@status = :complete
+					completed!(yield)
 					# Console.logger.debug(self) {"Task was completed with #{@children.size} children!"}
 				rescue Stop
-					stop!
+					stopped!
 				rescue StandardError => error
-					fail!(error, false)
+					failed!(error, false)
 				rescue Exception => exception
-					fail!(exception, true)
+					failed!(exception, true)
 				ensure
 					# Console.logger.info(self) {"Task ensure $! = #{$!} with #{@children&.size.inspect} children!"}
 					finish!
@@ -259,20 +322,6 @@ module Async
 			end
 			
 			self.root.resume(@fiber)
-		end
-		
-		# Finish the current task, moving any children to the parent.
-		def finish!
-			# Allow the fiber to be recycled.
-			@fiber = nil
-			
-			# Attempt to remove this node from the task tree.
-			consume
-			
-			# If this task was being used as a future, signal completion here:
-			if @finished
-				@finished.signal(self)
-			end
 		end
 		
 		# Set the current fiber's `:async_task` to this task.

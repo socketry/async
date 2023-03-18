@@ -35,7 +35,7 @@ describe Async::Notification do
 		reactor.yield
 		sequence << :finished
 		
-		expect(task.status).to be == :complete
+		expect(task.status).to be == :completed
 		
 		expect(sequence).to be == [
 			:waiting,

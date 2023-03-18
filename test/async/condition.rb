@@ -19,12 +19,12 @@ describe Async::Condition do
 			condition.wait
 		end
 		
-		expect(task.status).to be == :running
+		expect(task).to be(:running?)
 		
 		# This will cause the task to exit:
 		condition.signal
 		
-		expect(task.status).to be == :complete
+		expect(task).to be(:completed?)
 	end
 	
 	it 'can stop nested task' do
@@ -49,7 +49,7 @@ describe Async::Condition do
 		producer.wait
 		
 		expect(producer.status).to be == :stopped
-		expect(consumer.status).to be == :complete
+		expect(consumer.status).to be == :completed
 	end
 	
 	it_behaves_like ACondition

@@ -43,6 +43,17 @@ describe Async::Reactor do
 			reactor.run_once
 			reactor.close
 		end
+		
+		it "terminates nested tasks" do
+			top = reactor.async do |parent|
+				parent.async do |child|
+					child.sleep(1)
+				end
+			end
+			
+			reactor.run_once
+			reactor.close
+		end
 	end
 	
 	with '#run' do

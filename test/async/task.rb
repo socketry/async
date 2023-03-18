@@ -12,6 +12,11 @@ require 'timer_quantum'
 describe Async::Task do
 	let(:reactor) {Async::Reactor.new}
 	
+	def after
+		reactor.close
+		super
+	end
+	
 	with '.yield' do
 		it "can yield back to scheduler" do
 			state = nil
@@ -173,6 +178,53 @@ describe Async::Task do
 	end
 	
 	with '#stop' do
+		it "can't stop finished tasks" do
+			task = reactor.async{}
+			
+			expect(task).to be(:finished?)
+			expect(task).to be(:completed?)
+			
+			task.stop
+			
+			expect(task).to be(:finished?)
+			expect(task.status).to be == :stopped
+		end
+		
+		it "can stop a task in the initialized state" do
+			task = Async::Task.new(reactor) do |task|
+				sleep
+			end
+			
+			expect(task.status).to be == :initialized
+			expect(reactor.children).not.to be(:empty?)
+			expect(task).not.to be(:finished?)
+			
+			task.stop
+			
+			expect(task.status).to be == :stopped
+			expect(reactor.children).to be(:empty?)
+		end
+		
+		it "can stop a task in the initialized state with children" do
+			parent = Async::Task.new(reactor) do |task|
+				sleep
+			end
+			
+			child = parent.async do |task|
+				sleep
+			end
+			
+			expect(parent.status).to be == :initialized
+			# expect(child.status).to be == :running
+			
+			parent.stop
+			
+			expect(parent.status).to be == :stopped
+			expect(child.status).to be == :stopped
+			
+			expect(reactor.children).to be(:empty?)
+		end
+		
 		it "can be stopped" do
 			state = nil
 			
@@ -625,15 +677,17 @@ describe Async::Task do
 		end
 		
 		it 'does not wait for task completion' do
-			reactor.async do
-				task = reactor.async do |task|
-					task.sleep(1)
-				end
-				
-				expect(task.result).to be_nil
-				
-				task.stop
+			task = reactor.async do |task|
+				task.sleep(1)
 			end
+			
+			expect(task.result).to be_nil
+			
+			Console.logger.debug(self) {"Stopping task..."}
+			task.stop
+			
+			expect(task.result).to be_nil
+			expect(task).to be(:stopped?)
 		end
 	end
 	
@@ -671,8 +725,9 @@ describe Async::Task do
 					end
 					
 					child.stop
+					
 					expect(child).to be(:stopped?)
-				end
+				end.wait
 			end
 		end
 	end
