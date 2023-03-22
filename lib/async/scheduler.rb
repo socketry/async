@@ -257,10 +257,13 @@ module Async
 			initial_task = self.async(...) if block_given?
 			
 			@interrupted = false
+			thread = Thread.current
 			
-			while self.run_once
-				if @interrupted
-					break
+			Thread.handle_interrupt(Exception => :never) do
+				while self.run_once
+					if @interrupted || thread.pending_interrupt?
+						break
+					end
 				end
 			end
 			
