@@ -259,7 +259,7 @@ module Async
 			@interrupted = false
 			thread = Thread.current
 			
-			Thread.handle_interrupt(Exception => :never) do
+			Thread.handle_interrupt(SignalException => :never) do
 				while self.run_once
 					if @interrupted || thread.pending_interrupt?
 						break
