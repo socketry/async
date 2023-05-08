@@ -143,20 +143,23 @@ end
 
 ### Waiting for the First N Tasks
 
-Occasionally, you may need to just wait for the first task (or first several tasks) to complete. You can use a combination of {ruby Async::LimitedBarrier} and {ruby Async::Barrier} for controlling this:
+Occasionally, you may need to just wait for the first task (or first several tasks) to complete. You can use a combination of {ruby Async::Waiter} and {ruby Async::Barrier} for controlling this:
 
 ```ruby
-barrier = Async::Barrier.new(parent: barrier)
+waiter = Async::Waiter.new(parent: barrier)
 
 Async do
 	jobs.each do |job|
-		barrier.async do
+		waiter.async do
 			# ... process job ...
 		end
 	end
 	
 	# Wait for the first two jobs to complete:
-	done = barrier.wait(2)
+	done = waiter.wait(2)
+	
+	# You may use the barrier to stop the remaining jobs
+	barrier.stop
 end
 ```
 
