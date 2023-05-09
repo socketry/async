@@ -23,6 +23,10 @@ module Async
 			true
 		end
 		
+		def self.windows?
+			::RUBY_PLATFORM =~ /mswin|mingw|cygwin/
+		end
+		
 		def initialize(parent = nil, selector: nil)
 			super(parent)
 			
@@ -175,12 +179,26 @@ module Async
 		end
 
 		if ::IO::Event::Support.buffer?
-			def io_read(io, buffer, length, offset = 0)
-				@selector.io_read(Fiber.current, io, buffer, length, offset)
-			end
-			
-			def io_write(io, buffer, length, offset = 0)
-				@selector.io_write(Fiber.current, io, buffer, length, offset)
+			if Scheduler.windows?
+				def io_read(io, buffer, length, offset = 0)
+					Thread.new do
+						buffer.read(io, length, offset)
+					end.value
+				end
+				
+				def io_write(io, buffer, length, offset = 0)
+					Thread.new do
+						buffer.write(io, length, offset)
+					end.value
+				end
+			else
+				def io_read(io, buffer, length, offset = 0)
+					@selector.io_read(Fiber.current, io, buffer, length, offset)
+				end
+				
+				def io_write(io, buffer, length, offset = 0)
+					@selector.io_write(Fiber.current, io, buffer, length, offset)
+				end
 			end
 		end
 		
