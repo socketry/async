@@ -4,6 +4,7 @@
 # Copyright, 2021-2022, by Samuel Williams.
 
 require 'async/scheduler'
+require 'sus/fixtures/async'
 require 'io/nonblock'
 
 describe Async::Scheduler do

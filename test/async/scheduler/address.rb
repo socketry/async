@@ -4,6 +4,7 @@
 # Copyright, 2021-2022, by Samuel Williams.
 
 require 'async/scheduler'
+require 'sus/fixtures/async'
 
 describe Async::Scheduler do
 	include Sus::Fixtures::Async::ReactorContext

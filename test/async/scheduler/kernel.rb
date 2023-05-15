@@ -4,7 +4,7 @@
 # Copyright, 2021-2022, by Samuel Williams.
 
 require 'async/scheduler'
-
+require 'sus/fixtures/async'
 require 'timer_quantum'
 
 describe Async::Scheduler do

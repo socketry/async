@@ -4,7 +4,7 @@
 # Copyright, 2022, by Samuel Williams.
 
 require 'async/scheduler'
-
+require 'sus/fixtures/async'
 require 'timeout'
 
 describe Async::Scheduler do
