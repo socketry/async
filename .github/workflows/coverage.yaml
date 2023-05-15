@@ -21,6 +21,7 @@ jobs:
         
         ruby:
           - "3.2"
+          - "ruby-head"
     
     steps:
     - uses: actions/checkout@v3
