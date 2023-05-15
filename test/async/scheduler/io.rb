@@ -60,5 +60,12 @@ describe Async::Scheduler do
 		ensure
 			s2.close
 		end
+		
+		it "can puts empty string" do
+			IO.pipe do |input, output|
+				output.puts ""
+				expect(input.gets).to be == $/
+			end
+		end
 	end
 end

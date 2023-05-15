@@ -179,8 +179,10 @@ module Async
 				@selector.io_read(Fiber.current, io, buffer, length, offset)
 			end
 			
-			def io_write(io, buffer, length, offset = 0)
-				@selector.io_write(Fiber.current, io, buffer, length, offset)
+			if RUBY_ENGINE != "ruby" || RUBY_VERSION >= "3.3.0"
+				def io_write(io, buffer, length, offset = 0)
+					@selector.io_write(Fiber.current, io, buffer, length, offset)
+				end
 			end
 		end
 		
