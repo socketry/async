@@ -350,7 +350,7 @@ end
 2. If the parent task is finished, any transient tasks will become children of the parent's parent, i.e. they don't keep sub-trees alive.
 3. If you stop a task which has transient children, those transient children will not be stopped and will instead move up the tree.
 
-The purpose of transient tasks is when a task is an implementation detail of an object or instance, rather than a concurrency process. Some examples of trasient tasks 
+The purpose of transient tasks is when a task is an implementation detail of an object or instance, rather than a concurrency process. Some examples of transient tasks:
 
 - A task which is reading or writing data on behalf of a stateful connection object, e.g. HTTP/2 frame reader, Redis cache invalidation, etc.
 - A task which is monitoring and maintaining a connection pool, pruning unused connections or possibly ensuring those connections are periodically checked for activity (ping/pong, etc).
