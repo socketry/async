@@ -300,7 +300,7 @@ end
 
 ## Timeouts
 
-You can wrap asynchronous operations in a timeout. This allow you to put an upper bound on how long the enclosed code will run vs. potentially blocking indefinitely. If the enclosed code hasn't completed by the timeout, it will be interrupted with an {ruby Async::TimeoutError} exception.
+You can wrap asynchronous operations in a timeout. This allows you to put an upper bound on how long the enclosed code will run vs. potentially blocking indefinitely. If the enclosed code hasn't completed by the timeout, it will be interrupted with an {ruby Async::TimeoutError} exception.
 
 ~~~ ruby
 require 'async'
