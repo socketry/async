@@ -349,7 +349,7 @@ end
 ```
 
 1. They are not considered by {ruby Async::Task#finished?}, so they will not keep the reactor alive. Instead, they are stopped (with a {ruby Async::Stop} exception) when all other (non-transient) tasks are finished.
-2. As soon as a parent task is finished, any transient child tasks will be moved up to be children of the parent's parent. This  ensures that they never keep a sub-tree alive.
+2. As soon as a parent task is finished, any transient child tasks will be moved up to be children of the parent's parent. This ensures that they never keep a sub-tree alive.
 3. Similarly, if you `stop` a task, any transient child tasks will be moved up the tree as above rather than being stopped.
 
 The purpose of transient tasks is when a task is an implementation detail of an object or instance, rather than a concurrency process. Some examples of transient tasks:
