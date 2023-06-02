@@ -382,23 +382,27 @@ The purpose of transient tasks is when a task is an implementation detail of an 
 - A background worker or batch processing job which is independent of any specific operation, and is lazily created.
 - A cache system which needs periodic expiration / revalidation of data/values.
 
-Bear in mind, in all of the above cases, you may need to validate that the background task hasn't been stopped, e.g.
+Bear in mind, in all of the above cases, you may need to validate that the background task hasn't been stopped, e.g. ???
+
+Here is an example that keeps a cache of the current time string since that has only 1-second granularity
+and you could be handling 1000s of requests per second.
+The task doing the updating in the background is an implementation detail, so it is marked as `transient`.
 
 ```ruby
 require 'async'
 require 'thread/local' # thread-local gem.
 
-class TimeCache
+class TimeStringCache
 	extend Thread::Local # defines `instance` class method that lazy-creates a separate instance per thread
 	
 	def initialize
-		@current_time = nil
+		@current_time_string = nil
 	end
 	
 	def current_time_string
 		refresh!
 		
-		return @current_time
+		return @current_time_string
 	end
 	
 	private
@@ -406,7 +410,7 @@ class TimeCache
 	def refresh!
 		@refresh ||= Async(transient: true) do
 			loop do
-				@current_time = Time.now.to_s
+				@current_time_string = Time.now.to_s
 				sleep(1)
 			end
 		ensure
@@ -417,8 +421,7 @@ class TimeCache
 end
 
 Async do
-	# If you are handling 1000s of requests per second, it can be an advantage to cache the current time string.
-	p TimeCache.instance.current_time_string
+	p TimeStringCache.instance.current_time_string
 end
 ```
 
