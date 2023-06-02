@@ -187,7 +187,7 @@ When a task completes execution, it will enter the `complete` state (or the `fai
 
 There are various situations where you may want to stop a task ({ruby Async::Task#stop}) before it completes. The most common case is shutting down a server. A more complex example is this: you may fan out multiple (10s, 100s) of requests, wait for a subset to complete (e.g. the first 5 or all those that complete within a given deadline), and then stop (terminate/cancel) the remaining operations.
 
-Using the above program as an example, we can 
+Using the above program as an example, let's stop all the tasks just after the first one completes.
 
 ```ruby
 Async do
@@ -197,9 +197,10 @@ Async do
 			puts "Hello World #{i}"
 		end
 	end
-	
+
 	sleep 1.01
-	# Stop all the above tasks (task 0 will have already completed and displayed "Hello World 0".
+
+	# Stop all the above tasks (task 0 will have already completed and displayed "Hello World 0").
 	tasks.each(&:stop)
 end
 ```
