@@ -382,8 +382,6 @@ The purpose of transient tasks is when a task is an implementation detail of an 
 - A background worker or batch processing job which is independent of any specific operation, and is lazily created.
 - A cache system which needs periodic expiration / revalidation of data/values.
 
-Bear in mind, in all of the above cases, you may need to validate that the background task hasn't been stopped, e.g. ???
-
 Here is an example that keeps a cache of the current time string since that has only 1-second granularity
 and you could be handling 1000s of requests per second.
 The task doing the updating in the background is an implementation detail, so it is marked as `transient`.
