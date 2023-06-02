@@ -323,11 +323,33 @@ Sometimes you need to do some recurring work in a loop. Often it's best to measu
 ~~~ ruby
 require 'async'
 
+period = 30
+
 Async do |task|
 	loop do
 		puts Time.now
 		# ... process job ...
-		sleep 1
+		sleep period
+	end
+end
+~~~
+
+If you need a periodic timer that runs start-to-start, you can keep track of the `run_next` time using the monotonic clock:
+
+~~~ ruby
+require 'async'
+
+period = 30
+
+Async do |task|
+  run_next = Async::Clock.now
+	loop do
+		run_next += period
+		puts Time.now
+		# ... process job ...
+		if (remaining = run_next - Async::Clock.now) > 0
+		  sleep remaining
+		end
 	end
 end
 ~~~
