@@ -8,7 +8,7 @@ Tasks are the smallest unit of sequential code execution in {ruby Async}. Tasks 
 
 ```mermaid
 graph LR
-    REL[Reactor (Event Loop)] --> WS
+    REL[Reactor Event Loop] --> WS
     WS[Web Server Task] --> R1[Request 1 Task]
     WS --> R2[Request 2 Task]
 
@@ -77,7 +77,7 @@ Instead of taking 3.3 seconds, this program takes 1.2 seconds in total. The main
 
 ```mermaid
 graph LR
-	REL[Reactor (Event Loop)] --> TT[Initial Task]
+	REL[Reactor Event Loop] --> TT[Initial Task]
 	
 	TT --> H0[Hello World 0 Task]
 	TT --> H1[Hello World 1 Task]
