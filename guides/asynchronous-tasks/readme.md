@@ -340,8 +340,7 @@ Tasks which are flagged as `transient` do not behave like normal tasks.
 
 ```ruby
 @pruner = Async(transient: true) do
-	loop do
-	
+	loop do	
 		sleep 1
 		prune_connection_pool
 	end
