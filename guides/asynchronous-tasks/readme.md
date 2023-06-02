@@ -359,7 +359,7 @@ The purpose of transient tasks is when a task is an implementation detail of an 
 - A background worker or batch processing job which is independent of any specific operation, and is lazily created.
 - A cache system which needs periodic expiration / revalidation of data/values.
 
-Bearing in mind, in all of the above cases, you may need to validate that the background task hasn't been stopped, e.g.
+Bear in mind, in all of the above cases, you may need to validate that the background task hasn't been stopped, e.g.
 
 ```ruby
 require 'async'
@@ -399,4 +399,4 @@ Async do
 end
 ```
 
-Upon existing the top level async block, the {ruby @refresh} task will be set to `nil`. Bear in mind, you should not share these resources across threads; doing so would need some form of mutual exclusion.
+Upon exiting the top level async block, the {ruby @refresh} task will be set to `nil`. Bear in mind, you should not share these resources across threads; doing so would need some form of mutual exclusion.
