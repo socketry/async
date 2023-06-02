@@ -234,7 +234,7 @@ module Async
 		# @returns [Task]
 		# @raises[RuntimeError] If task was not {set!} for the current fiber.
 		def self.current
-			Thread.current[:async_task] or raise RuntimeError, "No async task available!"
+			Thread.current[:async_task] or raise RuntimeError, "No parent async task set!"
 		end
 		
 		# Check if there is a task defined for the current fiber.
