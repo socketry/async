@@ -224,7 +224,7 @@ Async do
 end
 ```
 
-If you're letting individual tasks held by a barrier raise unhandled exceptions, be sure to call ({ruby Async::Barrier#stop}) to stop the remaining tasks:
+Unless your tasks all rescue and suppresses `StandardError`-derived exceptions, be sure to call ({ruby Async::Barrier#stop}) to stop the remaining tasks:
 
 ```ruby
 barrier = Async::Barrier.new
