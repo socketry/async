@@ -59,6 +59,12 @@ module Async
 	#
 	# @public Since `stable-v1`.
 	class Task < Node
+		class FinishedError < RuntimeError
+			def initialize(message = "Cannot create child task within a task that has finished execution!")
+				super
+			end
+		end
+		
 		# @deprecated With no replacement.
 		def self.yield
 			Fiber.scheduler.transfer
@@ -164,7 +170,7 @@ module Async
 		
 		# Run an asynchronous task as a child of the current task.
 		def async(*arguments, **options, &block)
-			raise "Cannot create child task within a task that has finished execution!" if self.finished?
+			raise FinishedError if self.finished?
 			
 			task = Task.new(self, **options, &block)
 			

@@ -267,4 +267,17 @@ describe Async::Reactor do
 			expect(reactor.to_s).to be =~ /stopped/
 		end
 	end
+	
+	it "validates scheduler assignment" do
+		# Assign the scheduler:
+		reactor = self.reactor
+		
+		# Close the previous scheduler:
+		Async {}
+		
+		expect do
+			# The reactor is closed:
+			reactor.async {}
+		end.to raise_exception(Async::Scheduler::ClosedError)
+	end
 end
