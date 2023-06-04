@@ -96,6 +96,22 @@ module Async
 			@fiber&.backtrace(*arguments)
 		end
 		
+		def annotate(annotation, &block)
+			if @fiber
+				@fiber.annotate(annotation, &block)
+			else
+				super
+			end
+		end
+		
+		def annotation
+			if @fiber
+				@fiber.annotation
+			else
+				super
+			end
+		end
+		
 		def to_s
 			"\#<#{self.description} (#{@status})>"
 		end
@@ -309,7 +325,7 @@ module Async
 		end
 		
 		def schedule(&block)
-			@fiber = Fiber.new do
+			@fiber = Fiber.new(annotation: self.annotation) do
 				set!
 				
 				begin
