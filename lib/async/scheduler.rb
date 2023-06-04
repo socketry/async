@@ -17,6 +17,12 @@ require 'resolv'
 module Async
 	# Handles scheduling of fibers. Implements the fiber scheduler interface.
 	class Scheduler < Node
+		class ClosedError < RuntimeError
+			def initialize(message = "Scheduler is closed!")
+				super
+			end
+		end
+		
 		# Whether the fiber scheduler is supported.
 		# @public Since `stable-v1`.
 		def self.supported?
@@ -233,7 +239,7 @@ module Async
 		
 		# Run the reactor until all tasks are finished. Proxies arguments to {#async} immediately before entering the loop, if a block is provided.
 		def run(...)
-			Kernel::raise RuntimeError, 'Reactor has been closed' if @selector.nil?
+			Kernel::raise ClosedError if @selector.nil?
 			
 			initial_task = self.async(...) if block_given?
 			
@@ -260,6 +266,8 @@ module Async
 		# @returns [Task] The task that was scheduled into the reactor.
 		# @deprecated With no replacement.
 		def async(*arguments, **options, &block)
+			Kernel::raise ClosedError if @selector.nil?
+			
 			task = Task.new(Task.current? || self, **options, &block)
 			
 			# I want to take a moment to explain the logic of this.
