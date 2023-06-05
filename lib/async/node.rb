@@ -5,6 +5,8 @@
 # Copyright, 2017, by Kent Gruber.
 # Copyright, 2022, by Shannon Skipper.
 
+require 'fiber/annotate'
+
 require_relative 'list'
 
 module Async
@@ -109,20 +111,27 @@ module Async
 		
 		def annotate(annotation)
 			if block_given?
-				previous_annotation = @annotation
-				@annotation = annotation
-				yield
-				@annotation = previous_annotation
+				begin
+					current_annotation = @annotation
+					@annotation = annotation
+					return yield
+				ensure
+					@annotation = current_annotation
+				end
 			else
 				@annotation = annotation
 			end
 		end
 		
+		def annotation
+			@annotation
+		end
+		
 		def description
 			@object_name ||= "#{self.class}:#{format '%#018x', object_id}#{@transient ? ' transient' : nil}"
 			
-			if @annotation
-				"#{@object_name} #{@annotation}"
+			if annotation = self.annotation
+				"#{@object_name} #{annotation}"
 			elsif line = self.backtrace(0, 1)&.first
 				"#{@object_name} #{line}"
 			else

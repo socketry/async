@@ -17,6 +17,32 @@ describe Async::Task do
 		super
 	end
 	
+	with '#annotate' do
+		it "can annotate the current task that has not started yet" do
+			task = Async::Task.new(reactor) do |task|
+				sleep
+			end
+			
+			task.annotate("Hello World")
+			
+			expect(task.annotation).to be == "Hello World"
+		end
+		
+		it "can annotate the current task that has started" do
+			task = Async::Task.new(reactor) do |task|
+				task.annotate("Hello World")
+				
+				sleep
+			end
+			
+			expect(task.fiber).to be_nil
+			
+			task.run
+			
+			expect(task.fiber.annotation).to be == "Hello World"
+		end
+	end
+	
 	with '.yield' do
 		it "can yield back to scheduler" do
 			state = nil
