@@ -52,7 +52,7 @@ At any point in your program, you can start the reactor and a root task using th
 ```ruby
 Async do
 	3.times do |i|
-		sleep 1 + i/10.0
+		sleep(1 + i/10.0)
 		puts "Hello World #{i}"
 	end
 end
@@ -66,7 +66,7 @@ By using a nested task, we can ensure that each iteration of the loop creates a 
 Async do
 	3.times do |i|
 		Async do
-			sleep 1 + i/10.0
+			sleep(1 + i/10.0)
 			puts "Hello World #{i}"
 		end
 	end
@@ -193,12 +193,12 @@ Using the above program as an example, let's stop all the tasks just after the f
 Async do
 	tasks = 3.times.map do |i|
 		Async do
-			sleep 1 + i/10.0
+			sleep(1 + i/10.0)
 			puts "Hello World #{i}"
 		end
 	end
 
-	sleep 1.01
+	sleep(1.01)
 
 	# Stop all the above tasks (task 0 will have already completed and displayed "Hello World 0").
 	tasks.each(&:stop)
@@ -215,7 +215,7 @@ barrier = Async::Barrier.new
 Async do
 	tasks = 3.times.map do |i|
 		barrier.async do
-			sleep 1 + i/10.0
+			sleep(1 + i/10.0)
 			puts "Hello World #{i}"
 		end
 	end
@@ -232,7 +232,7 @@ barrier = Async::Barrier.new
 Async do
 	tasks = 3.times.map do |i|
 		barrier.async do
-			sleep 1 + i/10.0
+			sleep(1 + i/10.0)
 			puts "Hello World #{i}"
 		end
 	end
@@ -309,7 +309,7 @@ require 'async'
 
 Async do |task|
 	task.with_timeout(1) do
-		sleep 100
+		sleep(100)
 	rescue Async::TimeoutError
 		puts "I timed out 99 seconds early!"
 	end
@@ -329,7 +329,7 @@ Async do |task|
 	loop do
 		puts Time.now
 		# ... process job ...
-		sleep period
+		sleep(period)
 	end
 end
 ~~~
@@ -348,7 +348,7 @@ Async do |task|
 		puts Time.now
 		# ... process job ...
 		if (remaining = run_next - Async::Clock.now) > 0
-		  sleep remaining
+		  sleep(remaining)
 		end
 	end
 end
@@ -365,7 +365,7 @@ Tasks which are flagged as `transient` do not behave like normal tasks.
 ```ruby
 @pruner = Async(transient: true) do
 	loop do	
-		sleep 1
+		sleep(1)
 		prune_connection_pool
 	end
 end
