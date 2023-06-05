@@ -1,0 +1,38 @@
+PATH
+  remote: ../..
+  specs:
+    async (2.5.1)
+      console (~> 1.10)
+      io-event (~> 1.1)
+      timers (~> 4.1)
+
+PATH
+  remote: /Users/samuel/Developer/ruby/debug
+  specs:
+    debug (1.8.0)
+      irb (>= 1.5.0)
+      reline (>= 0.3.1)
+
+GEM
+  remote: https://rubygems.org/
+  specs:
+    console (1.16.2)
+      fiber-local
+    fiber-local (1.0.0)
+    io-console (0.6.0)
+    io-event (1.2.2)
+    irb (1.6.3)
+      reline (>= 0.3.0)
+    reline (0.3.2)
+      io-console (~> 0.5)
+    timers (4.3.5)
+
+PLATFORMS
+  arm64-darwin-22
+
+DEPENDENCIES
+  async!
+  debug!
+
+BUNDLED WITH
+   2.4.7
