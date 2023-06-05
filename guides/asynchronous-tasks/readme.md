@@ -412,8 +412,9 @@ class TimeStringCache
 				sleep(1)
 			end
 		ensure
-			# When the reactor terminates all tasks, this will be invoked.
-			# By clearing the variable, we ensure that the task will be recreated if needed again.
+			# When the reactor terminates all tasks, `Async::Stop` will be raised from `sleep` and 
+			# this code will be invoked.
+			# By clearing `@refresh`, we ensure that the task will be recreated if needed again:
 			@refresh = nil
 		end
 	end
