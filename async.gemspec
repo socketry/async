@@ -22,7 +22,7 @@ Gem::Specification.new do |spec|
 	spec.add_dependency "console", "~> 1.10"
 	spec.add_dependency "io-event", "~> 1.1"
 	spec.add_dependency "timers", "~> 4.1"
-	spec.add_dependency "fiber-annotate"
+	spec.add_dependency "fiber-annotation"
 	
 	spec.add_development_dependency "bake-test"
 	spec.add_development_dependency "bake-test-external"

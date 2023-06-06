@@ -5,7 +5,7 @@
 # Copyright, 2017, by Kent Gruber.
 # Copyright, 2022, by Shannon Skipper.
 
-require 'fiber/annotate'
+require 'fiber/annotation'
 
 require_relative 'list'
 
