@@ -439,6 +439,28 @@ describe Async::Task do
 			end
 		end
 		
+		it "can stop the parent task which stops the stopping task" do
+			condition = Async::Notification.new
+			
+			reactor.run do |task|
+				task.async do
+					condition.wait
+					task.stop
+				end
+				
+				task.async do
+					sleep
+				end
+
+				# NOTE: Hangs only if this second task is added
+				task.async do
+					sleep
+				end
+				
+				condition.signal
+			end
+		end
+		
 		it "should not remove running task" do
 			top_task = middle_task = bottom_task = nil
 			
