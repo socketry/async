@@ -156,6 +156,9 @@ module Async
 		
 		# @asynchronous May be non-blocking..
 		def address_resolve(hostname)
+			# On some platforms, hostnames may contain a device-specific suffix (e.g. %en0). We need to strip this before resolving.
+			# See <https://github.com/socketry/async/issues/180> for more details.
+			hostname = hostname.split("%", 2).first
 			::Resolv.getaddresses(hostname)
 		end
 		
