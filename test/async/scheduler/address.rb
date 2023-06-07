@@ -15,5 +15,23 @@ describe Async::Scheduler do
 			
 			expect(addresses).not.to be(:empty?)
 		end
+		
+		it "can resolve ipv4 addresses" do
+			address = Addrinfo.getaddrinfo("127.0.0.1", "80").first
+			
+			expect(address.ipv4?).to be == true
+		end
+		
+		it "can resolve ipv6 addresses" do
+			address = Addrinfo.getaddrinfo("::1", "80").first
+			
+			expect(address.ipv6?).to be == true
+		end
+		
+		it "can resolve ipv6 addresses with device suffix" do
+			address = Addrinfo.getaddrinfo("::1%lo0", "80").first
+			
+			expect(address.ipv6?).to be == true
+		end
 	end
 end
