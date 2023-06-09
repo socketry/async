@@ -50,7 +50,7 @@ module Async
 		def close
 			# It's critical to stop all tasks. Otherwise they might be holding on to resources which are never closed/released correctly.
 			until self.terminate
-				self.run_once
+				self.run_once!
 			end
 			
 			Kernel.raise "Closing scheduler with blocked operations!" if @blocked > 0
@@ -215,6 +215,16 @@ module Async
 				return false
 			end
 			
+			return run_once!(timeout)
+		end
+		
+		# Run one iteration of the event loop.
+		#
+		# When terminating the event loop, we already know we are finished. So we don't need to check the task tree. This is a logical requirement because `run_once` ignores transient tasks. For example, a single top level transient task is not enough to keep the reactor running, but during termination we must still process it in order to terminate child tasks.
+		#
+		# @parameter timeout [Float | Nil] The maximum timeout, or if nil, indefinite.
+		# @returns [Boolean] Whether there is more work to do.
+		private def run_once!(timeout = 0)
 			interval = @timers.wait_interval
 			
 			# If there is no interval to wait (thus no timers), and no tasks, we could be done:

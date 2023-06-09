@@ -40,7 +40,20 @@ describe Async::Reactor do
 				sleep
 			end
 			
+			expect(reactor.run_once).to be == false
+			expect(reactor).to be(:finished?)
+			reactor.close
+		end
+		
+		it "terminates transient tasks with nested tasks" do
+			task = reactor.async(transient: true) do |parent|
+				parent.async do |child|
+					sleep(1)
+				end
+			end
+			
 			reactor.run_once
+			expect(reactor).to be(:finished?)
 			reactor.close
 		end
 		
