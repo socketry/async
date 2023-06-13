@@ -258,9 +258,12 @@ module Async
 			
 			@interrupted = false
 			
-			while self.run_once
-				if @interrupted
-					break
+			# In theory, we could use Exception here to be a little bit safer, but we've only shown the case for SignalException to be a problem, so let's not over-engineer this.
+			Thread.handle_interrupt(SignalException => :never) do
+				while self.run_once
+					if @interrupted || Thread.pending_interrupt?
+						break
+					end
 				end
 			end
 			
