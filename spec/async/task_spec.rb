@@ -300,12 +300,13 @@ RSpec.describe Async::Task do
 		it "can sleep for the requested duration" do
 			state = nil
 			
-			reactor.async do |task|
-				task.sleep(duration)
-				state = :finished
-			end
-			
+			# Measure the entire time, it's got to be at least bigger than the requested duration:
 			time = Async::Clock.measure do
+				reactor.async do |task|
+					task.sleep(duration)
+					state = :finished
+				end
+				
 				reactor.run
 			end
 			

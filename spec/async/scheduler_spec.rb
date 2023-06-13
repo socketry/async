@@ -56,21 +56,19 @@ RSpec.describe Async::Scheduler, if: Async::Scheduler.supported? do
 		let(:message) {"Helloooooo World!"}
 		
 		it "can send message via pipe" do
-			input, output = IO.pipe
-			
-			reactor.async do
-				sleep(0.001)
-				
-				message.each_char do |character|
-					output.write(character)
+			IO.pipe do |input, output|
+				reactor.async do
+					sleep(0.001)
+					
+					message.each_char do |character|
+						output.write(character)
+					end
+					
+					output.close
 				end
 				
-				output.close
+				expect(input.read).to be == message
 			end
-			
-			expect(input.read).to be == message
-			
-			input.close
 		end
 		
 		it "can fetch website using Net::HTTP" do
