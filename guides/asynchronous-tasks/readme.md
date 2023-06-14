@@ -52,13 +52,13 @@ At any point in your program, you can start the reactor and a root task using th
 ```ruby
 Async do
 	3.times do |i|
-		sleep(1 + i/10.0)
+		sleep(i)
 		puts "Hello World #{i}"
 	end
 end
 ```
 
-This program prints "Hello World" 3 times. Before printing, it sleeps for 1, then 1.1, then 1.2 seconds. The total execution time is 3.3 seconds because the program executes sequentially.
+This program prints "Hello World" 3 times. Before printing, it sleeps for 1, then 2, then 3 seconds. The total execution time is 6 seconds because the program executes sequentially.
 
 By using a nested task, we can ensure that each iteration of the loop creates a new task which runs concurrently.
 
@@ -66,14 +66,14 @@ By using a nested task, we can ensure that each iteration of the loop creates a 
 Async do
 	3.times do |i|
 		Async do
-			sleep(1 + i/10.0)
+			sleep(i)
 			puts "Hello World #{i}"
 		end
 	end
 end
 ```
 
-Instead of taking 3.3 seconds, this program takes 1.2 seconds in total. The main loop executes rapidly creating 3 child tasks, and then each child task sleeps for 1 to 1.2 seconds before printing "Hello World".
+Instead of taking 6 seconds, this program takes 3 seconds in total. The main loop executes rapidly creating 3 child tasks, and then each child task sleeps for 1, 2 and 3 seconds respectively before printing "Hello World".
 
 ```mermaid
 graph LR
@@ -193,14 +193,12 @@ Using the above program as an example, let's stop all the tasks just after the f
 Async do
 	tasks = 3.times.map do |i|
 		Async do
-			sleep(1 + i/10.0)
+			sleep(i)
 			puts "Hello World #{i}"
 		end
 	end
 
-	sleep(1.01)
-
-	# Stop all the above tasks (task 0 will have already completed and displayed "Hello World 0").
+	# Stop all the above tasks:
 	tasks.each(&:stop)
 end
 ```
@@ -215,7 +213,7 @@ barrier = Async::Barrier.new
 Async do
 	tasks = 3.times.map do |i|
 		barrier.async do
-			sleep(1 + i/10.0)
+			sleep(i)
 			puts "Hello World #{i}"
 		end
 	end
@@ -232,7 +230,7 @@ barrier = Async::Barrier.new
 Async do
 	tasks = 3.times.map do |i|
 		barrier.async do
-			sleep(1 + i/10.0)
+			sleep(i)
 			puts "Hello World #{i}"
 		end
 	end
