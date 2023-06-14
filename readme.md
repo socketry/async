@@ -1,10 +1,14 @@
 # ![Async](logo.svg)
 
-Async is a composable asynchronous I/O framework for Ruby based on [io-event](https://github.com/socketry/io-event) and [timers](https://github.com/socketry/timers).
+Async is a composable asynchronous I/O framework for Ruby based on [io-event](https://github.com/socketry/io-event) and
+[timers](https://github.com/socketry/timers).
 
-> "Lately I've been looking into `async`, as one of my projects – [tus-ruby-server](https://github.com/janko/tus-ruby-server) – would really benefit from non-blocking I/O. It's really beautifully designed." *– [janko](https://github.com/janko)*
+> "Lately I've been looking into `async`, as one of my projects –
+> [tus-ruby-server](https://github.com/janko/tus-ruby-server) – would really benefit from non-blocking I/O. It's really
+> beautifully designed." *– [janko](https://github.com/janko)*
 
-[![Development Status](https://github.com/socketry/async/workflows/Test/badge.svg)](https://github.com/socketry/async/actions?workflow=Test)
+[![Development
+Status](https://github.com/socketry/async/workflows/Test/badge.svg)](https://github.com/socketry/async/actions?workflow=Test)
 
 ## Features
 
@@ -15,7 +19,22 @@ Async is a composable asynchronous I/O framework for Ruby based on [io-event](ht
 
 ## Usage
 
-Please see the [project documentation](https://socketry.github.io/async).
+Please see the [project documentation](https://github.com/socketry/async) for more details.
+
+  - [Getting Started](https://github.com/socketry/asyncguides/getting-started/index) - This guide gives shows how to add
+    async to your project and run code asynchronously.
+
+  - [Asynchronous Tasks](https://github.com/socketry/asyncguides/asynchronous-tasks/index) - This guide explains how
+    asynchronous tasks work and how to use them.
+
+  - [Event Loop](https://github.com/socketry/asyncguides/event-loop/index) - This guide gives an overview of how the
+    event loop is implemented.
+
+  - [Compatibility](https://github.com/socketry/asyncguides/compatibility/index) - This guide gives an overview of the
+    compatibility of Async with Ruby and other frameworks.
+
+  - [Best Practices](https://github.com/socketry/asyncguides/best-practices/index) - This guide gives an overview of
+    best practices for using Async.
 
 ## Contributing
 

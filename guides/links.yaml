@@ -7,4 +7,4 @@ event-loop:
 asynchronous-tasks:
   order: 2
 best-practices:
-  order: 3
+  order: 5
