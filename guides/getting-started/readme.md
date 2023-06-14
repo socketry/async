@@ -83,7 +83,7 @@ scheduler = Async::Scheduler.new
 Fiber.set_scheduler(scheduler)
 
 Fiber.schedule do
-	3.times do |i|
+	1.upto(3) do |i|
 		Fiber.schedule do
 			sleep 1
 			puts "Hello World"

@@ -61,7 +61,7 @@ At any point in your program, you can start a reactor and a root task using the 
 
 ```ruby
 Async do
-	3.times do |i|
+	1.upto(3) do |i|
 		sleep(i)
 		puts "Hello World #{i}"
 	end
@@ -74,7 +74,7 @@ By using a nested task, we can ensure that each iteration of the loop creates a 
 
 ```ruby
 Async do
-	3.times do |i|
+	1.upto(3) do |i|
 		Async do
 			sleep(i)
 			puts "Hello World #{i}"
