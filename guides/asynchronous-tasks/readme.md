@@ -4,11 +4,11 @@ This guide explains how asynchronous tasks work and how to use them.
 
 ## Overview
 
-Tasks are the smallest unit of sequential code execution in {ruby Async}. Tasks can create other tasks, and Async tracks the parent-child relationship between tasks. When a parent task is stopped, it will also stop all its children tasks. The outer reactor (event loop) always starts with one root task.
+Tasks are the smallest unit of sequential code execution in {ruby Async}. Tasks can create other tasks, and Async tracks the parent-child relationship between tasks. When a parent task is stopped, it will also stop all its children tasks. The reactor always starts with one root task.
 
 ```mermaid
 graph LR
-    REL[Reactor Event Loop] --> WS
+    R[Reactor] --> WS
     WS[Web Server Task] --> R1[Request 1 Task]
     WS --> R2[Request 2 Task]
 
@@ -47,7 +47,7 @@ Tasks are created in the `initialized` state, and are run by the reactor. During
 
 ## Starting A Task
 
-At any point in your program, you can start the reactor and a root task using the {ruby Kernel::Async} method:
+At any point in your program, you can start a reactor and a root task using the {ruby Kernel::Async} method:
 
 ```ruby
 Async do
@@ -77,7 +77,7 @@ Instead of taking 6 seconds, this program takes 3 seconds in total. The main loo
 
 ```mermaid
 graph LR
-	REL[Reactor Event Loop] --> TT[Initial Task]
+	R[Reactor] --> TT[Initial Task]
 	
 	TT --> H0[Hello World 0 Task]
 	TT --> H1[Hello World 1 Task]
@@ -354,7 +354,7 @@ end
 
 ## Reactor Lifecycle
 
-Generally, the outer reactor will not exit until all tasks complete. This is informed by {ruby Async::Task#finished?} which checks if the current node has completed execution, which also includes all children. However, there is one exception to this rule: tasks flagged as being `transient` ({ruby Async::Node#transient?}).
+Generally, the reactor's event loop will not exit until all tasks complete. This is informed by {ruby Async::Task#finished?} which checks if the current node has completed execution, which also includes all children. However, there is one exception to this rule: tasks flagged as being `transient` ({ruby Async::Node#transient?}).
 
 ### Transient Tasks
 
@@ -410,9 +410,7 @@ class TimeStringCache
 				sleep(1)
 			end
 		ensure
-			# When the reactor terminates all tasks, `Async::Stop` will be raised from `sleep` and 
-			# this code will be invoked.
-			# By clearing `@refresh`, we ensure that the task will be recreated if needed again:
+			# When the reactor terminates all tasks, `Async::Stop` will be raised from `sleep` and  this code will be invoked. By clearing `@refresh`, we ensure that the task will be recreated if needed again:
 			@refresh = nil
 		end
 	end

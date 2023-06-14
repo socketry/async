@@ -15,7 +15,7 @@ $ bundle add async
 `async` has several core concepts:
 
 - A {ruby Async::Task} instance which captures your sequential computations.
-- A {ruby Async::Reactor} instance which implements the core event loop.
+- A {ruby Async::Reactor} instance which implements the fiber scheduler interface and event loop.
 - A {ruby Fiber} is an object which executes user code with cooperative concurrency, i.e. you can transfer execution from one fiber to another and back again.
 
 ## Creating an Asynchronous Tasks
