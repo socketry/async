@@ -383,7 +383,7 @@ Specify the `transient` option when creating a task:
 end
 ```
 
-These tasks:
+Transient tasks are similar to normal tasks, except for the following differences:
 
 1. They are not considered by {ruby Async::Task#finished?}, so they will not keep the reactor alive. Instead, they are stopped (with a {ruby Async::Stop} exception) when all other (non-transient) tasks are finished.
 2. As soon as a parent task is finished, any transient child tasks will be moved up to be children of the parent's parent. This ensures that they never keep a sub-tree alive.
