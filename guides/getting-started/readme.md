@@ -32,7 +32,7 @@ A selector is part of the implementation of an event loop which is responsible f
 
 ### What is a reactor?
 
-A reactor is a specific implementatio of the scheduler interface, which includes an event loop and selector, and is responsible for managing the execution of fibers.
+A reactor is a specific implementation of the scheduler interface, which includes an event loop and selector, and is responsible for managing the execution of fibers.
 
 ## Creating an Asynchronous Tasks
 
