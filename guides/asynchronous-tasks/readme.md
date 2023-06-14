@@ -19,13 +19,13 @@ graph LR
     R2 --> H3[HTTP Client Request Task]
 ```
 
-### How is it different from fiber?
+### How are they different from fibers?
 
 A fiber is a lightweight unit of execution that can be suspended and resumed at specific points. After a fiber is suspended, it can be resumed later at the same point with the same execution state. Because only one fiber can execute at a time, they are often referred to as a mechanism for cooperative concurrency.
 
 A task provides extra functionality on top of fibers. A task behaves like a promise: it either succeeds with a value or fails with an exception. Tasks keep track of their parent-child relationships, and when a parent task is stopped, it will also stop all its children tasks. This makes it easier to create complex programs with many concurrent tasks.
 
-### Why does Async manipulate tasks and not raw fibers?
+### Why does Async manipulate tasks and not fibers?
 
 The {ruby Async::Scheduler} actually works directly with fibers for most operations and isn't aware of tasks. However, the reactor does maintain a tree of tasks for the purpose of managing task and reactor life-cycle.
 
