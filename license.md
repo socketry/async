@@ -20,6 +20,8 @@ Copyright, 2022, by Shannon Skipper.
 Copyright, 2022, by Masafumi Okura.  
 Copyright, 2022, by Trevor Turk.  
 Copyright, 2022, by Masayuki Yamamoto.  
+Copyright, 2023, by Leon Löchner.  
+Copyright, 2023, by Colin Kelley.  
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
