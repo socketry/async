@@ -7,7 +7,7 @@ Gem::Specification.new do |spec|
 	spec.version = Async::VERSION
 	
 	spec.summary = "A concurrency framework for Ruby."
-	spec.authors = ["Samuel Williams", "Bruno Sutic", "Jeremy Jung", "Devin Christensen", "Kent Gruber", "Brian Morearty", "Jiang Jinyang", "Julien Portalier", "Jun Jiang", "Ken Muryoi", "Masafumi Okura", "Masayuki Yamamoto", "Olle Jonsson", "Patrik Wenger", "Ryan Musgrave", "Salim Semaoune", "Shannon Skipper", "Sokolov Yura", "Stefan Wrobel", "Trevor Turk"]
+	spec.authors = ["Samuel Williams", "Bruno Sutic", "Jeremy Jung", "Devin Christensen", "Kent Gruber", "Brian Morearty", "Colin Kelley", "Jiang Jinyang", "Julien Portalier", "Jun Jiang", "Ken Muryoi", "Leon Löchner", "Masafumi Okura", "Masayuki Yamamoto", "Olle Jonsson", "Patrik Wenger", "Ryan Musgrave", "Salim Semaoune", "Shannon Skipper", "Sokolov Yura", "Stefan Wrobel", "Trevor Turk"]
 	spec.license = "MIT"
 	
 	spec.cert_chain  = ['release.cert']
@@ -20,9 +20,9 @@ Gem::Specification.new do |spec|
 	spec.required_ruby_version = ">= 3.1.1"
 	
 	spec.add_dependency "console", "~> 1.10"
+	spec.add_dependency "fiber-annotation"
 	spec.add_dependency "io-event", "~> 1.1"
 	spec.add_dependency "timers", "~> 4.1"
-	spec.add_dependency "fiber-annotation"
 	
 	spec.add_development_dependency "bake-test"
 	spec.add_development_dependency "bake-test-external"
