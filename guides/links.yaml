@@ -6,3 +6,5 @@ event-loop:
   order: 3
 asynchronous-tasks:
   order: 2
+best-practices:
+  order: 3
