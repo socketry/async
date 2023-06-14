@@ -368,7 +368,7 @@ Generally, the reactor's event loop will not exit until all tasks complete. This
 
 ### Transient Tasks
 
-Tasks which are flagged as `transient` are identical to normal tasks, except for one key difference: they do not keep the reactor alive. They are useful for operations which are not directly related to applicatino concurrency, but are instead an implementation detail of the application. For example, a task which is monitoring and maintaining a connection pool, pruning unused connections or possibly ensuring those connections are periodically checked for activity (ping/pong, etc). If all *other* tasks are completed, and only transient tasks remain at the root ofthe reactor, the reactor should exit.
+Tasks which are flagged as `transient` are identical to normal tasks, except for one key difference: they do not keep the reactor alive. They are useful for operations which are not directly related to application concurrency, but are instead an implementation detail of the application. For example, a task which is monitoring and maintaining a connection pool, pruning unused connections or possibly ensuring those connections are periodically checked for activity (ping/pong, etc). If all *other* tasks are completed, and only transient tasks remain at the root of the reactor, the reactor should exit.
 
 #### How To Create Transient Tasks
 
