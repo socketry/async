@@ -37,26 +37,6 @@ module Async
 		end
 	end
 	
-	# Encapsulates the state of a running task and it's result.
-	#
-	# ```mermaid
-	# stateDiagram-v2
-	# [*] --> Initialized
-	# Initialized --> Running : Run
-	# 
-	# Running --> Completed : Return Value
-	# Running --> Failed : Exception
-	# 
-	# Completed --> [*]
-	# Failed --> [*]
-	# 
-	# Running --> Stopped : Stop
-	# Stopped --> [*]
-	# Completed --> Stopped : Stop
-	# Failed --> Stopped : Stop
-	# Initialized --> Stopped : Stop
-	# ```
-	#
 	# @public Since `stable-v1`.
 	class Task < Node
 		class FinishedError < RuntimeError

@@ -4,11 +4,11 @@ This guide explains how asynchronous tasks work and how to use them.
 
 ## Overview
 
-Tasks are the smallest unit of sequential code execution in {ruby Async}. Tasks can create other tasks, and Async tracks the parent-child relationship between tasks. When a parent task is stopped, it will also stop all its children tasks. The outer reactor (event loop) always starts with one root task.
+Tasks are the smallest unit of sequential code execution in {ruby Async}. Tasks can create other tasks, and Async tracks the parent-child relationship between tasks. When a parent task is stopped, it will also stop all its children tasks. The reactor always starts with one root task.
 
 ```mermaid
 graph LR
-    REL[Reactor Event Loop] --> WS
+    R[Reactor] --> WS
     WS[Web Server Task] --> R1[Request 1 Task]
     WS --> R2[Request 2 Task]
 
@@ -18,6 +18,16 @@ graph LR
     R2 --> H2[HTTP Client Request Task]
     R2 --> H3[HTTP Client Request Task]
 ```
+
+### How are they different from fibers?
+
+A fiber is a lightweight unit of execution that can be suspended and resumed at specific points. After a fiber is suspended, it can be resumed later at the same point with the same execution state. Because only one fiber can execute at a time, they are often referred to as a mechanism for cooperative concurrency.
+
+A task provides extra functionality on top of fibers. A task behaves like a promise: it either succeeds with a value or fails with an exception. Tasks keep track of their parent-child relationships, and when a parent task is stopped, it will also stop all its children tasks. This makes it easier to create complex programs with many concurrent tasks.
+
+### Why does Async manipulate tasks and not fibers?
+
+The {ruby Async::Scheduler} actually works directly with fibers for most operations and isn't aware of tasks. However, the reactor does maintain a tree of tasks for the purpose of managing task and reactor life-cycle.
 
 ## Task Lifecycle
 
@@ -47,7 +57,7 @@ Tasks are created in the `initialized` state, and are run by the reactor. During
 
 ## Starting A Task
 
-At any point in your program, you can start the reactor and a root task using the {ruby Kernel::Async} method:
+At any point in your program, you can start a reactor and a root task using the {ruby Kernel::Async} method:
 
 ```ruby
 Async do
@@ -77,7 +87,7 @@ Instead of taking 6 seconds, this program takes 3 seconds in total. The main loo
 
 ```mermaid
 graph LR
-	REL[Reactor Event Loop] --> TT[Initial Task]
+	R[Reactor] --> TT[Initial Task]
 	
 	TT --> H0[Hello World 0 Task]
 	TT --> H1[Hello World 1 Task]
@@ -354,11 +364,15 @@ end
 
 ## Reactor Lifecycle
 
-Generally, the outer reactor will not exit until all tasks complete. This is informed by {ruby Async::Task#finished?} which checks if the current node has completed execution, which also includes all children. However, there is one exception to this rule: tasks flagged as being `transient` ({ruby Async::Node#transient?}).
+Generally, the reactor's event loop will not exit until all tasks complete. This is informed by {ruby Async::Task#finished?} which checks if the current node has completed execution, which also includes all children. However, there is one exception to this rule: tasks flagged as being `transient` ({ruby Async::Node#transient?}).
 
 ### Transient Tasks
 
-Tasks which are flagged as `transient` do not behave like normal tasks.
+Tasks which are flagged as `transient` are identical to normal tasks, except for one key difference: they do not keep the reactor alive. They are useful for operations which are not directly related to application concurrency, but are instead an implementation detail of the application. For example, a task which is monitoring and maintaining a connection pool, pruning unused connections or possibly ensuring those connections are periodically checked for activity (ping/pong, etc). If all *other* tasks are completed, and only transient tasks remain at the root of the reactor, the reactor should exit.
+
+#### How To Create Transient Tasks
+
+Specify the `transient` option when creating a task:
 
 ```ruby
 @pruner = Async(transient: true) do
@@ -368,6 +382,8 @@ Tasks which are flagged as `transient` do not behave like normal tasks.
 	end
 end
 ```
+
+Transient tasks are similar to normal tasks, except for the following differences:
 
 1. They are not considered by {ruby Async::Task#finished?}, so they will not keep the reactor alive. Instead, they are stopped (with a {ruby Async::Stop} exception) when all other (non-transient) tasks are finished.
 2. As soon as a parent task is finished, any transient child tasks will be moved up to be children of the parent's parent. This ensures that they never keep a sub-tree alive.
@@ -410,9 +426,7 @@ class TimeStringCache
 				sleep(1)
 			end
 		ensure
-			# When the reactor terminates all tasks, `Async::Stop` will be raised from `sleep` and 
-			# this code will be invoked.
-			# By clearing `@refresh`, we ensure that the task will be recreated if needed again:
+			# When the reactor terminates all tasks, `Async::Stop` will be raised from `sleep` and  this code will be invoked. By clearing `@refresh`, we ensure that the task will be recreated if needed again:
 			@refresh = nil
 		end
 	end
