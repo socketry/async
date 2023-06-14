@@ -183,7 +183,7 @@ barrier.wait
 
 ## Stopping a Task
 
-When a task completes execution, it will enter the `complete` state (or the `failed` state if it raises an unhandled `StandardError`-derived exception).
+When a task completes execution, it will enter the `complete` state (or the `failed` state if it raises an unhandled exception).
 
 There are various situations where you may want to stop a task ({ruby Async::Task#stop}) before it completes. The most common case is shutting down a server. A more complex example is this: you may fan out multiple (10s, 100s) of requests, wait for a subset to complete (e.g. the first 5 or all those that complete within a given deadline), and then stop (terminate/cancel) the remaining operations.
 
@@ -264,7 +264,7 @@ As tasks run synchronously until they yield back to the reactor, you can guarant
 
 ## Exception Handling
 
-{ruby Async::Task} captures and logs exceptions. All unhandled `StandardError`-derived exceptions will cause the enclosing task to enter the `:failed` state. Non-`StandardError` exceptions are re-raised from the reactor and thus cause it to fail. This ensures that exceptions will always be visible and cause the program to fail appropriately.
+{ruby Async::Task} captures and logs exceptions. All unhandled exceptions will cause the enclosing task to enter the `:failed` state. Non-`StandardError` exceptions are re-raised immediately and will cause the reactor to exit. This ensures that exceptions will always be visible and cause the program to fail appropriately.
 
 ~~~ ruby
 require 'async'
@@ -423,4 +423,4 @@ Async do
 end
 ```
 
-Bear in mind, you should not share these resources across threads; doing so would need some form of mutual exclusion.
+Upon existing the top level async block, the {ruby @refresh} task will be set to `nil`. Bear in mind, you should not share these resources across threads; doing so would need some form of mutual exclusion.
