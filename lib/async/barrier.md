@@ -7,9 +7,9 @@ A synchronization primitive, which allows one task to wait for a number of other
 require 'async'
 require 'async/barrier'
 
+barrier = Async::Barrier.new
 Sync do
 	Console.logger.info("Barrier Example: sleep sort.")
-	barrier = Async::Barrier.new
 	
 	# Generate an array of 10 numbers:
 	numbers = 10.times.map{rand(10)}
