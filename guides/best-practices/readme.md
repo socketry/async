@@ -32,6 +32,7 @@ A barrier ensures you don't leak tasks and that all tasks are completed or stopp
 
 ```ruby
 require 'async'
+require 'async/barrier'
 
 class Packages
 	def initialize(urls)
@@ -39,9 +40,9 @@ class Packages
 	end
 	
 	def fetch
-		Sync do
-			barrier = Async::Barrier.new
+		barrier = Async::Barrier.new
 			
+		Sync do
 			@urls.map do |url|
 				barrier.async do
 					fetch(url)
@@ -60,6 +61,7 @@ Unbounded concurrency is a common source of bugs. Use a semaphore to limit the n
 
 ```ruby
 require 'async'
+require 'async/barrier'
 require 'async/semaphore'
 
 class Packages
@@ -68,8 +70,9 @@ class Packages
 	end
 	
 	def fetch
+		barrier = Async::Barrier.new
+
 		Sync do
-			barrier = Async::Barrier.new
 			# Only 10 tasks are created at a time:
 			semaphore = Async::Semaphore.new(10, parent: barrier)
 			
