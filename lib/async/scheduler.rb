@@ -41,7 +41,10 @@ module Async
 		end
 		
 		def scheduler_close
-			self.run
+			# If the execution context (thread) was handling an exception, we want to exit as quickly as possible:
+			unless $!
+				self.run
+			end
 		ensure
 			self.close
 		end
