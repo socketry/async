@@ -4,6 +4,7 @@
 # Copyright, 2022, by Samuel Williams.
 
 require 'async/reactor'
+require 'child_process'
 
 describe Fiber do
 	with '.schedule' do
@@ -28,20 +29,31 @@ describe Fiber do
 		end
 		
 		it 'correctly handles exceptions in process' do
-			path = File.expand_path(".fiber/error.rb", __dir__)
-			process = IO.popen(path, err: [:child, :out])
-			buffer = process.read
+			buffer = ChildProcess.spawn(<<~RUBY)
+				require 'async'
+				
+				scheduler = Async::Scheduler.new
+				Fiber.set_scheduler(scheduler)
+				
+				Fiber.schedule do
+					sleep(1)
+					puts "Finished sleeping!"
+				end
+				
+				raise "Boom!"
+			RUBY
 			
 			expect(buffer).to be(:include?, "Boom!")
 			expect(buffer).not.to be(:include?, "Finished sleeping!")
-		ensure
-			process&.close
 		end
 		
 		it 'correctly handles exceptions' do
 			finished_sleeping = nil
 			
 			thread = Thread.new do
+				# Stop the thread logging on exception:
+				Thread.current.report_on_exception = false
+				
 				scheduler = Async::Scheduler.new
 				Fiber.set_scheduler(scheduler)
 				
