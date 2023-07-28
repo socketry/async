@@ -61,6 +61,8 @@ describe Async::Scheduler do
 			
 			expect(task).to be(:running?)
 			expect(duration).to be <= 0.1
+		ensure
+			Fiber.set_scheduler(nil)
 		end
 	end
 	
