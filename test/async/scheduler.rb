@@ -72,7 +72,7 @@ describe Async::Scheduler do
 			finished = false
 			
 			scheduler.run do |task|
-				# Interrupting here should mean that the sleep below never finishes:
+				# Interrupting here should mean that the yield below never returns:
 				scheduler.interrupt
 				
 				scheduler.yield
