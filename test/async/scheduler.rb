@@ -67,6 +67,21 @@ describe Async::Scheduler do
 	end
 	
 	with '#interrupt' do
+		it "can interrupt a scheduler while it's not running" do
+			scheduler = Async::Scheduler.new
+			finished = false
+			
+			scheduler.run do |task|
+				# Interrupting here should mean that the yield below never returns:
+				scheduler.interrupt
+				
+				scheduler.yield
+				finished = true
+			end
+			
+			expect(finished).to be == false
+		end
+		
 		it "can interrupt a closed scheduler" do
 			scheduler = Async::Scheduler.new
 			scheduler.close
