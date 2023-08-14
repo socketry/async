@@ -711,6 +711,13 @@ describe Async::Task do
 			expect(error_task).to be(:finished?)
 			expect(innocent_task).to be(:finished?)
 		end
+
+		it "will not raise exception values returned by the task" do
+			error = StandardError.new
+			task = reactor.async { error }
+			expect(task.wait).to be == error
+			expect(task.result).to be == error
+		end
 	end
 	
 	with '#result' do
