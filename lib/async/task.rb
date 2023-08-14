@@ -190,7 +190,7 @@ module Async
 				@finished.wait
 			end
 			
-			if @result.is_a?(Exception)
+			if @status == :failed
 				raise @result
 			else
 				return @result
