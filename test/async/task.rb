@@ -602,8 +602,8 @@ describe Async::Task do
 			reactor.async do |task|
 				begin
 					task.with_timeout(0.1) { STDIN.gets }
-				rescue StandardError => e
-					error = e
+				rescue Async::TimeoutError => error
+				  # Ignore.
 				end
 			end
 			
