@@ -55,12 +55,12 @@ describe Async::Scheduler do
 				sleep 1
 			end
 			
-			duration = Async::Clock.measure do
+			expect do
 				scheduler.run_once(0.001)
-			end
+			end.to have_duration(be <= 0.1)
 			
 			expect(task).to be(:running?)
-			expect(duration).to be <= 0.1
+			task.stop
 		ensure
 			Fiber.set_scheduler(nil)
 		end
