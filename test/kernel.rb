@@ -35,5 +35,13 @@ describe Kernel do
 			expect(`sleep 0.01; echo OK`).to be == "OK\n"
 			expect($?).to be(:success?)
 		end
+		
+		it "can echo several times" do
+			10.times do
+				expect(`echo test`).to be == "test\n"
+				expect($?).to be(:success?)
+				expect($?.inspect).to be =~ /exit 0/
+			end
+		end
 	end
 end
