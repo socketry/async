@@ -596,12 +596,14 @@ describe Async::Task do
 			expect(state).to be == :timeout
 		end
 		
-		it "will timeout while getting from stdin" do
+		it "will timeout while getting from input" do
+			input, output = IO.pipe
 			error = nil
 			
 			reactor.async do |task|
 				begin
-					task.with_timeout(0.1) {STDIN.gets}
+					# This can invoke `io_wait`, which previously had `rescue TimeoutError`, causing the timeout to be ignored.
+					task.with_timeout(0.1) {input.gets}
 				rescue Async::TimeoutError => error
 				  # Ignore.
 				end
@@ -610,6 +612,9 @@ describe Async::Task do
 			reactor.run
 			
 			expect(error).to be_a(Async::TimeoutError)
+		ensure
+			input.close
+			output.close
 		end
 
 		it "won't timeout if execution completes in time" do

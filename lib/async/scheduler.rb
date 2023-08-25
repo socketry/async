@@ -171,17 +171,11 @@ module Async
 			
 			if timeout
 				timer = @timers.after(timeout) do
-					fiber.raise(TimeoutError)
+					fiber.transfer
 				end
 			end
 			
-			# Console.logger.info(self, "-> io_wait", fiber, io, events)
-			events = @selector.io_wait(fiber, io, events)
-			# Console.logger.info(self, "<- io_wait", fiber, io, events)
-			
-			return events
-		rescue TimeoutError
-			return false
+			return @selector.io_wait(fiber, io, events)
 		ensure
 			timer&.cancel
 		end
