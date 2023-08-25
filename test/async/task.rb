@@ -836,4 +836,16 @@ describe Async::Task do
 			end
 		end
 	end
+
+	it "can gets in a task" do
+		IO.pipe do |input, output|
+		  Async do
+				Async do
+					expect(input.gets).to be == "hello\n"
+				end
+				output.puts "hello"
+			end
+		end
+	end
+
 end
