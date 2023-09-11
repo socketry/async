@@ -123,7 +123,7 @@ In some methods, you may want to implement a fan-out or map-reduce. That require
 
 ```ruby
 def fetch_all(urls, parent: Async::Task.current)
-	urls.map do
+	urls.map do |url|
 		parent.async do
 			fetch(url)
 		end
@@ -136,7 +136,7 @@ or:
 ```ruby
 def fetch_all(urls)
 	Sync do |parent|
-		urls.map do
+		urls.map do |url|
 			parent.async do
 				fetch(url)
 			end
