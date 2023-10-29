@@ -123,10 +123,6 @@ module Async
 			end
 		end
 		
-		def annotation
-			@annotation
-		end
-		
 		def description
 			@object_name ||= "#{self.class}:#{format '%#018x', object_id}#{@transient ? ' transient' : nil}"
 			
