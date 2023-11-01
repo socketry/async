@@ -16,3 +16,10 @@ group :maintenance, optional: true do
 	gem "bake-github-pages"
 	gem "utopia-project"
 end
+
+group :benchmark do
+	gem "benchmark-ips"
+	gem "benchmark-memory"
+	gem "memory"
+	gem "process-metrics"
+end
