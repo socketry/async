@@ -12,10 +12,10 @@ async-dns:
   command: bundle exec rspec
 async-http:
   url: https://github.com/socketry/async-http.git
-  command: bundle exec rspec
+  command: bundle exec sus
 falcon:
   url: https://github.com/socketry/falcon.git
-  command: bundle exec rspec
+  command: bundle exec sus
 async-rest:
   url: https://github.com/socketry/async-rest.git
   command: bundle exec rspec
