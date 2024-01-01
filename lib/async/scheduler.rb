@@ -173,6 +173,10 @@ module Async
 				timer = @timers.after(timeout) do
 					fiber.transfer
 				end
+			elsif timeout = io.timeout
+				timer = @timers.after(timeout) do
+					fiber.raise(::IO::TimeoutError, "Timeout while waiting for IO to become ready!")
+				end
 			end
 			
 			return @selector.io_wait(fiber, io, events)
@@ -182,12 +186,32 @@ module Async
 
 		if ::IO::Event::Support.buffer?
 			def io_read(io, buffer, length, offset = 0)
-				@selector.io_read(Fiber.current, io, buffer, length, offset)
+				fiber = Fiber.current
+				
+				if timeout = io.timeout
+					timer = @timers.after(timeout) do
+						fiber.raise(::IO::TimeoutError, "execution expired")
+					end
+				end
+				
+				@selector.io_read(fiber, io, buffer, length, offset)
+			ensure
+				timer&.cancel
 			end
 			
 			if RUBY_ENGINE != "ruby" || RUBY_VERSION >= "3.3.0"
 				def io_write(io, buffer, length, offset = 0)
-					@selector.io_write(Fiber.current, io, buffer, length, offset)
+					fiber = Fiber.current
+				
+					if timeout = io.timeout
+						timer = @timers.after(timeout) do
+							fiber.raise(::IO::TimeoutError, "execution expired")
+						end
+					end
+					
+					@selector.io_write(fiber, io, buffer, length, offset)
+				ensure
+					timer&.cancel
 				end
 			end
 		end

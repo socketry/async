@@ -30,5 +30,31 @@ describe IO do
 			input.close
 			output.close
 		end
+		
+		it "can read with timeout" do
+			input, output = IO.pipe
+			input.timeout = 0.001
+			
+			expect do
+				line = input.gets
+			end.to raise_exception(::IO::TimeoutError)
+		end
+		
+		it "can wait readable with default timeout" do
+			input, output = IO.pipe
+			input.timeout = 0.001
+			
+			expect do
+				# This behaviour is not consistent with non-fiber scheduler IO.
+				# However, this is the best we can do without fixing CRuby.
+				input.wait_readable
+			end.to raise_exception(::IO::TimeoutError)
+		end
+		
+		it "can wait readable with 0 timeout" do
+			input, output = IO.pipe
+			
+			expect(input.wait_readable(0)).to be_nil
+		end
 	end
 end
