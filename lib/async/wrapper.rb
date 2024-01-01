@@ -32,12 +32,12 @@ module Async
 		
 		# Wait for the io to become readable.
 		def wait_readable(timeout = @timeout)
-			@io.to_io.wait_readable(timeout) or raise ::IO::TimeoutError
+			@io.to_io.wait_readable(timeout) or raise TimeoutError
 		end
 		
 		# Wait for the io to become writable.
 		def wait_priority(timeout = @timeout)
-			@io.to_io.wait_priority(timeout) or raise ::IO::TimeoutError
+			@io.to_io.wait_priority(timeout) or raise TimeoutError
 		end
 		
 		# Wait for the io to become writable.

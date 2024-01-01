@@ -32,6 +32,8 @@ describe IO do
 		end
 		
 		it "can read with timeout" do
+			skip_unless_constant_defined(:TimeoutError, IO)
+			
 			input, output = IO.pipe
 			input.timeout = 0.001
 			
@@ -41,6 +43,8 @@ describe IO do
 		end
 		
 		it "can wait readable with default timeout" do
+			skip_unless_constant_defined(:TimeoutError, IO)
+			
 			input, output = IO.pipe
 			input.timeout = 0.001
 			
@@ -51,7 +55,7 @@ describe IO do
 			end.to raise_exception(::IO::TimeoutError)
 		end
 		
-		it "can wait readable with 0 timeout" do
+		it "can wait readable with explicit timeout" do
 			input, output = IO.pipe
 			
 			expect(input.wait_readable(0)).to be_nil
