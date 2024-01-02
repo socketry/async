@@ -306,17 +306,22 @@ module Async
 			
 			initial_task = self.async(...) if block_given?
 			
-			# In theory, we could use Exception here to be a little bit safer, but we've only shown the case for SignalException to be a problem, so let's not over-engineer this.
-			Thread.handle_interrupt(SignalException => :never) do
-				while true
-					# If we are interrupted, we need to exit:
-					break if self.interrupted?
-					
-					# If we are finished, we need to exit:
-					break unless self.run_once
+			begin
+				# In theory, we could use Exception here to be a little bit safer, but we've only shown the case for SignalException to be a problem, so let's not over-engineer this.
+				Thread.handle_interrupt(SignalException => :never) do
+					while true
+						# If we are interrupted, we need to exit:
+						break if self.interrupted?
+						
+						# If we are finished, we need to exit:
+						break unless self.run_once
+					end
 				end
+			rescue Interrupt
+				self.stop
+				retry
 			end
-			
+				
 			return initial_task
 		ensure
 			Console.logger.debug(self) {"Exiting run-loop because #{$! ? $! : 'finished'}."}
