@@ -165,13 +165,30 @@ module Async
 			::Resolv.getaddresses(hostname)
 		end
 		
+		
+		if IO.method_defined?(:timeout)
+			private def get_timeout(io)
+				io.timeout
+			end
+		else
+			private def get_timeout(io)
+				nil
+			end
+		end
+		
 		# @asynchronous May be non-blocking..
 		def io_wait(io, events, timeout = nil)
 			fiber = Fiber.current
 			
 			if timeout
+				# If an explicit timeout is specified, we expect that the user will handle it themselves:
 				timer = @timers.after(timeout) do
 					fiber.transfer
+				end
+			elsif timeout = get_timeout(io)
+				# Otherwise, if we default to the io's timeout, we raise an exception:
+				timer = @timers.after(timeout) do
+					fiber.raise(::IO::TimeoutError, "Timeout while waiting for IO to become ready!")
 				end
 			end
 			
@@ -179,15 +196,35 @@ module Async
 		ensure
 			timer&.cancel
 		end
-
+		
 		if ::IO::Event::Support.buffer?
 			def io_read(io, buffer, length, offset = 0)
-				@selector.io_read(Fiber.current, io, buffer, length, offset)
+				fiber = Fiber.current
+				
+				if timeout = get_timeout(io)
+					timer = @timers.after(timeout) do
+						fiber.raise(::IO::TimeoutError, "execution expired")
+					end
+				end
+				
+				@selector.io_read(fiber, io, buffer, length, offset)
+			ensure
+				timer&.cancel
 			end
 			
 			if RUBY_ENGINE != "ruby" || RUBY_VERSION >= "3.3.0"
 				def io_write(io, buffer, length, offset = 0)
-					@selector.io_write(Fiber.current, io, buffer, length, offset)
+					fiber = Fiber.current
+				
+					if timeout = get_timeout(io)
+						timer = @timers.after(timeout) do
+							fiber.raise(::IO::TimeoutError, "execution expired")
+						end
+					end
+					
+					@selector.io_write(fiber, io, buffer, length, offset)
+				ensure
+					timer&.cancel
 				end
 			end
 		end
