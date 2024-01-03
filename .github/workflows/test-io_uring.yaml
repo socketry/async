@@ -1,0 +1,47 @@
+name: Test
+
+on: [push, pull_request]
+
+permissions:
+  contents: read
+
+env:
+  CONSOLE_OUTPUT: XTerm
+  IO_EVENT_SELECTOR: URing
+
+jobs:
+  test:
+    name: ${{matrix.ruby}} on ${{matrix.os}} / IO_EVENT_SELECTOR=URing
+    runs-on: ${{matrix.os}}-latest
+    
+    strategy:
+      matrix:
+        os:
+          - ubuntu
+        
+        ruby:
+          - "3.3"
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Install packages (Ubuntu)
+      if: matrix.os == 'ubuntu'
+      run: sudo apt-get install -y liburing-dev
+    
+    - uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: ${{matrix.ruby}}
+        bundler-cache: true
+        cache-version: io_uring
+    
+    - name: Backends
+      run: bundle exec ruby -r"io/event" -e "puts IO::Event::Selector.constants"
+    
+    - name: Run tests
+      timeout-minutes: 10
+      run: bundle exec bake test
+    
+    # - name: Run external tests
+    #   timeout-minutes: 10
+    #   run: bundle exec bake test:external

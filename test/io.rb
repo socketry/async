@@ -42,6 +42,19 @@ describe IO do
 			end.to raise_exception(::IO::TimeoutError)
 		end
 		
+		it "can write with timeout" do
+			skip_unless_constant_defined(:TimeoutError, IO)
+			
+			input, output = IO.pipe
+			output.timeout = 0.001
+			
+			expect do
+				while true
+					output.write("Hello")
+				end
+			end.to raise_exception(::IO::TimeoutError)
+		end
+		
 		it "can wait readable with default timeout" do
 			skip_unless_constant_defined(:TimeoutError, IO)
 			

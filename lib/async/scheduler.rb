@@ -203,7 +203,7 @@ module Async
 				
 				if timeout = get_timeout(io)
 					timer = @timers.after(timeout) do
-						fiber.raise(::IO::TimeoutError, "execution expired")
+						fiber.raise(::IO::TimeoutError, "Timeout while waiting for IO to become readable!")
 					end
 				end
 				
@@ -215,10 +215,10 @@ module Async
 			if RUBY_ENGINE != "ruby" || RUBY_VERSION >= "3.3.0"
 				def io_write(io, buffer, length, offset = 0)
 					fiber = Fiber.current
-				
+					
 					if timeout = get_timeout(io)
 						timer = @timers.after(timeout) do
-							fiber.raise(::IO::TimeoutError, "execution expired")
+							fiber.raise(::IO::TimeoutError, "Timeout while waiting for IO to become writable!")
 						end
 					end
 					
