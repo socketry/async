@@ -114,7 +114,6 @@ describe Async::Scheduler do
 			expect(sleeping.pop).to be == true
 			expect(finished).to be == false
 			
-			binding.irb
 			thread.raise(Interrupt)
 			
 			expect(sleeping.pop).to be == true
