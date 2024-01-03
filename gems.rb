@@ -1,7 +1,8 @@
 # frozen_string_literal: true
 
 # Released under the MIT License.
-# Copyright, 2020-2022, by Samuel Williams.
+# Copyright, 2017-2024, by Samuel Williams.
+# Copyright, 2017, by Kent Gruber.
 
 source 'https://rubygems.org'
 
@@ -15,4 +16,13 @@ group :maintenance, optional: true do
 	
 	gem "bake-github-pages"
 	gem "utopia-project"
+end
+
+group :test do
+	gem "bake-test"
+	gem "bake-test-external"
+	gem "benchmark-ips"
+	gem "covered", "~> 0.18.3"
+	gem "sus", "~> 0.15"
+	gem "sus-fixtures-async"
 end

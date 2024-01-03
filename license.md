@@ -1,13 +1,13 @@
 # MIT License
 
-Copyright, 2017-2023, by Samuel Williams.  
+Copyright, 2017-2024, by Samuel Williams.  
 Copyright, 2017, by Kent Gruber.  
 Copyright, 2017, by Devin Christensen.  
 Copyright, 2018, by Sokolov Yura.  
 Copyright, 2018, by Jiang Jinyang.  
 Copyright, 2019, by Jeremy Jung.  
 Copyright, 2019, by Ryan Musgrave.  
-Copyright, 2020, by Olle Jonsson.  
+Copyright, 2020-2023, by Olle Jonsson.  
 Copyright, 2020, by Salim Semaoune.  
 Copyright, 2020, by Brian Morearty.  
 Copyright, 2020, by Stefan Wrobel.  
@@ -22,6 +22,9 @@ Copyright, 2022, by Trevor Turk.
 Copyright, 2022, by Masayuki Yamamoto.  
 Copyright, 2023, by Leon Löchner.  
 Copyright, 2023, by Colin Kelley.  
+Copyright, 2023, by Math Ieu.  
+Copyright, 2023, by Emil Tin.  
+Copyright, 2023, by Gert Goet.  
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
