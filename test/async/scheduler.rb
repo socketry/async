@@ -87,6 +87,43 @@ describe Async::Scheduler do
 			scheduler.close
 			scheduler.interrupt
 		end
+		
+		it "can interrupt a scheduler from a different thread" do
+			finished = false
+			sleeping = Thread::Queue.new
+			
+			thread = Thread.new do
+				scheduler = Async::Scheduler.new
+				Fiber.set_scheduler(scheduler)
+				
+				scheduler.run do |task|
+					sleeping.push(true)
+					sleep
+				ensure
+					begin
+						sleeping.push(true)
+						sleep
+					ensure
+						finished = true
+					end
+				end
+			# rescue Interrupt
+			# 	# Ignore.
+			end
+			
+			expect(sleeping.pop).to be == true
+			expect(finished).to be == false
+			
+			thread.raise(Interrupt)
+			
+			expect(sleeping.pop).to be == true
+			expect(finished).to be == false
+			
+			thread.raise(Interrupt)
+			thread.join
+			
+			expect(finished).to be == true
+		end
 	end
 	
 	with '#block' do
