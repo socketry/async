@@ -32,9 +32,6 @@ jobs:
         ruby-version: ${{matrix.ruby}}
         bundler-cache: true
     
-    - name: Backends
-      run: bundle exec ruby -r"io/event" -e "puts IO::Event::Selector.constants"
-    
     - name: Run tests
       timeout-minutes: 5
       run: bundle exec bake test
