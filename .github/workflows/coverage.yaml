@@ -33,7 +33,7 @@ jobs:
         bundler-cache: true
     
     - name: Backends
-      run: ruby -r"io/event" -e "puts IO::Event::Selector.constants"
+      run: bundle exec ruby -r"io/event" -e "puts IO::Event::Selector.constants"
     
     - name: Run tests
       timeout-minutes: 5
