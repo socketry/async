@@ -29,6 +29,9 @@ jobs:
           - os: ubuntu
             ruby: "3.3"
             selector: URing
+          - os: ubuntu
+            ruby: "head"
+            selector: URing
     
     steps:
     - uses: actions/checkout@v4
