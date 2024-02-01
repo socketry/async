@@ -212,7 +212,7 @@ module Async
 				timer&.cancel
 			end
 			
-			if RUBY_ENGINE != "ruby" || RUBY_VERSION >= "3.3.0"
+			if RUBY_ENGINE != "ruby" || RUBY_VERSION >= "3.3.1"
 				def io_write(io, buffer, length, offset = 0)
 					fiber = Fiber.current
 					
