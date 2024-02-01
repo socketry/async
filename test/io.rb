@@ -74,4 +74,18 @@ describe IO do
 			expect(input.wait_readable(0)).to be_nil
 		end
 	end
+	
+	describe '/dev/null' do
+		# Ruby < 3.3.1 will fail this test with the `io_write` scheduler hook enabled, as it will try to io_wait on /dev/null which will fail on some platforms (kqueue).
+		it "can write to /dev/null" do
+			out = File.open("/dev/null", "w")
+			
+			# Needs to write about 8,192 bytes to trigger the internal flush:
+			1000.times do
+				out.puts "Hello World!"
+			end
+		ensure
+			out.close
+		end
+	end
 end
