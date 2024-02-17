@@ -129,7 +129,7 @@ describe Async::Reactor do
 				reactor.print_hierarchy(output, backtrace: true)
 				lines = output.string.lines
 				
-				expect(lines).to have_value(be =~ /in `sleep'/)
+				expect(lines).to have_value(be =~ /in .*sleep'/)
 				
 				child.stop
 			end
