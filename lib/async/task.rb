@@ -209,7 +209,7 @@ module Async
 		def stop(later = false)
 			if self.stopped?
 				# If we already stopped this task... don't try to stop it again:
-				return
+				return stopped!
 			end
 			
 			# If the fiber is alive, we need to stop it:
@@ -304,7 +304,7 @@ module Async
 			stopped = false
 			
 			begin
-				# We are bnot running, but children might be so we should stop them:
+				# We are not running, but children might be so we should stop them:
 				stop_children(true)
 			rescue Stop
 				stopped = true

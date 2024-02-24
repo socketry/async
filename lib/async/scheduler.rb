@@ -49,6 +49,13 @@ module Async
 			self.close
 		end
 		
+		# Terminate the scheduler. We deliberately ignore interrupts here, as this code can be called from an interrupt, and we don't want to be interrupted while cleaning up.
+		def terminate
+			Thread.handle_interrupt(::Interrupt => :never) do
+				super
+			end
+		end
+		
 		# @public Since `stable-v1`.
 		def close
 			# It's critical to stop all tasks. Otherwise they might be holding on to resources which are never closed/released correctly.
@@ -308,7 +315,7 @@ module Async
 			
 			begin
 				# In theory, we could use Exception here to be a little bit safer, but we've only shown the case for SignalException to be a problem, so let's not over-engineer this.
-				Thread.handle_interrupt(SignalException => :never) do
+				Thread.handle_interrupt(::SignalException => :never) do
 					while true
 						# If we are interrupted, we need to exit:
 						break if self.interrupted?
@@ -318,7 +325,10 @@ module Async
 					end
 				end
 			rescue Interrupt
-				self.stop
+				Thread.handle_interrupt(::SignalException => :never) do
+					self.stop
+				end
+				
 				retry
 			end
 				
