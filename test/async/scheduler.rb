@@ -124,6 +124,45 @@ describe Async::Scheduler do
 			
 			expect(finished).to be == true
 		end
+		
+		it "ignores interrupts during termination" do
+			sleeping = Thread::Queue.new
+			
+			thread = Thread.new do
+				Thread.current.report_on_exception = false
+				
+				scheduler = Async::Scheduler.new
+				Fiber.set_scheduler(scheduler)
+				
+				scheduler.run do |task|
+					2.times do
+						task.async do
+							sleeping.push(true)
+							sleep
+						ensure
+							sleeping.push(true)
+							sleep
+						end
+					end
+				end
+			end
+			
+			# The first interrupt stops the tasks normally, but they enter sleep again:
+			expect(sleeping.pop).to be == true
+			thread.raise(Interrupt)
+			
+			# The second stop forcefully stops the two children tasks of the selector:
+			expect(sleeping.pop).to be == true
+			thread.raise(Interrupt)
+			
+			# The thread should now exit:
+			begin
+				thread.join
+			rescue Interrupt
+				# Ignore - this may happen:
+				# https://github.com/ruby/ruby/pull/10039
+			end
+		end
 	end
 	
 	with '#block' do
