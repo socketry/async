@@ -208,7 +208,7 @@ module Async
 		# @parameter later [Boolean] Whether to stop the task later, or immediately.
 		def stop(later = false)
 			if self.stopped?
-				# If we already stopped this task... don't try to stop it again:
+				# If the task is already stopped, a `stop` state transition re-enters the same state which is a no-op. However, we will also attempt to stop any running children too. This can happen if the children did not stop correctly the first time around. Doing this should probably be considered a bug, but it's better to be safe than sorry.
 				return stopped!
 			end
 			
