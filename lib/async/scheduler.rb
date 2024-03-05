@@ -37,7 +37,31 @@ module Async
 			
 			@blocked = 0
 			
+			@busy_time = 0.0
+			@idle_time = 0.0
+			
 			@timers = ::Timers::Group.new
+		end
+		
+		# Compute the scheduler load according to the busy and idle times that are updated by the run loop.
+		# @returns [Float] The load of the scheduler. 0.0 means no load, 1.0 means fully loaded or over-loaded.
+		def load
+			total_time = @busy_time + @idle_time
+			
+			# If the total time is zero, then the load is zero:
+			return 0.0 if total_time.zero?
+			
+			# We normalize to a 1 second window:
+			if total_time > 1.0
+				ratio = 1.0 / total_time
+				@busy_time *= ratio
+				@idle_time *= ratio
+				
+				# We don't need to divide here as we've already normalised it to a 1s window:
+				return @busy_time
+			else
+				return @busy_time / total_time
+			end
 		end
 		
 		def scheduler_close
@@ -267,6 +291,8 @@ module Async
 		# @parameter timeout [Float | Nil] The maximum timeout, or if nil, indefinite.
 		# @returns [Boolean] Whether there is more work to do.
 		private def run_once!(timeout = 0)
+			start_time = Async::Clock.now
+			
 			interval = @timers.wait_interval
 			
 			# If there is no interval to wait (thus no timers), and no tasks, we could be done:
@@ -287,6 +313,15 @@ module Async
 			end
 			
 			@timers.fire
+			
+			# Compute load:
+			end_time = Async::Clock.now
+			total_duration = end_time - start_time
+			idle_duration = @selector.idle_duration
+			busy_duration = total_duration - idle_duration
+			
+			@busy_time += busy_duration
+			@idle_time += idle_duration
 			
 			# The reactor still has work to do:
 			return true
