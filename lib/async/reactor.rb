@@ -93,6 +93,10 @@ module Async
 			@unblocked = []
 		end
 		
+		def inspect
+			"#<#{self.class} children=#{@children&.size} stopped=#{stopped?}>"
+		end
+		
 		attr :scheduler
 		attr :logger
 		
