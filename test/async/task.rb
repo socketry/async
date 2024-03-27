@@ -841,7 +841,7 @@ describe Async::Task do
 
 	it "can gets in a task" do
 		IO.pipe do |input, output|
-		  Async do
+			Async do
 				Async do
 					expect(input.gets).to be == "hello\n"
 				end
@@ -849,5 +849,62 @@ describe Async::Task do
 			end
 		end
 	end
-
+	
+	with '#defer_stop' do
+		it "can defer stopping a task" do
+			child_task = reactor.async do |task|
+				task.defer_stop do
+					sleep
+				end
+			end
+			
+			reactor.run_once(0)
+			
+			child_task.stop
+			expect(child_task).to be(:running?)
+			
+			child_task.stop
+			expect(child_task).to be(:stopped?)
+		end
+		
+		it "will stop the task if it was deferred" do
+			condition = Async::Notification.new
+			
+			child_task = reactor.async do |task|
+				task.defer_stop do
+					condition.wait
+				end
+			end
+			
+			reactor.run_once(0)
+			
+			child_task.stop(true)
+			expect(child_task).to be(:running?)
+			
+			reactor.async do
+				condition.signal
+			end
+			
+			reactor.run_once(0)
+			expect(child_task).to be(:stopped?)
+		end
+		
+		it "can defer stop in a deferred stop" do
+			child_task = reactor.async do |task|
+				task.defer_stop do
+					task.defer_stop do
+						sleep
+					end
+				end
+			end
+			
+			reactor.run_once(0)
+			
+			child_task.stop
+			expect(child_task).to be(:running?)
+			
+			child_task.stop
+			expect(child_task).to be(:stopped?)
+		end
+	end
 end
