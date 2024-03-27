@@ -275,7 +275,7 @@ module Async
 					# If we were asked to stop, we should do so now:
 					if @defer_stop
 						@defer_stop = nil
-						self.stop
+						raise Stop, "Stopping current task (was deferred)!"
 					end
 				end
 			else
