@@ -22,6 +22,7 @@
 
 require 'async'
 require 'async/clock'
+require 'async/notification'
 
 RSpec.describe Async::Task do
 	let(:reactor) {Async::Reactor.new}
@@ -494,6 +495,64 @@ RSpec.describe Async::Task do
 			end
 			
 			expect(apples_task.to_s).to include "complete"
+		end
+	end
+	
+	describe '#defer_stop' do
+		it "can defer stopping a task" do
+			child_task = reactor.async do |task|
+				task.defer_stop do
+					task.sleep(10)
+				end
+			end
+			
+			reactor.run_once(0)
+			
+			child_task.stop
+			expect(child_task).to be_running
+			
+			child_task.stop
+			expect(child_task).to be_stopped
+		end
+		
+		it "will stop the task if it was deferred" do
+			condition = Async::Notification.new
+			
+			child_task = reactor.async do |task|
+				task.defer_stop do
+					condition.wait
+				end
+			end
+			
+			reactor.run_once(0)
+			
+			child_task.stop(true)
+			expect(child_task).to be_running
+			
+			reactor.async do
+				condition.signal
+			end
+			
+			reactor.run_once(0)
+			expect(child_task).to be_stopped
+		end
+		
+		it "can defer stop in a deferred stop" do
+			child_task = reactor.async do |task|
+				task.defer_stop do
+					task.defer_stop do
+						task.sleep(10)
+					end
+				end
+			end
+			
+			reactor.run_once(0)
+			
+			child_task.stop
+			expect(child_task).to be_running
+			
+			child_task.stop
+			expect(child_task).to be_stopped
 		end
 	end
 end
