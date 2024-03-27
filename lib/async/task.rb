@@ -67,6 +67,8 @@ module Async
 			@status = :initialized
 			@result = nil
 			@finished = finished
+			
+			@defer_stop = nil
 		end
 		
 		def reactor
@@ -212,6 +214,13 @@ module Async
 				return stopped!
 			end
 			
+			# If we are deferring stop...
+			if @defer_stop == false
+				# Don't stop now... but update the state so we know we need to stop later.
+				@defer_stop = true
+				return false
+			end
+			
 			# If the fiber is alive, we need to stop it:
 			if @fiber&.alive?
 				if self.current?
@@ -236,6 +245,41 @@ module Async
 			else
 				# We are not running, but children might be, so transition directly into stopped state:
 				stop!
+			end
+		end
+		
+		# Defer the handling of stop. During the execution of the given block, if a stop is requested, it will be deferred until the block exits. This is useful for ensuring graceful shutdown of servers and other long-running tasks. You should wrap the response handling code in a defer_stop block to ensure that the task is stopped when the response is complete but not before.
+		#
+		# You can nest calls to defer_stop, but the stop will only be deferred until the outermost block exits.
+		#
+		# If stop is invoked a second time, it will be immediately executed.
+		#
+		# @yields {} The block of code to execute.
+		def defer_stop
+			# Tri-state variable for controlling stop:
+			# - nil: defer_stop has not been called.
+			# - false: defer_stop has been called and we are not stopping.
+			# - true: defer_stop has been called and we will stop when exiting the block.
+			if @defer_stop.nil?
+				# If we are not deferring stop already, we can defer it now:
+				@defer_stop = false
+				
+				begin
+					yield
+				rescue Stop
+					# If we are exiting due to a stop, we shouldn't try to invoke stop again:
+					@defer_stop = nil
+					raise
+				ensure
+					# If we were asked to stop, we should do so now:
+					if @defer_stop
+						@defer_stop = nil
+						self.stop
+					end
+				end
+			else
+				# If we are deferring stop already, entering it again is a no-op.
+				yield
 			end
 		end
 		
