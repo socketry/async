@@ -255,6 +255,7 @@ module Async
 		# If stop is invoked a second time, it will be immediately executed.
 		#
 		# @yields {} The block of code to execute.
+		# @public Since `stable-v1`.
 		def defer_stop
 			# Tri-state variable for controlling stop:
 			# - nil: defer_stop has not been called.
