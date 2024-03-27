@@ -7,9 +7,9 @@ def external
 		clone_and_test("async-io")
 		clone_and_test("async-pool", "sus")
 		clone_and_test("async-dns")
-		clone_and_test("async-http")
-		clone_and_test("falcon")
-		clone_and_test("async-rest")
+		clone_and_test("async-http", "sus")
+		clone_and_test("falcon", "sus")
+		clone_and_test("async-rest", "sus")
 	end
 end
 
