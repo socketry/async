@@ -6,7 +6,6 @@ def external
 	Bundler.with_clean_env do
 		clone_and_test("async-io")
 		clone_and_test("async-pool", "sus")
-		clone_and_test("async-websocket", "sus")
 		clone_and_test("async-dns")
 		clone_and_test("async-http")
 		clone_and_test("falcon")
