@@ -246,6 +246,9 @@ module Async
 			if @defer_stop == false
 				# Don't stop now... but update the state so we know we need to stop later.
 				@defer_stop = true
+				
+				stop_children(false)
+				
 				return false
 			end
 			
