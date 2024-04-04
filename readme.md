@@ -20,7 +20,7 @@ Async is a composable asynchronous I/O framework for Ruby based on [io-event](ht
 
 Please see the [project documentation](https://socketry.github.io/async/) for more details.
 
-  - [Getting Started](https://socketry.github.io/async/guides/getting-started/index) - This guide gives shows how to add
+  - [Getting Started](https://socketry.github.io/async/guides/getting-started/index) - This guide shows how to add
     async to your project and run code asynchronously.
 
   - [Asynchronous Tasks](https://socketry.github.io/async/guides/asynchronous-tasks/index) - This guide explains how
