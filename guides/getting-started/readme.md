@@ -1,6 +1,6 @@
 # Getting Started
 
-This guide gives shows how to add async to your project and run code asynchronously.
+This guide shows how to add async to your project and run code asynchronously.
 
 ## Installation
 
