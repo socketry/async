@@ -25,6 +25,7 @@ Copyright, 2023, by Colin Kelley.
 Copyright, 2023, by Math Ieu.  
 Copyright, 2023, by Emil Tin.  
 Copyright, 2023, by Gert Goet.  
+Copyright, 2024, by Dimitar Peychinov.  
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
