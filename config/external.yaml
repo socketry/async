@@ -18,4 +18,4 @@ falcon:
   command: bundle exec sus
 async-rest:
   url: https://github.com/socketry/async-rest.git
-  command: bundle exec rspec
+  command: bundle exec sus
