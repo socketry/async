@@ -83,7 +83,7 @@ def strace(pid, duration = 60)
 	
 	_, status = Process.waitpid2(pid)
 	
-	Console.logger.error(status) do |buffer|
+	Console.error(status) do |buffer|
 		buffer.puts first_line
 	end unless status.success?
 	
@@ -92,28 +92,28 @@ end
 
 pids.each do |pid|
 	start_times = getrusage(pid)
-	Console.logger.info("Process #{pid} start times:", start_times)
+	Console.info("Process #{pid} start times:", start_times)
 	
 	# sleep 60
 	summary = strace(pid)
 	
-	Console.logger.info("strace -p #{pid}") do |buffer|
+	Console.info("strace -p #{pid}") do |buffer|
 		summary.each do |fields|
 			buffer.puts fields.inspect
 		end
 	end
 	
 	end_times = getrusage(pid)
-	Console.logger.info("Process #{pid} end times:", end_times)
+	Console.info("Process #{pid} end times:", end_times)
 	
 	if total = summary[:total]
 		process_duration = end_times.utime - start_times.utime
 		wait_duration = summary[:total][:seconds]
 	
-		Console.logger.info("Process Waiting: #{wait_duration.round(4)}s out of #{process_duration.round(4)}s") do |buffer|
+		Console.info("Process Waiting: #{wait_duration.round(4)}s out of #{process_duration.round(4)}s") do |buffer|
 			buffer.puts "Wait percentage: #{(wait_duration / process_duration * 100.0).round(2)}%"
 		end
 	else
-		Console.logger.warn("No system calls detected.")
+		Console.warn("No system calls detected.")
 	end
 end

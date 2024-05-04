@@ -8,6 +8,7 @@
 # Copyright, 2023, by Math Ieu.
 
 require 'fiber'
+require 'console/event/failure'
 
 require_relative 'node'
 require_relative 'condition'
@@ -335,15 +336,15 @@ module Async
 					raise exception
 				elsif @finished.nil?
 					# If no one has called wait, we log this as a warning:
-					Console.logger.warn(self, "Task may have ended with unhandled exception.", exception)
+					Console::Event::Failure.for(exception).emit(self, "Task may have ended with unhandled exception.", severity: :warn)
 				else
-					Console.logger.debug(self, exception)
+					Console::Event::Failure.for(exception).emit(self, severity: :debug)
 				end
 			end
 		end
 		
 		def stopped!
-			# Console.logger.info(self, status:) {"Task #{self} was stopped with #{@children&.size.inspect} children!"}
+			# Console.info(self, status:) {"Task #{self} was stopped with #{@children&.size.inspect} children!"}
 			@status = :stopped
 			
 			stopped = false
@@ -374,7 +375,7 @@ module Async
 				
 				begin
 					completed!(yield)
-					# Console.logger.debug(self) {"Task was completed with #{@children.size} children!"}
+					# Console.debug(self) {"Task was completed with #{@children.size} children!"}
 				rescue Stop
 					stopped!
 				rescue StandardError => error
@@ -382,7 +383,7 @@ module Async
 				rescue Exception => exception
 					failed!(exception, true)
 				ensure
-					# Console.logger.info(self) {"Task ensure $! = #{$!} with #{@children&.size.inspect} children!"}
+					# Console.info(self) {"Task ensure $! = #{$!} with #{@children&.size.inspect} children!"}
 					finish!
 				end
 			end

@@ -38,7 +38,7 @@ Sync do
 	# Stop all tasks which we don't care about:
 	barrier.stop
 	
-	Console.logger.info("Smallest", numbers)
+	Console.info("Smallest", numbers)
 end
 ~~~
 

@@ -9,14 +9,14 @@ Sync do
 	condition = Async::Condition.new
 	
 	Async do
-		Console.logger.info "Waiting for condition..."
+		Console.info "Waiting for condition..."
 		value = condition.wait
-		Console.logger.info "Condition was signalled: #{value}"
+		Console.info "Condition was signalled: #{value}"
 	end
 	
 	Async do |task|
 		task.sleep(1)
-		Console.logger.info "Signalling condition..."
+		Console.info "Signalling condition..."
 		condition.signal("Hello World")
 	end
 end

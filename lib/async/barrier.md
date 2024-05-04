@@ -9,7 +9,7 @@ require 'async/barrier'
 
 barrier = Async::Barrier.new
 Sync do
-	Console.logger.info("Barrier Example: sleep sort.")
+	Console.info("Barrier Example: sleep sort.")
 	
 	# Generate an array of 10 numbers:
 	numbers = 10.times.map{rand(10)}
@@ -26,7 +26,7 @@ Sync do
 	# Wait for all the numbers to be sorted:
 	barrier.wait
 	
-	Console.logger.info("Sorted", sorted)
+	Console.info("Sorted", sorted)
 ensure
 	# Ensure all the tasks are stopped when we exit:
 	barrier.stop

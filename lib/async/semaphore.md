@@ -17,9 +17,9 @@ Sync do
 	# Search for the terms:
 	terms.each do |term|
 		semaphore.async do |task|
-			Console.logger.info("Searching for #{term}...")
+			Console.info("Searching for #{term}...")
 			response = Net::HTTP.get(URI "https://www.google.com/search?q=#{term}")
-			Console.logger.info("Got response #{response.size} bytes.")
+			Console.info("Got response #{response.size} bytes.")
 		end
 	end
 end

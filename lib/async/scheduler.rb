@@ -369,7 +369,7 @@ module Async
 				
 			return initial_task
 		ensure
-			Console.logger.debug(self) {"Exiting run-loop because #{$! ? $! : 'finished'}."}
+			Console.debug(self) {"Exiting run-loop because #{$! ? $! : 'finished'}."}
 		end
 		
 		# Start an asynchronous task within the specified reactor. The task will be
@@ -395,7 +395,7 @@ module Async
 			# - Avoid scheduler overhead if no blocking operation is performed.
 			task.run(*arguments)
 			
-			# Console.logger.debug "Initial execution of task #{fiber} complete (#{result} -> #{fiber.alive?})..."
+			# Console.debug "Initial execution of task #{fiber} complete (#{result} -> #{fiber.alive?})..."
 			return task
 		end
 		

@@ -10,7 +10,7 @@ require 'console'
 Async do |task|
 	while true
 		task.async do
-			Console.logger.info("Child running.")
+			Console.info("Child running.")
 			sleep 0.1
 		end.wait
 	end
