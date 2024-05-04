@@ -25,7 +25,7 @@ Gem::Specification.new do |spec|
 	
 	spec.required_ruby_version = ">= 3.1.1"
 	
-	spec.add_dependency "console", "~> 1.10"
+	spec.add_dependency "console", ["~> 1.25", ">= 1.25.2"]
 	spec.add_dependency "fiber-annotation"
 	spec.add_dependency "io-event", ["~> 1.5", ">= 1.5.1"]
 	spec.add_dependency "timers", "~> 4.1"

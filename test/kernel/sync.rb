@@ -36,7 +36,7 @@ describe Kernel do
 		end
 		
 		it "can propagate error without logging them" do
-			expect(Console.logger).not.to receive(:error)
+			expect(Console).not.to receive(:error)
 			
 			expect do
 				Sync do

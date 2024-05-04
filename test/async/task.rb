@@ -761,7 +761,7 @@ describe Async::Task do
 			
 			expect(task.result).to be_nil
 			
-			Console.logger.debug(self) {"Stopping task..."}
+			Console.debug(self) {"Stopping task..."}
 			task.stop
 			
 			expect(task.result).to be_nil
