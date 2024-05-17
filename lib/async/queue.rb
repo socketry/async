@@ -10,12 +10,13 @@ require_relative 'notification'
 module Async
 	# A queue which allows items to be processed in order.
 	# @public Since `stable-v1`.
-	class Queue < Notification
-		def initialize(parent: nil)
+	class Queue
+		def initialize(parent: nil, available: Notification.new)
 			super()
 			
 			@items = []
 			@parent = parent
+			@available = available
 		end
 		
 		attr :items
@@ -31,18 +32,18 @@ module Async
 		def <<(item)
 			@items << item
 			
-			self.signal unless self.empty?
+			@available.signal unless self.empty?
 		end
 		
 		def enqueue(*items)
 			@items.concat(items)
 			
-			self.signal unless self.empty?
+			@available.signal unless self.empty?
 		end
 		
 		def dequeue
 			while @items.empty?
-				self.wait
+				@available.wait
 			end
 			
 			@items.shift
@@ -59,16 +60,23 @@ module Async
 				yield item
 			end
 		end
+		
+		def signal(value)
+			self.enqueue(value)
+		end
+		
+		def wait
+			self.dequeue
+		end
 	end
 	
 	# @public Since `stable-v1`.
 	class LimitedQueue < Queue
-		def initialize(limit = 1, **options)
+		def initialize(limit = 1, full: Notification.new, **options)
 			super(**options)
 			
 			@limit = limit
-			
-			@full = Notification.new
+			@full = full
 		end
 		
 		attr :limit
