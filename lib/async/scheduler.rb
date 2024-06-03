@@ -11,7 +11,6 @@ require_relative 'task'
 require 'io/event'
 
 require 'console'
-require 'timers'
 require 'resolv'
 
 module Async
@@ -40,7 +39,7 @@ module Async
 			@busy_time = 0.0
 			@idle_time = 0.0
 			
-			@timers = ::Timers::Group.new
+			@timers = ::IO::Event::Timers.new
 		end
 		
 		# Compute the scheduler load according to the busy and idle times that are updated by the run loop.
@@ -165,7 +164,7 @@ module Async
 				@blocked -= 1
 			end
 		ensure
-			timer&.cancel
+			timer&.cancel!
 		end
 		
 		# @asynchronous May be called from any thread.
@@ -225,7 +224,7 @@ module Async
 			
 			return @selector.io_wait(fiber, io, events)
 		ensure
-			timer&.cancel
+			timer&.cancel!
 		end
 		
 		if ::IO::Event::Support.buffer?
@@ -240,7 +239,7 @@ module Async
 				
 				@selector.io_read(fiber, io, buffer, length, offset)
 			ensure
-				timer&.cancel
+				timer&.cancel!
 			end
 			
 			if RUBY_ENGINE != "ruby" || RUBY_VERSION >= "3.3.1"
@@ -255,7 +254,7 @@ module Async
 					
 					@selector.io_write(fiber, io, buffer, length, offset)
 				ensure
-					timer&.cancel
+					timer&.cancel!
 				end
 			end
 		end
@@ -416,7 +415,7 @@ module Async
 			
 			yield timer
 		ensure
-			timer.cancel if timer
+			timer&.cancel!
 		end
 		
 		def timeout_after(duration, exception, message, &block)
