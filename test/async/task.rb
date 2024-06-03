@@ -745,13 +745,15 @@ describe Async::Task do
 	
 	with '#result' do
 		it 'does not raise exception' do
-			reactor.async do
-				task = reactor.async do
-					raise "The space time converter has failed."
-				end
-				
-				expect(task.result).to be_a(RuntimeError)
+			task = reactor.async do
+				raise "The space time converter has failed."
 			end
+			
+			expect do
+				task.wait
+			end.to raise_exception(RuntimeError, message: be =~ /space time converter/)
+			
+			expect(task.result).to be_a(RuntimeError)
 		end
 		
 		it 'does not wait for task completion' do
