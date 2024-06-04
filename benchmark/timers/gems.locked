@@ -1,0 +1,18 @@
+GEM
+  remote: https://rubygems.org/
+  specs:
+    benchmark-ips (2.13.0)
+    io-event (1.6.0)
+    timers (4.3.5)
+
+PLATFORMS
+  arm64-darwin-23
+  ruby
+
+DEPENDENCIES
+  benchmark-ips (= 2.13)
+  io-event (~> 1.6)
+  timers (~> 4.3)
+
+BUNDLED WITH
+   2.5.5
