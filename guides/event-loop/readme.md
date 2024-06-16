@@ -44,7 +44,7 @@ Most methods of the reactor and related tasks are not thread-safe, so you'd typi
 
 ### Embedding Reactors
 
-{ruby Async::Scheduler#run} will run until the reactor runs out of work to do. To run a single iteration of the reactor, use {ruby Async::Scheduler#run_once}
+{ruby Async::Scheduler#run} will run until the reactor runs out of work to do. To run a single iteration of the reactor, use {ruby Async::Scheduler#run_once}.
 
 ~~~ ruby
 require 'async'
