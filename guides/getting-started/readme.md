@@ -34,7 +34,7 @@ A selector is part of the implementation of an event loop which is responsible f
 
 A reactor is a specific implementation of the scheduler interface, which includes an event loop and selector, and is responsible for managing the execution of fibers.
 
-## Creating an Asynchronous Tasks
+## Creating an Asynchronous Task
 
 The main entry point for creating tasks is the {ruby Kernel#Async} method. Because this method is defined on `Kernel`, it's available in all parts of your program.
 
@@ -46,17 +46,17 @@ Async do |task|
 end
 ~~~
 
-An {ruby Async::Task} runs using a {ruby Fiber} and blocking operations e.g. `sleep`, `read`, `write` yield control until the operation can complete. When a blocking operation yields control, it means another fiber can execute, giving the illusion of simultaneous execution.
+A {ruby Async::Task} runs using a {ruby Fiber} and blocking operations e.g. `sleep`, `read`, `write` yield control until the operation can complete. When a blocking operation yields control, it means another fiber can execute, giving the illusion of simultaneous execution.
 
 ### When should I use `Async`?
 
 You should use `Async` when you desire explicit concurrency in your program. That means you want to run multiple tasks at the same time, and you want to be able to wait for the results of those tasks.
 
-- You should use `Async` when you want to perform network operations, such as HTTP requests, or database queries concurrently.
+- You should use `Async` when you want to perform network operations concurrently, such as HTTP requests or database queries.
 - You should use `Async` when you want to process independent requests concurrently, such as a web server.
 - You should use `Async` when you want to handle multiple connections concurrently, such as a chat server.
 
-You should consider the boundary around your program and the request handling. For example, one task per operation, request or conection, is usually appropriate.
+You should consider the boundary around your program and the request handling. For example, one task per operation, request or connection, is usually appropriate.
 
 ### Waiting for Results
 
@@ -164,7 +164,7 @@ Async do
 end
 ```
 
-Unfortunately, some libraries do not integrate well with the fiber scheduler, either they are blocking, processor bound, use thread locals for execution state. To uses these libraries, you may be able to use a background thread.
+Unfortunately, some libraries do not integrate well with the fiber scheduler: either they are blocking, processor bound, or use thread locals for execution state. To use these libraries, you may be able to use a background thread.
 
 ```ruby
 Async do

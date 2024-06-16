@@ -83,7 +83,7 @@ Async do
 end
 ```
 
-Instead of taking 6 seconds, this program takes 3 seconds in total. The main loop executes rapidly creating 3 child tasks, and then each child task sleeps for 1, 2 and 3 seconds respectively before printing "Hello World".
+Instead of taking 6 seconds, this program takes 3 seconds in total. The main loop executes, rapidly creating 3 child tasks, and then each child task sleeps for 1, 2 and 3 seconds respectively before printing "Hello World".
 
 ```mermaid
 graph LR
@@ -104,7 +104,7 @@ Async do
 	
 	# Reduce (wait for and merge the results)
 	average = posts_size.wait / users_size.wait
-	puts "#{users_size.wait} users created #{ruby Average} posts on average."
+	puts "#{users_size.wait} users created #{average} posts on average."
 end
 ```
 
