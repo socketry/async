@@ -346,6 +346,7 @@ module Async
 			Kernel::raise ClosedError if @selector.nil?
 			
 			initial_task = self.async(...) if block_given?
+			interrupt = nil
 			
 			begin
 				# In theory, we could use Exception here to be a little bit safer, but we've only shown the case for SignalException to be a problem, so let's not over-engineer this.
@@ -358,14 +359,17 @@ module Async
 						break unless self.run_once
 					end
 				end
-			rescue Interrupt
+			rescue Interrupt => interrupt
 				Thread.handle_interrupt(::SignalException => :never) do
 					self.stop
 				end
 				
 				retry
 			end
-				
+			
+			# If the event loop was interrupted, and we finished exiting normally (due to the interrupt), we need to re-raise the interrupt so that the caller can handle it too.
+			Kernel.raise interrupt if interrupt
+			
 			return initial_task
 		ensure
 			Console.debug(self) {"Exiting run-loop because #{$! ? $! : 'finished'}."}
