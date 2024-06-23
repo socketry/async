@@ -90,6 +90,7 @@ describe Async::Scheduler do
 		
 		it "can interrupt a scheduler from a different thread" do
 			finished = false
+			interrupted = false
 			sleeping = Thread::Queue.new
 			
 			thread = Thread.new do
@@ -107,12 +108,13 @@ describe Async::Scheduler do
 						finished = true
 					end
 				end
-			# rescue Interrupt
-			# 	# Ignore.
+			rescue Interrupt
+				interrupted = true
 			end
 			
 			expect(sleeping.pop).to be == true
 			expect(finished).to be == false
+			expect(interrupted).to be == false
 			
 			thread.raise(Interrupt)
 			
@@ -123,6 +125,7 @@ describe Async::Scheduler do
 			thread.join
 			
 			expect(finished).to be == true
+			expect(interrupted).to be == true
 		end
 		
 		it "ignores interrupts during termination" do
