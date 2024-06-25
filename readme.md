@@ -54,16 +54,9 @@ This project is governed by the [Contributor Covenant](https://www.contributor-c
 
 ## See Also
 
-  - [async-io](https://github.com/socketry/async-io) — Asynchronous networking and sockets.
   - [async-http](https://github.com/socketry/async-http) — Asynchronous HTTP client/server.
-  - [async-process](https://github.com/socketry/async-process) — Asynchronous process spawning/waiting.
   - [async-websocket](https://github.com/socketry/async-websocket) — Asynchronous client and server websockets.
   - [async-dns](https://github.com/socketry/async-dns) — Asynchronous DNS resolver and server.
-  - [async-rspec](https://github.com/socketry/async-rspec) — Shared contexts for running async specs.
-
-### Projects Using Async
-
-  - [ciri](https://github.com/ciri-ethereum/ciri) — An Ethereum implementation written in Ruby.
   - [falcon](https://github.com/socketry/falcon) — A rack compatible server built on top of `async-http`.
   - [rubydns](https://github.com/ioquatix/rubydns) — An easy to use Ruby DNS server.
   - [slack-ruby-bot](https://github.com/slack-ruby/slack-ruby-bot) — A client for making slack bots.
