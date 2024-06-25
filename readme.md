@@ -1,4 +1,4 @@
-# ![Async](logo.webp)
+# ![Async](assets/logo.webp)
 
 Async is a composable asynchronous I/O framework for Ruby based on [io-event](https://github.com/socketry/io-event).
 
