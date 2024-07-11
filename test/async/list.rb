@@ -131,6 +131,10 @@ describe Async::List do
 	end
 	
 	with '#first' do
+		it "returns nil for an empty list" do
+			expect(list.first).to be_nil
+		end
+		
 		it "can return the first item" do
 			item = Item.new(1)
 			
@@ -143,6 +147,10 @@ describe Async::List do
 	end
 	
 	with '#last' do
+		it "returns nil for an empty list" do
+			expect(list.last).to be_nil
+		end
+		
 		it "can return the last item" do
 			item = Item.new(1)
 			
