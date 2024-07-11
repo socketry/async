@@ -48,9 +48,9 @@ module Async
 			@items.shift
 		end
 		
-		def async(parent: (@parent or Task.current), &block)
+		def async(parent: (@parent or Task.current), **options, &block)
 			while item = self.dequeue
-				parent.async(item, &block)
+				parent.async(item, **options, &block)
 			end
 		end
 		
