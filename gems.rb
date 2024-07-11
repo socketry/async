@@ -22,7 +22,7 @@ group :test do
 	gem "bake-test"
 	gem "bake-test-external"
 	gem "benchmark-ips"
-	gem "covered", "~> 0.18.3"
-	gem "sus", "~> 0.15"
+	gem "covered"
+	gem "sus"
 	gem "sus-fixtures-async"
 end
