@@ -84,7 +84,7 @@ module Async
 		# @private
 		attr_accessor :tail
 		
-		# @attribute [Node] The parent node.
+		# @attribute parent [Node] The parent node.
 		attr :parent
 		
 		# @attribute children [Children | Nil] Optional list of children.
