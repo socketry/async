@@ -73,7 +73,7 @@ module Async
 			end
 		end
 		
-		# @returns [Node] the root node in the hierarchy.
+		# @returns [Node] The root node in the hierarchy.
 		def root
 			@parent&.root || self
 		end
@@ -87,10 +87,10 @@ module Async
 		# @attribute [Node] The parent node.
 		attr :parent
 		
-		# @attribute children [Children | Nil] Optional list of children.
+		# @attribute [Children | Nil] Optional list of children.
 		attr :children
 		
-		# A useful identifier for the current node.
+		# @attribute [String | Nil] A useful identifier for the current node.
 		attr :annotation
 		
 		# Whether this node has any children.
