@@ -15,8 +15,8 @@ module Async
 		
 		# Execute a child task and add it to the waiter.
 		# @asynchronous Executes the given block concurrently.
-		def async(parent: (@parent or Task.current), &block)
-			parent.async do |task|
+		def async(parent: (@parent or Task.current), **options, &block)
+			parent.async(**options) do |task|
 				yield(task)
 			ensure
 				@done << task

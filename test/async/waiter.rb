@@ -42,4 +42,14 @@ describe Async::Waiter do
 			waiter.wait
 		end.to raise_exception(RuntimeError)
 	end
+
+	with 'barrier parent' do
+		let(:barrier) { Async::Barrier.new }
+		let(:waiter) { subject.new(parent: barrier) }
+
+		it "passes annotation to barrier" do
+			expect(barrier).to receive(:async).with(annotation: 'waited upon task')
+			waiter.async(annotation: 'waited upon task') { }
+		end
+	end
 end
