@@ -12,6 +12,7 @@ require_relative 'list'
 module Async
 	# A list of children tasks.
 	class Children < List
+		# Create an empty list of children tasks.
 		def initialize
 			super
 			@transient_count = 0
@@ -109,6 +110,9 @@ module Async
 			@transient
 		end
 		
+		# Annotate the node with a description.
+		#
+		# @parameter annotation [String] The description to annotate the node with.
 		def annotate(annotation)
 			if block_given?
 				begin
@@ -123,6 +127,9 @@ module Async
 			end
 		end
 		
+		# A description of the node, including the annotation and object name.
+		#
+		# @returns [String] The description of the node.
 		def description
 			@object_name ||= "#{self.class}:#{format '%#018x', object_id}#{@transient ? ' transient' : nil}"
 			
@@ -135,10 +142,14 @@ module Async
 			end
 		end
 		
+		# Provides a backtrace for nodes that have an active execution context.
+		#
+		# @returns [Array(Thread::Backtrace::Locations) | Nil] The backtrace of the node, if available.
 		def backtrace(*arguments)
 			nil
 		end
 		
+		# @returns [String] A description of the node.
 		def to_s
 			"\#<#{self.description}>"
 		end
@@ -255,10 +266,15 @@ module Async
 			end
 		end
 		
+		# Whether the node has been stopped.
 		def stopped?
 			@children.nil?
 		end
 		
+		# Print the hierarchy of the task tree from the given node.
+		#
+		# @parameter out [IO] The output stream to write to.
+		# @parameter backtrace [Boolean] Whether to print the backtrace of each node.
 		def print_hierarchy(out = $stdout, backtrace: true)
 			self.traverse do |node, level|
 				indent = "\t" * level

@@ -23,6 +23,7 @@ module Async
 		
 		attr_accessor :reactor
 		
+		# Dup the underlying IO.
 		def dup
 			self.class.new(@io.dup)
 		end
@@ -51,11 +52,12 @@ module Async
 			@io.to_io.wait(::IO::READABLE|::IO::WRITABLE|::IO::PRIORITY, timeout) or raise TimeoutError
 		end
 		
-		# Close the io and monitor.
+		# Close the underlying IO.
 		def close
 			@io.close
 		end
 		
+		# Whether the underlying IO is closed.
 		def closed?
 			@io.closed?
 		end

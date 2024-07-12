@@ -16,15 +16,21 @@ require_relative 'condition'
 module Async
 	# Raised when a task is explicitly stopped.
 	class Stop < Exception
+		# Used to defer stopping the current task until later.
 		class Later
+			# Create a new stop later operation.
+			#
+			# @parameter task [Task] The task to stop later.
 			def initialize(task)
 				@task = task
 			end
 			
+			# @returns [Boolean] Whether the task is alive.
 			def alive?
 				true
 			end
 			
+			# Transfer control to the operation - this will stop the task.
 			def transfer
 				@task.stop
 			end
@@ -34,6 +40,9 @@ module Async
 	# Raised if a timeout occurs on a specific Fiber. Handled gracefully by `Task`.
 	# @public Since `stable-v1`.
 	class TimeoutError < StandardError
+		# Create a new timeout error.
+		#
+		# @parameter message [String] The error message.
 		def initialize(message = "execution expired")
 			super
 		end
@@ -41,7 +50,11 @@ module Async
 	
 	# @public Since `stable-v1`.
 	class Task < Node
+		# Raised when a child task is created within a task that has finished execution.
 		class FinishedError < RuntimeError
+			# Create a new finished error.
+			#
+			# @parameter message [String] The error message.
 			def initialize(message = "Cannot create child task within a task that has finished execution!")
 				super
 			end
@@ -72,14 +85,21 @@ module Async
 			@defer_stop = nil
 		end
 		
+		# @returns [Scheduler] The scheduler for this task.
 		def reactor
 			self.root
 		end
 		
+		# @returns [Array(Thread::Backtrace::Location) | Nil] The backtrace of the task, if available.
 		def backtrace(*arguments)
 			@fiber&.backtrace(*arguments)
 		end
 		
+		# Annotate the task with a description.
+		#
+		# This will internally try to annotate the fiber if it is running, otherwise it will annotate the task itself.
+		#
+		# @parameter annotation [String] The description to annotate the task with.
 		def annotate(annotation, &block)
 			if @fiber
 				@fiber.annotate(annotation, &block)
@@ -88,6 +108,7 @@ module Async
 			end
 		end
 		
+		# @returns [Object] The annotation of the task.
 		def annotation
 			if @fiber
 				@fiber.annotation
@@ -96,6 +117,7 @@ module Async
 			end
 		end
 		
+		# @returns [String] A description of the task and it's current status.
 		def to_s
 			"\#<#{self.description} (#{@status})>"
 		end
@@ -115,10 +137,10 @@ module Async
 			Fiber.scheduler.yield
 		end
 		
-		# @attr fiber [Fiber] The fiber which is being used for the execution of this task.
+		# @attribute [Fiber] The fiber which is being used for the execution of this task.
 		attr :fiber
 		
-		# Whether the internal fiber is alive, i.e. it 
+		# @returns [Boolean] Whether the internal fiber is alive, i.e. it is actively executing.
 		def alive?
 			@fiber&.alive?
 		end
@@ -130,32 +152,34 @@ module Async
 			super && @block.nil? && @fiber.nil?
 		end
 		
-		# Whether the task is running.
-		# @returns [Boolean]
+		# @returns [Boolean] Whether the task is running.
 		def running?
 			@status == :running
 		end
 		
+		# @returns [Boolean] Whether the task failed with an exception.
 		def failed?
 			@status == :failed
 		end
 		
-		# The task has been stopped
+		# @returns [Boolean] Whether the task has been stopped.
 		def stopped?
 			@status == :stopped
 		end
 		
-		# The task has completed execution and generated a result.
+		# @returns [Boolean] Whether the task has completed execution and generated a result.
 		def completed?
 			@status == :completed
 		end
 		
 		alias complete? completed?
 		
-		# @attr status [Symbol] The status of the execution of the fiber, one of `:initialized`, `:running`, `:complete`, `:stopped` or `:failed`.
+		# @attribute [Symbol] The status of the execution of the fiber, one of `:initialized`, `:running`, `:complete`, `:stopped` or `:failed`.
 		attr :status
 		
 		# Begin the execution of the task.
+		#
+		# @raises [RuntimeError] If the task is already running.
 		def run(*arguments)
 			if @status == :initialized
 				@status = :running
@@ -169,6 +193,9 @@ module Async
 		end
 		
 		# Run an asynchronous task as a child of the current task.
+		#
+		# @raises [FinishedError] If the task has already finished.
+		# @returns [Task] The child task.
 		def async(*arguments, **options, &block)
 			raise FinishedError if self.finished?
 			
@@ -293,11 +320,12 @@ module Async
 		end
 		
 		# Check if there is a task defined for the current fiber.
-		# @returns [Task | Nil]
+		# @returns [Interface(:async) | Nil]
 		def self.current?
 			Thread.current[:async_task]
 		end
 		
+		# @returns [Boolean] Whether this task is the currently executing task.
 		def current?
 			Fiber.current.equal?(@fiber)
 		end

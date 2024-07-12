@@ -15,12 +15,14 @@ module Async
 			Async(...)
 		end
 		
+		# Initialize the reactor and assign it to the current Fiber scheduler.
 		def initialize(...)
 			super
 			
 			Fiber.set_scheduler(self)
 		end
 		
+		# Close the reactor and remove it from the current Fiber scheduler.
 		def scheduler_close
 			self.close
 		end

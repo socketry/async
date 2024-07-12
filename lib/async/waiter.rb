@@ -6,6 +6,10 @@
 module Async
 	# A composable synchronization primitive, which allows one task to wait for a number of other tasks to complete. It can be used in conjunction with {Semaphore} and/or {Barrier}.
 	class Waiter
+		# Create a waiter instance.
+		#
+		# @parameter parent [Interface(:async) | Nil] The parent task to use for asynchronous operations.
+		# @parameter finished [Async::Condition] The condition to signal when a task completes.
 		def initialize(parent: nil, finished: Async::Condition.new)
 			@finished = finished
 			@done = []
