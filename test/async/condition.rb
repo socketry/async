@@ -7,7 +7,7 @@
 require 'sus/fixtures/async'
 require 'async/condition'
 
-require 'a_condition'
+require 'async/a_condition'
 
 describe Async::Condition do
 	include Sus::Fixtures::Async::ReactorContext
@@ -52,5 +52,5 @@ describe Async::Condition do
 		expect(consumer.status).to be == :completed
 	end
 	
-	it_behaves_like ACondition
+	it_behaves_like Async::ACondition
 end

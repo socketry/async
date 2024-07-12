@@ -9,16 +9,19 @@ require_relative 'notification'
 
 module Async
 	# A queue which allows items to be processed in order.
+	#
+	# It has a compatible interface with {Notification} and {Condition}, except that it's multi-value.
+	#
 	# @public Since `stable-v1`.
-	class Queue < Notification
+	class Queue
 		# Create a new queue.
 		#
 		# @parameter parent [Interface(:async) | Nil] The parent task to use for async operations.
-		def initialize(parent: nil)
-			super()
-			
+		# @parameter available [Notification] The notification to use for signaling when items are available.
+		def initialize(parent: nil, available: Notification.new)
 			@items = []
 			@parent = parent
+			@available = available
 		end
 		
 		# @attribute [Array] The items in the queue.
@@ -38,20 +41,20 @@ module Async
 		def <<(item)
 			@items << item
 			
-			self.signal unless self.empty?
+			@available.signal unless self.empty?
 		end
 		
 		# Add multiple items to the queue.
 		def enqueue(*items)
 			@items.concat(items)
 			
-			self.signal unless self.empty?
+			@available.signal unless self.empty?
 		end
 		
 		# Remove and return the next item from the queue.
 		def dequeue
 			while @items.empty?
-				self.wait
+				@available.wait
 			end
 			
 			@items.shift
@@ -77,6 +80,16 @@ module Async
 				yield item
 			end
 		end
+		
+		# Signal the queue with a value, the same as {#enqueue}.
+		def signal(value)
+			self.enqueue(value)
+		end
+		
+		# Wait for an item to be available, the same as {#dequeue}.
+		def wait
+			self.dequeue
+		end
 	end
 	
 	# A queue which limits the number of items that can be enqueued.
@@ -85,12 +98,12 @@ module Async
 		# Create a new limited queue.
 		#
 		# @parameter limit [Integer] The maximum number of items that can be enqueued.
-		def initialize(limit = 1, **options)
+		# @parameter full [Notification] The notification to use for signaling when the queue is full.
+		def initialize(limit = 1, full: Notification.new, **options)
 			super(**options)
 			
 			@limit = limit
-			
-			@full = Notification.new
+			@full = full
 		end
 		
 		# @attribute [Integer] The maximum number of items that can be enqueued.
@@ -128,7 +141,7 @@ module Async
 				available = @limit - @items.size
 				@items.concat(items.shift(available))
 				
-				self.signal unless self.empty?
+				@available.signal unless self.empty?
 			end
 		end
 		
