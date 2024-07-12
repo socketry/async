@@ -13,7 +13,7 @@ module Async
 			@size = 0
 		end
 		
-		# Print a short summary of the list.
+		# @returns [String] A short summary of the list.
 		def to_s
 			sprintf("#<%s:0x%x size=%d>", self.class.name, object_id, @size)
 		end
@@ -36,12 +36,13 @@ module Async
 			return items
 		end
 		
-		# Points at the end of the list.
+		# @attribute [Node | Nil] Points at the end of the list.
 		attr_accessor :head
 		
-		# Points at the start of the list.
+		# @attribute [Node | Nil] Points at the start of the list.
 		attr_accessor :tail
 		
+		# @attribute [Integer] The number of nodes in the list.
 		attr :size
 		
 		# A callback that is invoked when an item is added to the list.
@@ -64,6 +65,7 @@ module Async
 			return added(node)
 		end
 		
+		# Prepend a node to the start of the list.
 		def prepend(node)
 			if node.head
 				raise ArgumentError, "Node is already in a list!"
@@ -224,6 +226,7 @@ module Async
 			return nil
 		end
 		
+		# Shift the first node off the list, if it is not empty.
 		def shift
 			if node = first
 				remove!(node)

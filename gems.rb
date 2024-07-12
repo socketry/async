@@ -19,10 +19,14 @@ group :maintenance, optional: true do
 end
 
 group :test do
+	gem "sus"
+	gem "covered"
+	gem "decode"
+	
+	gem "sus-fixtures-async"
+	
 	gem "bake-test"
 	gem "bake-test-external"
+	
 	gem "benchmark-ips"
-	gem "covered"
-	gem "sus"
-	gem "sus-fixtures-async"
 end

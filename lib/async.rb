@@ -10,5 +10,6 @@ require_relative "async/reactor"
 require_relative "kernel/async"
 require_relative "kernel/sync"
 
+# Asynchronous programming framework.
 module Async
 end

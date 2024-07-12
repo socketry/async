@@ -16,7 +16,11 @@ require 'resolv'
 module Async
 	# Handles scheduling of fibers. Implements the fiber scheduler interface.
 	class Scheduler < Node
+		# Raised when an operation is attempted on a closed scheduler.
 		class ClosedError < RuntimeError
+			# Create a new error.
+			#
+			# @parameter message [String] The error message.
 			def initialize(message = "Scheduler is closed!")
 				super
 			end
@@ -28,6 +32,11 @@ module Async
 			true
 		end
 		
+		# Create a new scheduler.
+		#
+		# @public Since `stable-v1`.
+		# @parameter parent [Node | Nil] The parent node to use for task hierarchy.
+		# @parameter selector [IO::Event::Selector] The selector to use for event handling.
 		def initialize(parent = nil, selector: nil)
 			super(parent)
 			
@@ -63,6 +72,9 @@ module Async
 			end
 		end
 		
+		# Invoked when the fiber scheduler is being closed.
+		#
+		# Executes the run loop until all tasks are finished, then closes the scheduler.
 		def scheduler_close
 			# If the execution context (thread) was handling an exception, we want to exit as quickly as possible:
 			unless $!
@@ -79,6 +91,7 @@ module Async
 			end
 		end
 		
+		# Terminate all child tasks and close the scheduler.
 		# @public Since `stable-v1`.
 		def close
 			# It's critical to stop all tasks. Otherwise they might be holding on to resources which are never closed/released correctly.
@@ -108,6 +121,7 @@ module Async
 			@selector.nil?
 		end
 		
+		# @returns [String] A description of the scheduler.
 		def to_s
 			"\#<#{self.description} #{@children&.size || 0} children (#{stopped? ? 'stopped' : 'running'})>"
 		end
@@ -135,10 +149,20 @@ module Async
 			@selector.push(fiber)
 		end
 		
-		def raise(*arguments)
-			@selector.raise(*arguments)
+		# Raise an exception on a specified fiber with the given arguments.
+		#
+		# This internally schedules the current fiber to be ready, before raising the exception, so that it will later resume execution.
+		#
+		# @parameter fiber [Fiber] The fiber to raise the exception on.
+		# @parameter *arguments [Array] The arguments to pass to the fiber.
+		def raise(...)
+			@selector.raise(...)
 		end
 		
+		# Resume execution of the specified fiber.
+		#
+		# @parameter fiber [Fiber] The fiber to resume.
+		# @parameter arguments [Array] The arguments to pass to the fiber.
 		def resume(fiber, *arguments)
 			@selector.resume(fiber, *arguments)
 		end
