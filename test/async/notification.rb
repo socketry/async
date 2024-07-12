@@ -6,7 +6,7 @@
 require 'sus/fixtures/async'
 require 'async/notification'
 
-require 'a_condition'
+require 'async/a_condition'
 
 describe Async::Notification do
 	include Sus::Fixtures::Async::ReactorContext
@@ -47,5 +47,5 @@ describe Async::Notification do
 		]
 	end
 	
-	it_behaves_like ACondition
+	it_behaves_like Async::ACondition
 end

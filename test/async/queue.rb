@@ -87,9 +87,41 @@ AQueue = Sus::Shared("a queue") do
 		end
 	end
 	
+	with '#signal' do
+		it 'can signal with an item' do
+			queue.signal(:item)
+			expect(queue.dequeue).to be == :item
+		end
+	end
+	
+	with '#wait' do
+		it 'can wait for an item' do
+			reactor.async do |task|
+				queue.enqueue(:item)
+			end
+			
+			expect(queue.wait).to be == :item
+		end
+	end
+	
 	with 'an empty queue' do
 		it "is expected to be empty" do
 			expect(queue).to be(:empty?)
+		end
+	end
+	
+	with 'task finishing queue' do
+		it 'can signal task completion' do
+			3.times do
+				Async(finished: queue) do
+					:result
+				end
+			end
+			
+			3.times do
+				task = queue.dequeue
+				expect(task.wait).to be == :result
+			end
 		end
 	end
 	

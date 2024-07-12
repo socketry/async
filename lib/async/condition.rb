@@ -40,10 +40,14 @@ module Async
 			end
 		end
 		
-		# Is any fiber waiting on this notification?
-		# @returns [Boolean]
+		# @deprecated Replaced by {#waiting?}
 		def empty?
 			@waiting.empty?
+		end
+		
+		# @returns [Boolean] Is any fiber waiting on this notification?
+		def waiting?
+			@waiting.size > 0
 		end
 		
 		# Signal to a given task that it should resume operations.
