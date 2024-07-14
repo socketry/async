@@ -186,6 +186,14 @@ module Async
 				
 				schedule do
 					@block.call(self, *arguments)
+				rescue => error
+					if @finished.nil?
+						Console::Event::Failure.for(error).emit("Task may have ended with unhandled exception.", severity: :warn)
+					else
+						Console::Event::Failure.for(error).emit(self, severity: :debug)
+					end
+					
+					raise
 				end
 			else
 				raise RuntimeError, "Task already running!"
@@ -358,12 +366,6 @@ module Async
 		def failed!(exception = false)
 			@result = exception
 			@status = :failed
-			
-			if $DEBUG
-				Fiber.blocking do
-					$stderr.puts "Task #{self} failed:", exception.full_message
-				end
-			end
 		end
 		
 		def stopped!
@@ -398,7 +400,6 @@ module Async
 				
 				begin
 					completed!(yield)
-					# Console.debug(self) {"Task was completed with #{@children.size} children!"}
 				rescue Stop
 					stopped!
 				rescue StandardError => error
