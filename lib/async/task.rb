@@ -354,19 +354,14 @@ module Async
 			@status = :completed
 		end
 		
-		# This is a very tricky aspect of tasks to get right. I've modelled it after `Thread` but it's slightly different in that the exception can propagate back up through the reactor. If the user writes code which raises an exception, that exception should always be visible, i.e. cause a failure. If it's not visible, such code fails silently and can be very difficult to debug.
-		def failed!(exception = false, propagate = true)
+		# State transition into the failed state.
+		def failed!(exception = false)
 			@result = exception
 			@status = :failed
 			
-			if exception
-				if propagate
-					raise exception
-				elsif @finished.nil?
-					# If no one has called wait, we log this as a warning:
-					Console::Event::Failure.for(exception).emit(self, "Task may have ended with unhandled exception.", severity: :warn)
-				else
-					Console::Event::Failure.for(exception).emit(self, severity: :debug)
+			if $DEBUG
+				Fiber.blocking do
+					$stderr.puts "Task #{self} failed:", exception.full_message
 				end
 			end
 		end
@@ -407,9 +402,12 @@ module Async
 				rescue Stop
 					stopped!
 				rescue StandardError => error
-					failed!(error, false)
+					failed!(error)
 				rescue Exception => exception
-					failed!(exception, true)
+					failed!(exception)
+					
+					# This is a critical failure, we should stop the reactor:
+					raise
 				ensure
 					# Console.info(self) {"Task ensure $! = #{$!} with #{@children&.size.inspect} children!"}
 					finish!
