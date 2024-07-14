@@ -189,8 +189,8 @@ module Async
 				rescue => error
 					if @finished.nil?
 						Console::Event::Failure.for(error).emit("Task may have ended with unhandled exception.", severity: :warn)
-					else
-						Console::Event::Failure.for(error).emit(self, severity: :debug)
+					# else
+					# 	Console::Event::Failure.for(error).emit(self, severity: :debug)
 					end
 					
 					raise
