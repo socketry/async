@@ -2,12 +2,14 @@
 
 This guide gives an overview of the compatibility of Async with Ruby and other frameworks.
 
-
 ## Ruby
 
 Async has two main branches, `stable-v1` and `main`.
 
 ### Stable V1
+
+> [!CAUTION]
+> The `stable-v1` branch is now considered legacy and is no longer actively maintained. It is recommended to use the `main` branch for new projects.
 
 The `stable-v1` branch of async is compatible with Ruby 2.5+ & TruffleRuby, and partially compatible with JRuby.
 
@@ -30,18 +32,6 @@ Because it was designed with the interfaces available in Ruby 3.x, it supports t
 ## Rails
 
 Rails itself is generally compatible with Async and the fiber scheduler, but certain parts of Rails are not compatible with Async and have ossified ("accidental standardization") around thread-per-request as a general model. These issues are fully addressed in Rails v7.1+, which supports Rack 3 and fiber-per-request.
-
-### Enabling Fiber Per Request
-
-Ensure you have the following configuration in your application:
-
-```ruby
-class Application < Rails::Application
-	config.active_support.isolation_level = :fiber
-end
-```
-
-### Pain Points
 
 - ActiveRecord with the latest version of the `pg` gem supports concurrent database queries.
 - ActiveRecord with `mysql2` gem does not support asynchronous queries. Potentially fixed by <https://github.com/trilogy-libraries/trilogy>.
