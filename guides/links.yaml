@@ -8,3 +8,5 @@ asynchronous-tasks:
   order: 2
 best-practices:
   order: 5
+debugging:
+  order: 6

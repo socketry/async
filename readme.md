@@ -19,20 +19,17 @@ Async is a composable asynchronous I/O framework for Ruby based on [io-event](ht
 
 Please see the [project documentation](https://socketry.github.io/async/) for more details.
 
-  - [Getting Started](https://socketry.github.io/async/guides/getting-started/index) - This guide shows how to add
-    async to your project and run code asynchronously.
+  - [Getting Started](https://socketry.github.io/async/guides/getting-started/index) - This guide shows how to add async to your project and run code asynchronously.
 
-  - [Asynchronous Tasks](https://socketry.github.io/async/guides/asynchronous-tasks/index) - This guide explains how
-    asynchronous tasks work and how to use them.
+  - [Asynchronous Tasks](https://socketry.github.io/async/guides/asynchronous-tasks/index) - This guide explains how asynchronous tasks work and how to use them.
 
-  - [Event Loop](https://socketry.github.io/async/guides/event-loop/index) - This guide gives an overview of how the
-    event loop is implemented.
+  - [Event Loop](https://socketry.github.io/async/guides/event-loop/index) - This guide gives an overview of how the event loop is implemented.
 
-  - [Compatibility](https://socketry.github.io/async/guides/compatibility/index) - This guide gives an overview of the
-    compatibility of Async with Ruby and other frameworks.
+  - [Compatibility](https://socketry.github.io/async/guides/compatibility/index) - This guide gives an overview of the compatibility of Async with Ruby and other frameworks.
 
-  - [Best Practices](https://socketry.github.io/async/guides/best-practices/index) - This guide gives an overview of
-    best practices for using Async.
+  - [Best Practices](https://socketry.github.io/async/guides/best-practices/index) - This guide gives an overview of best practices for using Async.
+
+  - [Debugging](https://socketry.github.io/async/guides/debugging/index) - This guide explains how to debug issues with programs that use Async.
 
 ## Contributing
 
