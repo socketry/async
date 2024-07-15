@@ -13,6 +13,8 @@ require 'console/event/failure'
 require_relative 'node'
 require_relative 'condition'
 
+Fiber.attr_accessor :async_task
+
 module Async
 	# Raised when a task is explicitly stopped.
 	class Stop < Exception
@@ -325,13 +327,13 @@ module Async
 		# @returns [Task]
 		# @raises[RuntimeError] If task was not {set!} for the current fiber.
 		def self.current
-			Thread.current[:async_task] or raise RuntimeError, "No async task available!"
+			Fiber.current.async_task or raise RuntimeError, "No async task available!"
 		end
 		
 		# Check if there is a task defined for the current fiber.
 		# @returns [Interface(:async) | Nil]
 		def self.current?
-			Thread.current[:async_task]
+			Fiber.current.async_task
 		end
 		
 		# @returns [Boolean] Whether this task is the currently executing task.
@@ -397,8 +399,6 @@ module Async
 		
 		def schedule(&block)
 			@fiber = Fiber.new(annotation: self.annotation) do
-				set!
-				
 				begin
 					completed!(yield)
 				rescue Stop
@@ -416,13 +416,9 @@ module Async
 				end
 			end
 			
+			@fiber.async_task = self
+			
 			self.root.resume(@fiber)
-		end
-		
-		# Set the current fiber's `:async_task` to this task.
-		def set!
-			# This is actually fiber-local:
-			Thread.current[:async_task] = self
 		end
 	end
 end
