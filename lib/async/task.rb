@@ -191,7 +191,7 @@ module Async
 				rescue => error
 					# I'm not completely happy with this overhead, but the alternative is to not log anything which makes debugging extremely difficult. Maybe we can introduce a debug wrapper which adds extra logging.
 					if @finished.nil?
-						Console::Event::Failure.for(error).emit("Task may have ended with unhandled exception.", severity: :warn)
+						Console::Event::Failure.for(error).emit(self, "Task may have ended with unhandled exception.", severity: :warn)
 					# else
 					# 	Console::Event::Failure.for(error).emit(self, severity: :debug)
 					end

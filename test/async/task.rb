@@ -9,6 +9,8 @@ require 'async'
 require 'async/clock'
 require 'async/queue'
 
+require 'sus/fixtures/console'
+
 require 'timer_quantum'
 
 describe Async::Task do
@@ -907,6 +909,50 @@ describe Async::Task do
 			
 			child_task.stop
 			expect(child_task).to be(:stopped?)
+		end
+	end
+	
+	with "failing task" do
+		include_context Sus::Fixtures::Console::CapturedLogger
+		
+		it "logs a warning if a task fails without being waited on" do
+			failed_task = nil
+			
+			reactor.async do |task|
+				task.async do |task|
+					failed_task = task
+					raise "boom"
+				end
+			end
+			
+			reactor.run
+			
+			expect_console.to have_logged(
+				severity: be == :warn,
+				subject: be_equal(failed_task),
+				message: be == "Task may have ended with unhandled exception."
+			)
+		end
+		
+		it "does not log a warning if a task fails and is waited on" do
+			failed_task = nil
+			
+			reactor.async do |task|
+				expect do
+					task.async do |task|
+						# This ensures #wait is called by the parent before proceeding to raise the exception:
+						task.yield
+						failed_task = task
+						raise "boom"
+					end.wait
+				end.to raise_exception(RuntimeError, message: be =~ /boom/)
+			end
+			
+			reactor.run
+			
+			expect_console.not.to have_logged(
+				severity: be == :warn,
+			)
 		end
 	end
 end

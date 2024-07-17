@@ -23,6 +23,7 @@ group :test do
 	gem "decode"
 	
 	gem "sus-fixtures-async"
+	gem "sus-fixtures-console", "~> 0.3"
 	
 	gem "bake-test"
 	gem "bake-test-external"
