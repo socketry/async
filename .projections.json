@@ -1,0 +1,14 @@
+{
+  "lib/async/*.rb": {
+    "alternate": "test/async/{}.rb"
+  },
+  "lib/kernel/*.rb": {
+    "alternate": "test/kernel/{}.rb"
+  },
+  "test/async/*.rb": {
+    "alternate": "lib/async/{}.rb"
+  },
+  "test/kernel/*.rb": {
+    "alternate": "lib/kernel/{}.rb"
+  }
+}
