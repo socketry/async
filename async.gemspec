@@ -7,7 +7,7 @@ Gem::Specification.new do |spec|
 	spec.version = Async::VERSION
 	
 	spec.summary = "A concurrency framework for Ruby."
-	spec.authors = ["Samuel Williams", "Bruno Sutic", "Jeremy Jung", "Olle Jonsson", "Devin Christensen", "Emil Tin", "Kent Gruber", "Brian Morearty", "Colin Kelley", "Dimitar Peychinov", "Gert Goet", "Jiang Jinyang", "Julien Portalier", "Jun Jiang", "Ken Muryoi", "Leon Löchner", "Masafumi Okura", "Masayuki Yamamoto", "Math Ieu", "Patrik Wenger", "Ryan Musgrave", "Salim Semaoune", "Shannon Skipper", "Sokolov Yura", "Stefan Wrobel", "Trevor Turk"]
+	spec.authors = ["Samuel Williams", "Bruno Sutic", "Jeremy Jung", "Olle Jonsson", "Devin Christensen", "Patrik Wenger", "Emil Tin", "Jamie McCarthy", "Kent Gruber", "Brian Morearty", "Colin Kelley", "Dimitar Peychinov", "Gert Goet", "Jiang Jinyang", "Julien Portalier", "Jun Jiang", "Ken Muryoi", "Leon Löchner", "Masafumi Okura", "Masayuki Yamamoto", "Math Ieu", "Ryan Musgrave", "Salim Semaoune", "Shannon Skipper", "Sokolov Yura", "Stefan Wrobel", "Trevor Turk"]
 	spec.license = "MIT"
 	
 	spec.cert_chain  = ['release.cert']
@@ -25,7 +25,7 @@ Gem::Specification.new do |spec|
 	
 	spec.required_ruby_version = ">= 3.1.1"
 	
-	spec.add_dependency "console", ["~> 1.26"]
+	spec.add_dependency "console", "~> 1.26"
 	spec.add_dependency "fiber-annotation"
 	spec.add_dependency "io-event", ["~> 1.6", ">= 1.6.5"]
 end

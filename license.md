@@ -11,7 +11,7 @@ Copyright, 2020-2023, by Olle Jonsson.
 Copyright, 2020, by Salim Semaoune.  
 Copyright, 2020, by Brian Morearty.  
 Copyright, 2020, by Stefan Wrobel.  
-Copyright, 2020, by Patrik Wenger.  
+Copyright, 2020-2024, by Patrik Wenger.  
 Copyright, 2020, by Ken Muryoi.  
 Copyright, 2020, by Jun Jiang.  
 Copyright, 2020-2022, by Bruno Sutic.  
@@ -26,6 +26,7 @@ Copyright, 2023, by Math Ieu.
 Copyright, 2023, by Emil Tin.  
 Copyright, 2023, by Gert Goet.  
 Copyright, 2024, by Dimitar Peychinov.  
+Copyright, 2024, by Jamie McCarthy.  
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

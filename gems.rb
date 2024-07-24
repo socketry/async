@@ -3,6 +3,7 @@
 # Released under the MIT License.
 # Copyright, 2017-2024, by Samuel Williams.
 # Copyright, 2017, by Kent Gruber.
+# Copyright, 2024, by Patrik Wenger.
 
 source 'https://rubygems.org'
 
@@ -21,6 +22,7 @@ group :test do
 	gem "sus", "~> 0.29", ">= 0.29.1"
 	gem "covered"
 	gem "decode"
+	gem "rubocop"
 	
 	gem "sus-fixtures-async"
 	gem "sus-fixtures-console", "~> 0.3"

@@ -31,6 +31,6 @@ jobs:
         ruby-version: ${{matrix.ruby}}
         bundler-cache: true
     
-    - name: Run tests
+    - name: Run RuboCop
       timeout-minutes: 10
-      run: bundle exec bake test:external
+      run: bundle exec rubocop

@@ -2,6 +2,7 @@
 
 # Released under the MIT License.
 # Copyright, 2022-2023, by Samuel Williams.
+# Copyright, 2024, by Patrik Wenger.
 
 require 'async/waiter'
 require 'sus/fixtures/async'

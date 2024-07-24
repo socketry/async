@@ -2,7 +2,7 @@
 
 # Released under the MIT License.
 # Copyright, 2017, by Kent Gruber.
-# Copyright, 2017-2023, by Samuel Williams.
+# Copyright, 2017-2024, by Samuel Williams.
 
 require 'sus/fixtures/async'
 require 'async/condition'
