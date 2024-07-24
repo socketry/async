@@ -609,7 +609,7 @@ describe Async::Task do
 					# This can invoke `io_wait`, which previously had `rescue TimeoutError`, causing the timeout to be ignored.
 					task.with_timeout(0.1) {input.gets}
 				rescue Async::TimeoutError => error
-				  # Ignore.
+					# Ignore.
 				end
 			end
 			

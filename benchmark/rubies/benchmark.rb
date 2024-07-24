@@ -29,36 +29,36 @@ NUM_REQUESTS = (ARGV[1] || 100).to_i
 # Fiber reactor code taken from
 # https://www.codeotaku.com/journal/2018-11/fibers-are-the-right-solution/index
 class Reactor
-		def initialize
-				@readable = {}
-				@writable = {}
+	def initialize
+		@readable = {}
+		@writable = {}
+	end
+
+	def run
+		while @readable.any? or @writable.any?
+			readable, writable = IO.select(@readable.keys, @writable.keys, [])
+
+			readable.each do |io|
+				@readable[io].resume
+			end
+
+			writable.each do |io|
+				@writable[io].resume
+			end
 		end
+	end
 
-		def run
-				while @readable.any? or @writable.any?
-						readable, writable = IO.select(@readable.keys, @writable.keys, [])
+	def wait_readable(io)
+		@readable[io] = Fiber.current
+		Fiber.yield
+		@readable.delete(io)
+	end
 
-						readable.each do |io|
-								@readable[io].resume
-						end
-
-						writable.each do |io|
-								@writable[io].resume
-						end
-				end
-		end
-
-		def wait_readable(io)
-				@readable[io] = Fiber.current
-				Fiber.yield
-				@readable.delete(io)
-		end
-
-		def wait_writable(io)
-				@writable[io] = Fiber.current
-				Fiber.yield
-				@writable.delete(io)
-		end
+	def wait_writable(io)
+		@writable[io] = Fiber.current
+		Fiber.yield
+		@writable.delete(io)
+	end
 end
 
 class Wrapper
