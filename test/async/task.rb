@@ -16,9 +16,8 @@ require 'timer_quantum'
 describe Async::Task do
 	let(:reactor) {Async::Reactor.new}
 	
-	def after
+	after do
 		reactor.close
-		super
 	end
 	
 	with '#annotate' do

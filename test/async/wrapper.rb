@@ -13,11 +13,9 @@ describe Async::Wrapper do
 	let(:input) {Async::Wrapper.new(pipe.last)}
 	let(:output) {Async::Wrapper.new(pipe.first)}
 	
-	def after
+	after do
 		input.close unless input.closed?
 		output.close unless output.closed?
-		
-		super
 	end
 	
 	with '#wait_readable' do
