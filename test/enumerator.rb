@@ -69,4 +69,26 @@ describe Enumerator do
 		expect(result[1]).to be == 2
 		expect(result[2]).to be == nil
 	end
+	
+	it "can stop lazy enumerator" do
+		# This test will hang on older Rubies without the bug fix:
+		skip_unless_minimum_ruby_version("3.3.4")
+		
+		enumerator = Enumerator.new do |yielder|
+			yielder.yield 1
+			sleep
+			yielder.yield 2
+		end
+		
+		Sync do |task|
+			child_task = task.async do
+				enumerator.next
+				enumerator.next
+			end
+			
+			child_task.stop
+			
+			expect(child_task).to be(:stopped?)
+		end
+	end
 end
