@@ -41,7 +41,8 @@ module Async
 			backoff = nil
 			
 			while true
-				load = scheduler.load 
+				load = scheduler.load
+				
 				break if load < @maximum_load
 				
 				if backoff

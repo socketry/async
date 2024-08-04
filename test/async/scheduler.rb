@@ -183,4 +183,28 @@ describe Async::Scheduler do
 			end.to raise_exception(RuntimeError, message: be =~ /Closing scheduler with blocked operations/)
 		end
 	end
+	
+	with "transient tasks" do
+		it "exits gracefully" do
+			state = nil
+			
+			Sync do |task|
+				task.async(transient: true) do
+					state = :sleeping
+					# Never come back:
+					Fiber.scheduler.transfer
+				ensure
+					state = :ensure
+					# Yoyo but eventually exit:
+					5.times do
+						Fiber.scheduler.yield
+					end
+					
+					state = :finished
+				end
+			end
+			
+			expect(state).to be == :finished
+		end
+	end
 end
