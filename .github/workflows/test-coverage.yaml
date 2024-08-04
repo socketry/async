@@ -51,7 +51,7 @@ jobs:
       env:
         IO_EVENT_SELECTOR: ${{matrix.selector}}
       run: bundle exec bake test
-
+    
     - uses: actions/upload-artifact@v3
       with:
         name: coverage-${{matrix.os}}-${{matrix.ruby}}-${{matrix.selector}}
