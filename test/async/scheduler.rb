@@ -188,14 +188,18 @@ describe Async::Scheduler do
 		it "exits gracefully" do
 			state = nil
 			
-			Async do |task|
+			Sync do |task|
 				task.async(transient: true) do
 					state = :sleeping
-					 # Never come back:
+					# Never come back:
 					Fiber.scheduler.transfer
 				ensure
 					state = :ensure
-					2.times{Fiber.scheduler.yield}
+					# Yoyo but eventually exit:
+					5.times do
+						Fiber.scheduler.yield
+					end
+					
 					state = :finished
 				end
 			end

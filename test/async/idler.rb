@@ -13,6 +13,8 @@ describe Async::Idler do
 	let(:idler) {subject.new(0.5)}
 	
 	it 'can schedule tasks up to the desired load' do
+		expect(Fiber.scheduler.load).to be < 0.1
+		
 		# Generate the load:
 		Async do
 			while true
@@ -24,7 +26,7 @@ describe Async::Idler do
 			end
 		end
 		
-		# This test must be longer than the test window...
+		# This test must be longer than the idle calculation window (1s)...
 		sleep 1.1
 		
 		# Verify that the load is within the desired range:
