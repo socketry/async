@@ -297,7 +297,7 @@ module Async
 		# @parameter timeout [Float | Nil] The maximum timeout, or if nil, indefinite.
 		# @returns [Boolean] Whether there is more work to do.
 		def run_once(timeout = nil)
-			Kernel::raise "Running scheduler on non-blocking fiber!" unless Fiber.blocking?
+			Kernel.raise "Running scheduler on non-blocking fiber!" unless Fiber.blocking?
 			
 			# If we are finished, we stop the task tree and exit:
 			if self.finished?
@@ -367,7 +367,7 @@ module Async
 		
 		# Run the reactor until all tasks are finished. Proxies arguments to {#async} immediately before entering the loop, if a block is provided.
 		def run(...)
-			Kernel::raise ClosedError if @selector.nil?
+			Kernel.raise ClosedError if @selector.nil?
 			
 			initial_task = self.async(...) if block_given?
 			interrupt = nil
@@ -409,7 +409,7 @@ module Async
 		# @returns [Task] The task that was scheduled into the reactor.
 		# @deprecated With no replacement.
 		def async(*arguments, **options, &block)
-			Kernel::raise ClosedError if @selector.nil?
+			Kernel.raise ClosedError if @selector.nil?
 			
 			task = Task.new(Task.current? || self, **options, &block)
 			
