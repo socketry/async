@@ -40,7 +40,7 @@ describe Async::Reactor do
 				sleep
 			end
 			
-			expect(reactor.run_once).to be == false
+			expect(reactor.run_once(0)).to be == false
 			expect(reactor).to be(:finished?)
 			
 			# Kick the task into the ensure block:

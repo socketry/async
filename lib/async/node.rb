@@ -34,6 +34,14 @@ module Async
 			empty?
 		end
 		
+		def adjust_transient_count(transient)
+			if transient
+				@transient_count += 1
+			else
+				@transient_count -= 1
+			end
+		end
+		
 		private
 		
 		def added(node)
@@ -108,6 +116,14 @@ module Async
 		# parent task from finishing.
 		def transient?
 			@transient
+		end
+		
+		protected def transient=(value)
+			if @transient != value
+				@transient = value
+				
+				@parent&.children&.adjust_transient_count(value)
+			end
 		end
 		
 		# Annotate the node with a description.
