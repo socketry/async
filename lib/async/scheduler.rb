@@ -296,7 +296,7 @@ module Async
 			Kernel.raise "Running scheduler on non-blocking fiber!" unless Fiber.blocking?
 			
 			# If we are finished, we stop the task tree and exit:
-			if self.finished?
+			if @children.nil?
 				return false
 			end
 			
@@ -398,9 +398,11 @@ module Async
 			initial_task = self.async(...) if block_given?
 			
 			self.run_loop do
-				unless self.finished?
-					run_once!
+				if self.finished?
+					self.stop
 				end
+				
+				run_once!
 			end
 			
 			return initial_task

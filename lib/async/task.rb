@@ -176,7 +176,7 @@ module Async
 		
 		alias complete? completed?
 		
-		# @attribute [Symbol] The status of the execution of the fiber, one of `:initialized`, `:running`, `:complete`, `:stopped` or `:failed`.
+		# @attribute [Symbol] The status of the execution of the task, one of `:initialized`, `:running`, `:complete`, `:stopped` or `:failed`.
 		attr :status
 		
 		# Begin the execution of the task.
