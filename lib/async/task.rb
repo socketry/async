@@ -253,17 +253,17 @@ module Async
 				return stopped!
 			end
 			
-			# If we are deferring stop...
-			if @defer_stop == false
-				# Don't stop now... but update the state so we know we need to stop later.
-				@defer_stop = true
-				return false
-			end
-			
 			# If the fiber is alive, we need to stop it:
 			if @fiber&.alive?
 				# As the task is now exiting, we want to ensure the event loop continues to execute until the task finishes.
 				self.transient = false
+				
+				# If we are deferring stop...
+				if @defer_stop == false
+					# Don't stop now... but update the state so we know we need to stop later.
+					@defer_stop = true
+					return false
+				end
 				
 				if self.current?
 					# If the fiber is current, and later is `true`, we need to schedule the fiber to be stopped later, as it's currently invoking `stop`:
@@ -324,6 +324,11 @@ module Async
 				# If we are deferring stop already, entering it again is a no-op.
 				yield
 			end
+		end
+		
+		# @returns [Boolean] Whether stop has been deferred.
+		def stop_deferred?
+			@defer_stop
 		end
 		
 		# Lookup the {Task} for the current fiber. Raise `RuntimeError` if none is available.

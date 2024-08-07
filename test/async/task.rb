@@ -954,4 +954,32 @@ describe Async::Task do
 			)
 		end
 	end
+	
+	with "transient task" do
+		it "is only stopped once" do
+			state = nil
+			
+			reactor.async do |task|
+				task.async(transient: true) do |task|
+					task.defer_stop do
+						state = :sleeping
+						
+						until task.stop_deferred?
+							# Bounce back to the event loop several times:
+							task.yield
+						end
+						
+						# Yield one more time, which should not cause the task to be stopped again:
+						task.yield
+						
+						state = :finished
+					end
+				end
+			end
+			
+			reactor.run
+			
+			expect(state).to be == :finished
+		end
+	end
 end
