@@ -34,6 +34,19 @@ module Async
 			empty?
 		end
 		
+		# Adjust the number of transient children, assuming it has changed.
+		#
+		# Despite being public, this is not intended to be called directly. It is used internally by {Node#transient=}.
+		#
+		# @parameter transient [Boolean] Whether to increment or decrement the transient count.
+		def adjust_transient_count(transient)
+			if transient
+				@transient_count += 1
+			else
+				@transient_count -= 1
+			end
+		end
+		
 		private
 		
 		def added(node)
@@ -108,6 +121,19 @@ module Async
 		# parent task from finishing.
 		def transient?
 			@transient
+		end
+		
+		# Change the transient state of the node.
+		#
+		# A transient node is not considered when determining if a node is finished, and propagates up if the parent is consumed.
+		#
+		# @parameter value [Boolean] Whether the node is transient.
+		def transient=(value)
+			if @transient != value
+				@transient = value
+				
+				@parent&.children&.adjust_transient_count(value)
+			end
 		end
 		
 		# Annotate the node with a description.

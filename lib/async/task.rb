@@ -176,7 +176,7 @@ module Async
 		
 		alias complete? completed?
 		
-		# @attribute [Symbol] The status of the execution of the fiber, one of `:initialized`, `:running`, `:complete`, `:stopped` or `:failed`.
+		# @attribute [Symbol] The status of the execution of the task, one of `:initialized`, `:running`, `:complete`, `:stopped` or `:failed`.
 		attr :status
 		
 		# Begin the execution of the task.
@@ -262,6 +262,9 @@ module Async
 			
 			# If the fiber is alive, we need to stop it:
 			if @fiber&.alive?
+				# As the task is now exiting, we want to ensure the event loop continues to execute until the task finishes.
+				self.transient = false
+				
 				if self.current?
 					# If the fiber is current, and later is `true`, we need to schedule the fiber to be stopped later, as it's currently invoking `stop`:
 					if later
@@ -276,7 +279,7 @@ module Async
 					begin
 						# There is a chance that this will stop the fiber that originally called stop. If that happens, the exception handling in `#stopped` will rescue the exception and re-raise it later.
 						Fiber.scheduler.raise(@fiber, Stop)
-					rescue FiberError
+					rescue FiberError => error
 						# In some cases, this can cause a FiberError (it might be resumed already), so we schedule it to be stopped later:
 						Fiber.scheduler.push(Stop::Later.new(self))
 					end

@@ -187,9 +187,10 @@ describe Async::Scheduler do
 	with "transient tasks" do
 		it "exits gracefully" do
 			state = nil
+			child_task = nil
 			
 			Sync do |task|
-				task.async(transient: true) do
+				child_task = task.async(transient: true) do
 					state = :sleeping
 					# Never come back:
 					Fiber.scheduler.transfer
@@ -205,6 +206,7 @@ describe Async::Scheduler do
 			end
 			
 			expect(state).to be == :finished
+			expect(child_task).not.to be(:transient?)
 		end
 	end
 end
