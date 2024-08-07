@@ -13,9 +13,15 @@ require 'console/event/failure'
 require_relative 'node'
 require_relative 'condition'
 
-Fiber.attr_accessor :async_task
-
 module Async
+	module FiberWithAsyncTask
+		refine Fiber do
+			attr_accessor :async_task
+		end
+	end
+
+	using FiberWithAsyncTask
+
 	# Raised when a task is explicitly stopped.
 	class Stop < Exception
 		# Used to defer stopping the current task until later.
