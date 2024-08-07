@@ -34,6 +34,9 @@ module Async
 			empty?
 		end
 		
+		# Adjust the number of transient children, assuming it has changed.
+		#
+		# @parameter transient [Boolean] Whether to increment or decrement the transient count.
 		def adjust_transient_count(transient)
 			if transient
 				@transient_count += 1
