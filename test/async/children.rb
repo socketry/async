@@ -40,4 +40,22 @@ describe Async::Children do
 			expect{children.remove(child)}.to raise_exception(ArgumentError, message: be =~ /not in a list/)
 		end
 	end
+	
+	with "transient children" do
+		let(:parent) {Async::Node.new}
+		let(:children) {parent.children}
+		
+		it "can add a transient child" do
+			child = Async::Node.new(parent, transient: true)
+			expect(children).to be(:transients?)
+			
+			child.transient = false
+			expect(children).not.to be(:transients?)
+			expect(parent).not.to be(:finished?)
+			
+			child.transient = true
+			expect(children).to be(:transients?)
+			expect(parent).to be(:finished?)
+		end
+	end
 end
