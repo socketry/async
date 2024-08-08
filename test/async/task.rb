@@ -909,6 +909,18 @@ describe Async::Task do
 			child_task.stop
 			expect(child_task).to be(:stopped?)
 		end
+		
+		it "can defer stop and exit normally" do
+			child_task = reactor.async do |task|
+				task.defer_stop do
+					# Nothing.
+				end
+			end
+			
+			reactor.run_once(0)
+			
+			expect(child_task.stop_deferred?).to be == nil
+		end
 	end
 	
 	with "failing task" do
