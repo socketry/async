@@ -304,19 +304,23 @@ module Async
 			# - false: defer_stop has been called and we are not stopping.
 			# - true: defer_stop has been called and we will stop when exiting the block.
 			if @defer_stop.nil?
-				# If we are not deferring stop already, we can defer it now:
-				@defer_stop = false
-				
 				begin
+					# If we are not deferring stop already, we can defer it now:
+					@defer_stop = false
+					
 					yield
 				rescue Stop
 					# If we are exiting due to a stop, we shouldn't try to invoke stop again:
 					@defer_stop = nil
 					raise
 				ensure
+					defer_stop = @defer_stop
+					
+					# We need to ensure the state is reset before we exit the block:
+					@defer_stop = nil
+					
 					# If we were asked to stop, we should do so now:
-					if @defer_stop
-						@defer_stop = nil
+					if defer_stop
 						raise Stop, "Stopping current task (was deferred)!"
 					end
 				end
