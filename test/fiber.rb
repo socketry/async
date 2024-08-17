@@ -3,10 +3,37 @@
 # Released under the MIT License.
 # Copyright, 2022-2024, by Samuel Williams.
 
-require 'async/reactor'
+require 'async'
+require 'async/variable'
 require 'child_process'
 
 describe Fiber do
+	with ".new" do
+		it "can stop a task with a nested resumed fiber" do
+			skip_unless_minimum_ruby_version("3.3.4")
+			
+			variable = Async::Variable.new
+			error = nil
+			
+			Sync do |task|
+				child_task = task.async do
+					Fiber.new do
+						# Wait here...
+						variable.value
+					rescue Async::Stop => error
+						# This is expected.
+						raise
+					end.resume
+				end
+				
+				child_task.stop
+				expect(child_task).to be(:stopped?)
+			end
+			
+			expect(error).to be_a(Async::Stop)
+		end
+	end
+	
 	with '.schedule' do
 		it "can create several tasks" do
 			sequence = []
