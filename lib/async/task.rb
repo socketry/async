@@ -345,7 +345,7 @@ module Async
 		# Check if there is a task defined for the current fiber.
 		# @returns [Interface(:async) | Nil]
 		def self.current?
-			Fiber.current.async_task
+			Fiber.current.async_task || Fiber[:async_task]
 		end
 		
 		# @returns [Boolean] Whether this task is the currently executing task.
@@ -411,6 +411,8 @@ module Async
 		
 		def schedule(&block)
 			@fiber = Fiber.new(annotation: self.annotation) do
+				Fiber[:async_task] = self
+				
 				begin
 					completed!(yield)
 				rescue Stop
