@@ -10,6 +10,10 @@ require 'benchmark/ips'
 
 describe Async::Reactor do
 	let(:reactor) {subject.new}
+		
+	after do
+		Fiber.set_scheduler(nil)
+	end
 	
 	with '#run' do
 		it "can run tasks on different fibers" do
@@ -218,24 +222,6 @@ describe Async::Reactor do
 		expect(result).to be_a(Async::Task)
 	end
 	
-	with '#async' do
-		include Sus::Fixtures::Async::ReactorContext
-		
-		it "can pass in arguments" do
-			reactor.async(:arg) do |task, arg|
-				expect(arg).to be == :arg
-			end.wait
-		end
-		
-		it "passes in the correct number of arguments" do
-			reactor.async(:arg1, :arg2, :arg3) do |task, arg1, arg2, arg3|
-				expect(arg1).to be == :arg1
-				expect(arg2).to be == :arg2
-				expect(arg3).to be == :arg3
-			end.wait
-		end
-	end
-	
 	with '#with_timeout' do
 		let(:duration) {1}
 		
@@ -282,16 +268,38 @@ describe Async::Reactor do
 		end
 	end
 	
-	it "validates scheduler assignment" do
+	it "reuses existing scheduler" do
 		# Assign the scheduler:
 		reactor = self.reactor
 		
-		# Close the previous scheduler:
-		Async {}
+		# Re-use the previous scheduler:
+		state = nil
+		Async do
+			state = :started
+		end
 		
-		expect do
-			# The reactor is closed:
-			reactor.async {}
-		end.to raise_exception(Async::Scheduler::ClosedError)
+		reactor.run
+		
+		expect(state).to be == :started
+	end
+end
+
+describe Async::Reactor do
+	include Sus::Fixtures::Async::ReactorContext
+	
+	with '#async' do
+		it "can pass in arguments" do
+			reactor.async(:arg) do |task, arg|
+				expect(arg).to be == :arg
+			end.wait
+		end
+
+		it "passes in the correct number of arguments" do
+			reactor.async(:arg1, :arg2, :arg3) do |task, arg1, arg2, arg3|
+				expect(arg1).to be == :arg1
+				expect(arg2).to be == :arg2
+				expect(arg3).to be == :arg3
+			end.wait
+		end
 	end
 end
