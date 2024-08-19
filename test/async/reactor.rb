@@ -268,19 +268,38 @@ describe Async::Reactor do
 		end
 	end
 	
-	it "reuses existing scheduler" do
-		# Assign the scheduler:
-		reactor = self.reactor
-		
-		# Re-use the previous scheduler:
-		state = nil
-		Async do
-			state = :started
+	with 'Kernel.Async' do
+		it "reuses existing scheduler" do
+			# Assign the scheduler:
+			reactor = self.reactor
+			
+			# Re-use the previous scheduler:
+			state = nil
+			Async do
+				state = :started
+			end
+			
+			reactor.run
+			
+			expect(state).to be == :started
 		end
-		
-		reactor.run
-		
-		expect(state).to be == :started
+	end
+	
+	with 'Kernel.Sync' do
+		it "reuses existing scheduler" do
+			# Assign the scheduler:
+			reactor = self.reactor
+			
+			# Re-use the previous scheduler:
+			state = nil
+			Sync do |task|
+				state = :started
+			end
+			
+			reactor.run
+			
+			expect(state).to be == :started
+		end
 	end
 end
 
