@@ -1,6 +1,6 @@
 # Releases
 
-## Unreleased
+## v2.16.0
 
 ### Better Handling of Async and Sync in Nested Fibers
 
@@ -10,7 +10,7 @@ I encountered this issue when trying to use `Async` within a streaming response 
 
 Ideally, `Async` and `Sync` helpers should work when any `Fiber.scheduler` is defined. Right now, it's unrealistic to expect `Async::Task` to work in any scheduler, but at the very least, the following should work:
 
-```ruby
+``` ruby
 reactor = Async::Reactor.new # internally calls Fiber.set_scheduler
 
 # This should run in the above reactor, rather than creating a new one.
