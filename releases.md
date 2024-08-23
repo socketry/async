@@ -1,6 +1,6 @@
-# Changes
+# Releases
 
-## Next
+## Unreleased
 
 ### Better Handling of Async and Sync in Nested Fibers
 
