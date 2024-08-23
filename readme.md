@@ -31,6 +31,10 @@ Please see the [project documentation](https://socketry.github.io/async/) for mo
 
   - [Debugging](https://socketry.github.io/async/guides/debugging/index) - This guide explains how to debug issues with programs that use Async.
 
+## Releases
+
+Please see the [project releases](https://socketry.github.io/async/releases/index) for all releases.
+
 ## See Also
 
   - [async-http](https://github.com/socketry/async-http) — Asynchronous HTTP client/server.

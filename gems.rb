@@ -16,6 +16,7 @@ group :maintenance, optional: true do
 	gem "bake-modernize"
 	
 	gem "utopia-project"
+	gem "bake-releases"
 end
 
 group :test do
