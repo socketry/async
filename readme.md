@@ -31,6 +31,15 @@ Please see the [project documentation](https://socketry.github.io/async/) for mo
 
   - [Debugging](https://socketry.github.io/async/guides/debugging/index) - This guide explains how to debug issues with programs that use Async.
 
+## See Also
+
+  - [async-http](https://github.com/socketry/async-http) — Asynchronous HTTP client/server.
+  - [async-websocket](https://github.com/socketry/async-websocket) — Asynchronous client and server websockets.
+  - [async-dns](https://github.com/socketry/async-dns) — Asynchronous DNS resolver and server.
+  - [falcon](https://github.com/socketry/falcon) — A rack compatible server built on top of `async-http`.
+  - [rubydns](https://github.com/ioquatix/rubydns) — An easy to use Ruby DNS server.
+  - [slack-ruby-bot](https://github.com/slack-ruby/slack-ruby-bot) — A client for making slack bots.
+
 ## Contributing
 
 We welcome contributions to this project.
@@ -48,12 +57,3 @@ In order to protect users of this project, we require all contributors to comply
 ### Community Guidelines
 
 This project is best served by a collaborative and respectful environment. Treat each other professionally, respect differing viewpoints, and engage constructively. Harassment, discrimination, or harmful behavior is not tolerated. Communicate clearly, listen actively, and support one another. If any issues arise, please inform the project maintainers.
-
-## See Also
-
-  - [async-http](https://github.com/socketry/async-http) — Asynchronous HTTP client/server.
-  - [async-websocket](https://github.com/socketry/async-websocket) — Asynchronous client and server websockets.
-  - [async-dns](https://github.com/socketry/async-dns) — Asynchronous DNS resolver and server.
-  - [falcon](https://github.com/socketry/falcon) — A rack compatible server built on top of `async-http`.
-  - [rubydns](https://github.com/ioquatix/rubydns) — An easy to use Ruby DNS server.
-  - [slack-ruby-bot](https://github.com/slack-ruby/slack-ruby-bot) — A client for making slack bots.
