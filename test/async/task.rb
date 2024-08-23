@@ -17,7 +17,7 @@ describe Async::Task do
 	let(:reactor) {Async::Reactor.new}
 	
 	after do
-		reactor.close
+		Fiber.set_scheduler(nil)
 	end
 	
 	with '#annotate' do

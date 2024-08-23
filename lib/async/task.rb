@@ -67,6 +67,13 @@ module Async
 			Fiber.scheduler.transfer
 		end
 		
+		# Run the given block of code in a task, asynchronously, in the given scheduler.
+		def self.run(scheduler, *arguments, **options, &block)
+			self.new(scheduler, **options, &block).tap do |task|
+				task.run(*arguments)
+			end
+		end
+		
 		# Create a new task.
 		# @parameter reactor [Reactor] the reactor this task will run within.
 		# @parameter parent [Task] the parent task.

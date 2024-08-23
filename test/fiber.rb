@@ -32,6 +32,27 @@ describe Fiber do
 			
 			expect(error).to be_a(Async::Stop)
 		end
+		
+		it "can nest child tasks within a resumed fiber" do
+			skip_unless_minimum_ruby_version("3.3.4")
+			
+			variable = Async::Variable.new
+			error = nil
+			
+			Sync do |task|
+				child_task = task.async do
+					Fiber.new do
+						Async do
+							variable.value
+						end.wait
+					end.resume
+				end
+				
+				expect(child_task).to be(:running?)
+				
+				variable.value = true
+			end
+		end
 	end
 	
 	with '.schedule' do

@@ -18,6 +18,8 @@ module Kernel
 	def Sync(&block)
 		if task = ::Async::Task.current?
 			yield task
+		elsif scheduler = Fiber.scheduler
+			::Async::Task.run(scheduler, &block).wait
 		else
 			# This calls Fiber.set_scheduler(self):
 			reactor = Async::Reactor.new

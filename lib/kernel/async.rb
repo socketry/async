@@ -24,6 +24,8 @@ module Kernel
 	def Async(...)
 		if current = ::Async::Task.current?
 			return current.async(...)
+		elsif scheduler = Fiber.scheduler
+			::Async::Task.run(scheduler, ...)
 		else
 			# This calls Fiber.set_scheduler(self):
 			reactor = ::Async::Reactor.new
