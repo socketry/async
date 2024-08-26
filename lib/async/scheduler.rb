@@ -241,7 +241,7 @@ module Async
 			elsif timeout = get_timeout(io)
 				# Otherwise, if we default to the io's timeout, we raise an exception:
 				timer = @timers.after(timeout) do
-					fiber.raise(::IO::TimeoutError, "Timeout while waiting for IO to become ready!")
+					fiber.raise(::IO::TimeoutError, "Timeout (#{timeout}s) while waiting for IO to become ready!")
 				end
 			end
 			
@@ -256,7 +256,7 @@ module Async
 				
 				if timeout = get_timeout(io)
 					timer = @timers.after(timeout) do
-						fiber.raise(::IO::TimeoutError, "Timeout while waiting for IO to become readable!")
+						fiber.raise(::IO::TimeoutError, "Timeout (#{timeout}s) while waiting for IO to become readable!")
 					end
 				end
 				
@@ -271,7 +271,7 @@ module Async
 					
 					if timeout = get_timeout(io)
 						timer = @timers.after(timeout) do
-							fiber.raise(::IO::TimeoutError, "Timeout while waiting for IO to become writable!")
+							fiber.raise(::IO::TimeoutError, "Timeout (#{timeout}s) while waiting for IO to become writable!")
 						end
 					end
 					
