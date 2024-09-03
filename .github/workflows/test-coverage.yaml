@@ -52,7 +52,7 @@ jobs:
         IO_EVENT_SELECTOR: ${{matrix.selector}}
       run: bundle exec bake test
     
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       with:
         name: coverage-${{matrix.os}}-${{matrix.ruby}}-${{matrix.selector}}
         path: .covered.db
@@ -68,7 +68,7 @@ jobs:
         ruby-version: "3.3"
         bundler-cache: true
     
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v4
     
     - name: Validate coverage
       timeout-minutes: 5
