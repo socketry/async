@@ -37,6 +37,8 @@ Please see the [project releases](https://socketry.github.io/async/releases/inde
 
 ### v2.17.0
 
+  - Introduce `Async::Queue#push` and `Async::Queue#pop` for compatibility with `::Queue`.
+
 ### v2.16.0
 
   - [Better Handling of Async and Sync in Nested Fibers](https://socketry.github.io/async/releases/index#better-handling-of-async-and-sync-in-nested-fibers)
