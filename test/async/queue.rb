@@ -15,6 +15,22 @@ require 'chainable_async'
 AQueue = Sus::Shared("a queue") do
 	let(:queue) {subject.new}
 	
+	with "#push" do
+		it "adds an item to the queue" do
+			queue.push(:item)
+			expect(queue.size).to be == 1
+			expect(queue.dequeue).to be == :item
+		end
+	end
+	
+	with "#pop" do
+		it "removes an item from the queue" do
+			queue.push(:item)
+			expect(queue.pop).to be == :item
+			expect(queue.size).to be == 0
+		end
+	end
+	
 	with '#each' do
 		it 'can enumerate queue items' do
 			reactor.async do |task|

@@ -1,5 +1,9 @@
 # Releases
 
+## Unreleased
+
+- Introduce `Async::Queue#push` and `Async::Queue#pop` for compatibility with `::Queue`.
+
 ## v2.16.0
 
 ### Better Handling of Async and Sync in Nested Fibers

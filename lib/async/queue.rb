@@ -38,11 +38,14 @@ module Async
 		end
 		
 		# Add an item to the queue.
-		def <<(item)
+		def push(item)
 			@items << item
 			
 			@available.signal unless self.empty?
 		end
+		
+		# Compatibility with {::Queue#push}.
+		alias << push
 		
 		# Add multiple items to the queue.
 		def enqueue(*items)
@@ -59,6 +62,9 @@ module Async
 			
 			@items.shift
 		end
+		
+		# Compatibility with {::Queue#pop}.
+		alias pop dequeue
 		
 		# Process each item in the queue.
 		#
