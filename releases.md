@@ -1,8 +1,8 @@
 # Releases
 
-## Unreleased
+## v2.17.0
 
-- Introduce `Async::Queue#push` and `Async::Queue#pop` for compatibility with `::Queue`.
+  - Introduce `Async::Queue#push` and `Async::Queue#pop` for compatibility with `::Queue`.
 
 ## v2.16.0
 
