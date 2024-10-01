@@ -15,7 +15,7 @@ module Kernel
 	#
 	# @public Since `stable-v1`.
 	# @asynchronous Will block until given block completes executing.
-	def Sync(&block)
+	def Sync(*arguments, **options, &block)
 		if task = ::Async::Task.current?
 			yield task
 		elsif scheduler = Fiber.scheduler
@@ -25,7 +25,7 @@ module Kernel
 			reactor = Async::Reactor.new
 			
 			begin
-				return reactor.run(finished: ::Async::Condition.new, &block).wait
+				return reactor.run(*arguments, **options, finished: ::Async::Condition.new, &block).wait
 			ensure
 				Fiber.set_scheduler(nil)
 			end
