@@ -17,6 +17,10 @@ describe Kernel do
 			Async(transient: true) do |task|
 				expect(task).to be(:transient?)
 			end
+
+			Async(annotation: 'foobar') do |task|
+				expect(task.annotation).to be == 'foobar'
+			end
 		end
 	end
 end

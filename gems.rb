@@ -20,7 +20,7 @@ group :maintenance, optional: true do
 end
 
 group :test do
-	gem "sus", "~> 0.29", ">= 0.29.1"
+	gem "sus", "~> 0.31"
 	gem "covered"
 	gem "decode"
 	gem "rubocop"
