@@ -18,7 +18,7 @@ module Kernel
 	def Sync(annotation: nil, &block)
 		if task = ::Async::Task.current?
 			if annotation
-				task.annotate(annotation) { yield task }
+				task.annotate(annotation) {yield task}
 			else
 				yield task
 			end
