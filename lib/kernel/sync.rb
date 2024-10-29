@@ -15,9 +15,9 @@ module Kernel
 	#
 	# @public Since `stable-v1`.
 	# @asynchronous Will block until given block completes executing.
-	def Sync(*arguments, **options, &block)
+	def Sync(annotation: nil, &block)
 		if task = ::Async::Task.current?
-			if annotation = options[:annotation]
+			if annotation
 				task.annotate(annotation) { yield task }
 			else
 				yield task
@@ -29,7 +29,13 @@ module Kernel
 			reactor = Async::Reactor.new
 			
 			begin
-				return reactor.run(*arguments, **options, finished: ::Async::Condition.new, &block).wait
+				options = {
+					finished: ::Async::Condition.new
+				}
+
+				options[:annotation] = annotation if annotation
+
+				return reactor.run(**options, &block).wait
 			ensure
 				Fiber.set_scheduler(nil)
 			end

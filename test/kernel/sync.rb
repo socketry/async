@@ -22,7 +22,7 @@ describe Kernel do
 			expect(result).to be == value
 		end
 
-		it "passes options through to initial task" do
+		it "passes annotation through to initial task" do
 			Sync(annotation: 'foobar') do |task|
 				expect(task.annotation).to be == 'foobar'
 			end
