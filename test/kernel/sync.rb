@@ -27,19 +27,39 @@ describe Kernel do
 				expect(task.annotation).to be == 'foobar'
 			end
 		end
-		
+
 		it "can run inside reactor" do
 			Async do |task|
 				result = Sync do |sync_task|
 					expect(Async::Task.current).to be == task
 					expect(sync_task).to be == task
-					
+
 					next value
 				end
-				
+
 				expect(result).to be == value
 			end
 		end
+
+		with "parent task" do
+			it "replaces and restores existing task's annotation" do
+				annotations = []
+
+				Async(annotation: "foo") do |t1|
+					annotations << t1.annotation
+
+					Sync(annotation: "bar") do |t2|
+						expect(t2).to be_equal(t1)
+						annotations << t1.annotation
+					end
+
+					annotations << t1.annotation
+				end.wait
+
+				expect(annotations).to be == %w[foo bar foo]
+			end
+		end
+
 		
 		it "can propagate error without logging them" do
 			expect(Console).not.to receive(:error)

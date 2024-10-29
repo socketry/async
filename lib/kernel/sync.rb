@@ -17,7 +17,11 @@ module Kernel
 	# @asynchronous Will block until given block completes executing.
 	def Sync(*arguments, **options, &block)
 		if task = ::Async::Task.current?
-			yield task
+			if annotation = options[:annotation]
+				task.annotate(annotation) { yield task }
+			else
+				yield task
+			end
 		elsif scheduler = Fiber.scheduler
 			::Async::Task.run(scheduler, &block).wait
 		else
