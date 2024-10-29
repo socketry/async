@@ -29,13 +29,7 @@ module Kernel
 			reactor = Async::Reactor.new
 			
 			begin
-				options = {
-					finished: ::Async::Condition.new
-				}
-
-				options[:annotation] = annotation if annotation
-
-				return reactor.run(**options, &block).wait
+				return reactor.run(annotation: annotation, finished: ::Async::Condition.new, &block).wait
 			ensure
 				Fiber.set_scheduler(nil)
 			end
