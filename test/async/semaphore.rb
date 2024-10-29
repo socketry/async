@@ -1,24 +1,24 @@
 # frozen_string_literal: true
 
 # Released under the MIT License.
-# Copyright, 2018-2023, by Samuel Williams.
+# Copyright, 2018-2024, by Samuel Williams.
 
-require 'async/semaphore'
-require 'async/barrier'
-require 'sus/fixtures/async'
+require "async/semaphore"
+require "async/barrier"
+require "sus/fixtures/async"
 
-require 'chainable_async'
-require 'timer_quantum'
+require "chainable_async"
+require "timer_quantum"
 
 describe Async::Semaphore do
 	include Sus::Fixtures::Async::ReactorContext
 	let(:semaphore) {subject.new}
 	
-	with '#async' do
+	with "#async" do
 		let(:repeats) {10}
 		let(:limit) {4}
 		
-		it 'should process work in batches' do
+		it "should process work in batches" do
 			semaphore = Async::Semaphore.new(limit)
 			current, maximum = 0, 0
 			
@@ -40,7 +40,7 @@ describe Async::Semaphore do
 			expect(result).to be == (0...repeats).to_a
 		end
 		
-		it 'only allows one task at a time' do
+		it "only allows one task at a time" do
 			semaphore = Async::Semaphore.new(1)
 			order = []
 			
@@ -55,7 +55,7 @@ describe Async::Semaphore do
 			expect(order).to be == [0, 0, 1, 1, 2, 2]
 		end
 		
-		it 'allows tasks to execute concurrently' do
+		it "allows tasks to execute concurrently" do
 			semaphore = Async::Semaphore.new(3)
 			order = []
 			
@@ -71,10 +71,10 @@ describe Async::Semaphore do
 		end
 	end
 	
-	with '#waiting' do
+	with "#waiting" do
 		let(:semaphore) {Async::Semaphore.new(0)}
 		
-		it 'handles exceptions thrown while waiting' do
+		it "handles exceptions thrown while waiting" do
 			expect do
 				reactor.with_timeout(0.001) do
 					semaphore.acquire do
@@ -86,8 +86,8 @@ describe Async::Semaphore do
 		end
 	end
 	
-	with '#count' do
-		it 'should count number of current acquisitions' do
+	with "#count" do
+		it "should count number of current acquisitions" do
 			expect(semaphore.count).to be == 0
 			
 			semaphore.acquire do
@@ -96,14 +96,14 @@ describe Async::Semaphore do
 		end
 	end
 	
-	with '#limit' do
-		it 'should have a default limit' do
+	with "#limit" do
+		it "should have a default limit" do
 			expect(semaphore.limit).to be == 1
 		end
 	end
 	
-	with '#empty?' do
-		it 'should be empty unless acquired' do
+	with "#empty?" do
+		it "should be empty unless acquired" do
 			expect(semaphore).to be(:empty?)
 			
 			semaphore.acquire do
@@ -112,8 +112,8 @@ describe Async::Semaphore do
 		end
 	end
 	
-	with '#blocking?' do
-		it 'will be blocking when acquired' do
+	with "#blocking?" do
+		it "will be blocking when acquired" do
 			expect(semaphore).not.to be(:blocking?)
 			
 			semaphore.acquire do
@@ -122,8 +122,8 @@ describe Async::Semaphore do
 		end
 	end
 	
-	with '#acquire/#release' do
-		it 'works when called without block' do
+	with "#acquire/#release" do
+		it "works when called without block" do
 			semaphore.acquire
 			
 			expect(semaphore.count).to be == 1
@@ -134,12 +134,12 @@ describe Async::Semaphore do
 		end
 	end
 	
-	with 'barrier' do
+	with "barrier" do
 		let(:capacity) {2}
 		let(:barrier) {Async::Barrier.new}
 		let(:repeats) {capacity * 2}
 		
-		it 'should execute several tasks and wait using a barrier' do
+		it "should execute several tasks and wait using a barrier" do
 			repeats.times do
 				semaphore.async(parent: barrier) do |task|
 					task.sleep(0.01)
@@ -151,14 +151,14 @@ describe Async::Semaphore do
 		end
 	end
 	
-	with '#limit' do
+	with "#limit" do
 		it "has a default limit of 1" do
 			expect(semaphore).to have_attributes(limit: be == 1)
 			expect(semaphore).not.to be(:blocking?)
 		end
 	end
 	
-	with '#limit=' do
+	with "#limit=" do
 		it "releases tasks when limit is increased" do
 			semaphore.acquire
 			expect(semaphore).to have_attributes(count: be == 1)

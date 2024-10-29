@@ -2,10 +2,10 @@
 # frozen_string_literal: true
 
 # Released under the MIT License.
-# Copyright, 2019-2022, by Samuel Williams.
+# Copyright, 2019-2024, by Samuel Williams.
 
-require 'async'
-require 'async/queue'
+require "async"
+require "async/queue"
 
 Async do
 	# Queue of up to 10 items:

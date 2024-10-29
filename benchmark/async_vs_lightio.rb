@@ -2,12 +2,12 @@
 # frozen_string_literal: true
 
 # Released under the MIT License.
-# Copyright, 2018-2022, by Samuel Williams.
+# Copyright, 2018-2024, by Samuel Williams.
 
-require 'async'
-require 'lightio'
+require "async"
+require "lightio"
 
-require 'benchmark/ips'
+require "benchmark/ips"
 
 #
 # It's hard to know exactly how to interpret these results. When running parallel

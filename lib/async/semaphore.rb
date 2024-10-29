@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
 # Released under the MIT License.
-# Copyright, 2018-2023, by Samuel Williams.
+# Copyright, 2018-2024, by Samuel Williams.
 
-require_relative 'list'
+require_relative "list"
 
 module Async
 	# A synchronization primitive, which limits access to a given resource.

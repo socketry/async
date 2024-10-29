@@ -4,8 +4,8 @@
 # Released under the MIT License.
 # Copyright, 2024, by Samuel Williams.
 
-require_relative '../../lib/async'
-require_relative '../../lib/async/idler'
+require_relative "../../lib/async"
+require_relative "../../lib/async/idler"
 
 Async do
 	idler = Async::Idler.new(0.8)
@@ -13,7 +13,7 @@ Async do
 	Async do
 		while true
 			idler.async do
-				$stdout.write '.'
+				$stdout.write "."
 				while true
 					sleep 0.1
 				end

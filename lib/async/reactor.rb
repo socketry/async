@@ -5,7 +5,7 @@
 # Copyright, 2017, by Kent Gruber.
 # Copyright, 2018, by Sokolov Yura.
 
-require_relative 'scheduler'
+require_relative "scheduler"
 
 module Async
 	# A wrapper around the the scheduler which binds it to the current thread automatically.

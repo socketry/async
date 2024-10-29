@@ -4,7 +4,7 @@
 # Copyright, 2017-2024, by Samuel Williams.
 # Copyright, 2017, by Kent Gruber.
 
-require 'async/node'
+require "async/node"
 
 describe Async::Children do
 	let(:children) {subject.new}

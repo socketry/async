@@ -7,11 +7,11 @@ Gem::Specification.new do |spec|
 	spec.version = Async::VERSION
 	
 	spec.summary = "A concurrency framework for Ruby."
-	spec.authors = ["Samuel Williams", "Bruno Sutic", "Jeremy Jung", "Olle Jonsson", "Devin Christensen", "Patrik Wenger", "Emil Tin", "Jamie McCarthy", "Kent Gruber", "Brian Morearty", "Colin Kelley", "Dimitar Peychinov", "Gert Goet", "Jiang Jinyang", "Julien Portalier", "Jun Jiang", "Ken Muryoi", "Leon Löchner", "Masafumi Okura", "Masayuki Yamamoto", "Math Ieu", "Ryan Musgrave", "Salim Semaoune", "Shannon Skipper", "Sokolov Yura", "Stefan Wrobel", "Trevor Turk"]
+	spec.authors = ["Samuel Williams", "Bruno Sutic", "Jeremy Jung", "Olle Jonsson", "Patrik Wenger", "Devin Christensen", "Emil Tin", "Jamie McCarthy", "Kent Gruber", "Brian Morearty", "Colin Kelley", "Dimitar Peychinov", "Gert Goet", "Jiang Jinyang", "Julien Portalier", "Jun Jiang", "Ken Muryoi", "Leon Löchner", "Masafumi Okura", "Masayuki Yamamoto", "Math Ieu", "Ryan Musgrave", "Salim Semaoune", "Shannon Skipper", "Sokolov Yura", "Stefan Wrobel", "Trevor Turk"]
 	spec.license = "MIT"
 	
-	spec.cert_chain  = ['release.cert']
-	spec.signing_key = File.expand_path('~/.gem/release.pem')
+	spec.cert_chain  = ["release.cert"]
+	spec.signing_key = File.expand_path("~/.gem/release.pem")
 	
 	spec.homepage = "https://github.com/socketry/async"
 	
@@ -21,9 +21,9 @@ Gem::Specification.new do |spec|
 		"source_code_uri" => "https://github.com/socketry/async.git",
 	}
 	
-	spec.files = Dir.glob(['{lib}/**/*', '*.md'], File::FNM_DOTMATCH, base: __dir__)
+	spec.files = Dir.glob(["{lib}/**/*", "*.md"], File::FNM_DOTMATCH, base: __dir__)
 	
-	spec.required_ruby_version = ">= 3.1.1"
+	spec.required_ruby_version = ">= 3.1"
 	
 	spec.add_dependency "console", "~> 1.26"
 	spec.add_dependency "fiber-annotation"

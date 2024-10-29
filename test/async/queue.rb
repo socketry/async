@@ -5,12 +5,12 @@
 # Copyright, 2019, by Ryan Musgrave.
 # Copyright, 2020-2022, by Bruno Sutic.
 
-require 'async'
-require 'async/queue'
-require 'sus/fixtures/async'
-require 'async/semaphore'
+require "async"
+require "async/queue"
+require "sus/fixtures/async"
+require "async/semaphore"
 
-require 'chainable_async'
+require "chainable_async"
 
 AQueue = Sus::Shared("a queue") do
 	let(:queue) {subject.new}
@@ -31,8 +31,8 @@ AQueue = Sus::Shared("a queue") do
 		end
 	end
 	
-	with '#each' do
-		it 'can enumerate queue items' do
+	with "#each" do
+		it "can enumerate queue items" do
 			reactor.async do |task|
 				10.times do |item|
 					task.sleep(0.0001)
@@ -51,7 +51,7 @@ AQueue = Sus::Shared("a queue") do
 		end
 	end
 	
-	it 'should process items in order' do
+	it "should process items in order" do
 		reactor.async do |task|
 			10.times do |i|
 				task.sleep(0.001)
@@ -64,7 +64,7 @@ AQueue = Sus::Shared("a queue") do
 		end
 	end
 	
-	it 'can enqueue multiple items' do
+	it "can enqueue multiple items" do
 		items = Array.new(10) { rand(10) }
 
 		reactor.async do |task|
@@ -76,7 +76,7 @@ AQueue = Sus::Shared("a queue") do
 		end
 	end
 	
-	it 'can dequeue items asynchronously' do
+	it "can dequeue items asynchronously" do
 		reactor.async do |task|
 			queue << 1
 			queue << nil
@@ -87,31 +87,31 @@ AQueue = Sus::Shared("a queue") do
 		end
 	end
 	
-	with '#<<' do
-		it 'adds an item to the queue' do
+	with "#<<" do
+		it "adds an item to the queue" do
 			queue << :item
 			expect(queue.size).to be == 1
 			expect(queue.dequeue).to be == :item
 		end
 	end
 	
-	with '#size' do
-		it 'returns queue size' do
+	with "#size" do
+		it "returns queue size" do
 			expect(queue.size).to be == 0
 			queue.enqueue("Hello World")
 			expect(queue.size).to be == 1
 		end
 	end
 	
-	with '#signal' do
-		it 'can signal with an item' do
+	with "#signal" do
+		it "can signal with an item" do
 			queue.signal(:item)
 			expect(queue.dequeue).to be == :item
 		end
 	end
 	
-	with '#wait' do
-		it 'can wait for an item' do
+	with "#wait" do
+		it "can wait for an item" do
 			reactor.async do |task|
 				queue.enqueue(:item)
 			end
@@ -120,14 +120,14 @@ AQueue = Sus::Shared("a queue") do
 		end
 	end
 	
-	with 'an empty queue' do
+	with "an empty queue" do
 		it "is expected to be empty" do
 			expect(queue).to be(:empty?)
 		end
 	end
 	
-	with 'task finishing queue' do
-		it 'can signal task completion' do
+	with "task finishing queue" do
+		it "can signal task completion" do
 			3.times do
 				Async(finished: queue) do
 					:result
@@ -141,12 +141,12 @@ AQueue = Sus::Shared("a queue") do
 		end
 	end
 	
-	with 'semaphore' do
+	with "semaphore" do
 		let(:capacity) {2}
 		let(:semaphore) {Async::Semaphore.new(capacity)}
 		let(:repeats) {capacity * 2}
 		
-		it 'should process several items limited by a semaphore' do
+		it "should process several items limited by a semaphore" do
 			count = 0
 			
 			Async do
@@ -192,13 +192,13 @@ describe Async::LimitedQueue do
 	
 	let(:queue) {subject.new}
 	
-	it 'should become limited' do
+	it "should become limited" do
 		expect(queue).not.to be(:limited?)
 		queue.enqueue(10)
 		expect(queue).to be(:limited?)
 	end
 	
-	it 'enqueues items up to a limit' do
+	it "enqueues items up to a limit" do
 		items = Array.new(2) { rand(10) }
 		reactor.async do
 			queue.enqueue(*items)
@@ -208,14 +208,14 @@ describe Async::LimitedQueue do
 		expect(queue.dequeue).to be == items.first
 	end
 	
-	it 'should resume waiting tasks in order' do
+	it "should resume waiting tasks in order" do
 		total_resumed = 0
 		total_dequeued = 0
 		
 		Async do |producer|
 			10.times do
 				producer.async do
-					queue.enqueue('foo')
+					queue.enqueue("foo")
 					total_resumed += 1
 				end
 			end
@@ -229,8 +229,8 @@ describe Async::LimitedQueue do
 		end
 	end
 	
-	with '#<<' do
-		with 'a limited queue' do
+	with "#<<" do
+		with "a limited queue" do
 			def before
 				queue << :item1
 				expect(queue.size).to be == 1
@@ -239,7 +239,7 @@ describe Async::LimitedQueue do
 				super
 			end
 			
-			it 'waits until a queue is dequeued' do
+			it "waits until a queue is dequeued" do
 				reactor.async do
 					queue << :item2
 				end

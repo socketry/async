@@ -2,9 +2,9 @@
 # frozen_string_literal: true
 
 # Released under the MIT License.
-# Copyright, 2019-2022, by Samuel Williams.
+# Copyright, 2019-2024, by Samuel Williams.
 
-require_relative '../../lib/async'; require_relative '../../lib/async/queue'
+require_relative "../../lib/async"; require_relative "../../lib/async/queue"
 
 Async do |consumer|
 	consumer.annotate "consumer"

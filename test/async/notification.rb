@@ -3,17 +3,17 @@
 # Released under the MIT License.
 # Copyright, 2018-2024, by Samuel Williams.
 
-require 'sus/fixtures/async'
-require 'async/notification'
+require "sus/fixtures/async"
+require "async/notification"
 
-require 'async/a_condition'
+require "async/a_condition"
 
 describe Async::Notification do
 	include Sus::Fixtures::Async::ReactorContext
 	
 	let(:notification) {subject.new}
 	
-	it 'should continue after notification is signalled' do
+	it "should continue after notification is signalled" do
 		sequence = []
 		
 		task = reactor.async do

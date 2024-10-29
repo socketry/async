@@ -3,7 +3,7 @@
 # Released under the MIT License.
 # Copyright, 2018-2024, by Samuel Williams.
 
-require 'async'
+require "async"
 
 describe Enumerator do
 	def some_yielder(task)

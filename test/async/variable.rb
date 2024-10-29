@@ -3,8 +3,8 @@
 # Released under the MIT License.
 # Copyright, 2021-2024, by Samuel Williams.
 
-require 'sus/fixtures/async'
-require 'async/variable'
+require "sus/fixtures/async"
+require "async/variable"
 
 VariableContext = Sus::Shared("a variable") do
 	let(:variable) {Async::Variable.new}

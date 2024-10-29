@@ -3,17 +3,17 @@
 # Released under the MIT License.
 # Copyright, 2020-2024, by Samuel Williams.
 
-require 'sus/fixtures/async'
-require 'async/reactor'
-require 'async/barrier'
-require 'net/http'
+require "sus/fixtures/async"
+require "async/reactor"
+require "async/barrier"
+require "net/http"
 
 describe Async::Scheduler do
 	it "is supported" do
 		expect(Async::Scheduler).to be(:supported?)
 	end
 	
-	describe 'Fiber.schedule' do
+	describe "Fiber.schedule" do
 		it "can start child task" do
 			fiber = nil
 			
@@ -46,7 +46,7 @@ describe Async::Scheduler do
 		end
 	end
 	
-	with '#run_once' do
+	with "#run_once" do
 		it "can run the scheduler with a specific timeout" do
 			scheduler = Async::Scheduler.new
 			Fiber.set_scheduler(scheduler)
@@ -66,7 +66,7 @@ describe Async::Scheduler do
 		end
 	end
 	
-	with '#interrupt' do
+	with "#interrupt" do
 		it "can interrupt a scheduler while it's not running" do
 			scheduler = Async::Scheduler.new
 			finished = false
@@ -168,7 +168,7 @@ describe Async::Scheduler do
 		end
 	end
 	
-	with '#block' do
+	with "#block" do
 		it "can block and unblock the scheduler after closing" do
 			scheduler = Async::Scheduler.new
 			

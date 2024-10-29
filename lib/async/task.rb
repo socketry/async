@@ -7,11 +7,11 @@
 # Copyright, 2020, by Patrik Wenger.
 # Copyright, 2023, by Math Ieu.
 
-require 'fiber'
-require 'console/event/failure'
+require "fiber"
+require "console/event/failure"
 
-require_relative 'node'
-require_relative 'condition'
+require_relative "node"
+require_relative "condition"
 
 Fiber.attr_accessor :async_task
 

@@ -1,12 +1,12 @@
 # frozen_string_literal: true
 
 # Released under the MIT License.
-# Copyright, 2022, by Samuel Williams.
+# Copyright, 2022-2024, by Samuel Williams.
 
-require 'sus/fixtures/async'
-require 'net/http'
-require 'async/barrier'
-require 'openssl'
+require "sus/fixtures/async"
+require "net/http"
+require "async/barrier"
+require "openssl"
 
 describe Net::HTTP do
 	include Sus::Fixtures::Async::ReactorContext

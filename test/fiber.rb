@@ -3,9 +3,9 @@
 # Released under the MIT License.
 # Copyright, 2022-2024, by Samuel Williams.
 
-require 'async'
-require 'async/variable'
-require 'child_process'
+require "async"
+require "async/variable"
+require "child_process"
 
 describe Fiber do
 	with ".new" do
@@ -55,7 +55,7 @@ describe Fiber do
 		end
 	end
 	
-	with '.schedule' do
+	with ".schedule" do
 		it "can create several tasks" do
 			sequence = []
 			
@@ -76,7 +76,7 @@ describe Fiber do
 			expect(sequence).to be == [0, 1, 2]
 		end
 		
-		it 'correctly handles exceptions in process' do
+		it "correctly handles exceptions in process" do
 			buffer = ChildProcess.spawn(<<~RUBY)
 				require 'async'
 				
@@ -95,7 +95,7 @@ describe Fiber do
 			expect(buffer).not.to be(:include?, "Finished sleeping!")
 		end
 		
-		it 'correctly handles exceptions' do
+		it "correctly handles exceptions" do
 			finished_sleeping = nil
 			
 			thread = Thread.new do

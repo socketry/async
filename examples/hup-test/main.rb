@@ -4,7 +4,7 @@
 # Released under the MIT License.
 # Copyright, 2023-2024, by Samuel Williams.
 
-require 'console'
+require "console"
 
 while true
 	pid = Process.spawn("./child.rb")

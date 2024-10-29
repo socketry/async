@@ -1,11 +1,11 @@
 # frozen_string_literal: true
 
 # Released under the MIT License.
-# Copyright, 2022-2023, by Samuel Williams.
+# Copyright, 2022-2024, by Samuel Williams.
 
-require 'async/scheduler'
-require 'sus/fixtures/async'
-require 'timeout'
+require "async/scheduler"
+require "sus/fixtures/async"
+require "timeout"
 
 describe Async::Scheduler do
 	include Sus::Fixtures::Async::ReactorContext

@@ -4,17 +4,17 @@
 # Copyright, 2017, by Kent Gruber.
 # Copyright, 2017-2024, by Samuel Williams.
 
-require 'sus/fixtures/async'
-require 'async/condition'
+require "sus/fixtures/async"
+require "async/condition"
 
-require 'async/a_condition'
+require "async/a_condition"
 
 describe Async::Condition do
 	include Sus::Fixtures::Async::ReactorContext
 	
 	let(:condition) {subject.new}
 	
-	it 'should continue after condition is signalled' do
+	it "should continue after condition is signalled" do
 		task = reactor.async do
 			condition.wait
 		end
@@ -27,7 +27,7 @@ describe Async::Condition do
 		expect(task).to be(:completed?)
 	end
 	
-	it 'can stop nested task' do
+	it "can stop nested task" do
 		producer = nil
 		
 		consumer = reactor.async do |task|

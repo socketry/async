@@ -4,8 +4,8 @@
 # Released under the MIT License.
 # Copyright, 2019-2024, by Samuel Williams.
 
-require 'irb'
-require 'console'
+require "irb"
+require "console"
 
 pids = ARGV.collect(&:to_i)
 
@@ -60,7 +60,7 @@ def strace(pid, duration = 60)
 	if first_line = input.gets
 		if rule = input.gets # horizontal separator
 			pattern = Regexp.new(
-				rule.split(/\s/).map{|s| "(.{1,#{s.size}})"}.join(' ')
+				rule.split(/\s/).map{|s| "(.{1,#{s.size}})"}.join(" ")
 			)
 			
 			header = pattern.match(first_line).captures.map{|key| key.strip.to_sym}

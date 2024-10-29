@@ -35,16 +35,12 @@ jobs:
     
     steps:
     - uses: actions/checkout@v4
-    
-    - name: Install packages (Ubuntu)
-      if: matrix.os == 'ubuntu'
-      run: sudo apt-get install -y liburing-dev
-    
-    - uses: ruby/setup-ruby@v1
+    - uses: ruby/setup-ruby-pkgs@v1
       with:
         ruby-version: ${{matrix.ruby}}
         bundler-cache: true
         cache-version: io_uring
+        apt-get: liburing-dev
     
     - name: Run tests
       timeout-minutes: 5
@@ -54,6 +50,8 @@ jobs:
     
     - uses: actions/upload-artifact@v4
       with:
+        include-hidden-files: true
+        if-no-files-found: error
         name: coverage-${{matrix.os}}-${{matrix.ruby}}-${{matrix.selector}}
         path: .covered.db
   

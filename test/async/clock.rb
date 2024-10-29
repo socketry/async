@@ -1,11 +1,11 @@
 # frozen_string_literal: true
 
 # Released under the MIT License.
-# Copyright, 2018-2022, by Samuel Williams.
+# Copyright, 2018-2024, by Samuel Williams.
 
-require 'async/clock'
+require "async/clock"
 
-require 'timer_quantum'
+require "timer_quantum"
 
 describe Async::Clock do
 	let(:clock) {subject.new}
@@ -32,8 +32,8 @@ describe Async::Clock do
 		expect(clock.total).to be_within(2 * Q).of(0.02)
 	end
 	
-	with '#total' do
-		with 'initial duration' do
+	with "#total" do
+		with "initial duration" do
 			let(:clock) {subject.new(1.5)}
 			let(:total) {clock.total}
 			
@@ -51,7 +51,7 @@ describe Async::Clock do
 		end
 	end
 	
-	with '.start' do
+	with ".start" do
 		let(:clock) {subject.start}
 		let(:total) {clock.total}
 		

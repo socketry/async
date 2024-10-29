@@ -3,7 +3,7 @@
 # Released under the MIT License.
 # Copyright, 2022-2024, by Samuel Williams.
 
-require 'async/list'
+require "async/list"
 
 class Item < Async::List::Node
 	def initialize(value)
@@ -17,7 +17,7 @@ end
 describe Async::List do
 	let(:list) {Async::List.new}
 	
-	with '#append' do
+	with "#append" do
 		it "can append items" do
 			list.append(Item.new(1))
 			list.append(Item.new(2))
@@ -38,7 +38,7 @@ describe Async::List do
 		end
 	end
 	
-	with '#prepend' do
+	with "#prepend" do
 		it "can prepend items" do
 			list.prepend(Item.new(1))
 			list.prepend(Item.new(2))
@@ -57,7 +57,7 @@ describe Async::List do
 		end
 	end
 	
-	with '#remove' do
+	with "#remove" do
 		it "can remove items" do
 			item = Item.new(1)
 			
@@ -91,7 +91,7 @@ describe Async::List do
 		end
 	end
 	
-	with '#each' do
+	with "#each" do
 		it "can iterate over nodes while deleting them" do
 			nodes = [Item.new(1), Item.new(2), Item.new(3)]
 			nodes.each do |node|
@@ -130,7 +130,7 @@ describe Async::List do
 		end
 	end
 	
-	with '#first' do
+	with "#first" do
 		it "returns nil for an empty list" do
 			expect(list.first).to be_nil
 		end
@@ -146,7 +146,7 @@ describe Async::List do
 		end
 	end
 	
-	with '#last' do
+	with "#last" do
 		it "returns nil for an empty list" do
 			expect(list.last).to be_nil
 		end

@@ -4,9 +4,9 @@
 # Copyright, 2017-2024, by Samuel Williams.
 # Copyright, 2017, by Devin Christensen.
 
-require 'async'
-require 'sus/fixtures/async'
-require 'benchmark/ips'
+require "async"
+require "sus/fixtures/async"
+require "benchmark/ips"
 
 describe Async::Reactor do
 	let(:reactor) {subject.new}
@@ -15,7 +15,7 @@ describe Async::Reactor do
 		Fiber.set_scheduler(nil)
 	end
 	
-	with '#run' do
+	with "#run" do
 		it "can run tasks on different fibers" do
 			outer_fiber = Fiber.current
 			inner_fiber = nil
@@ -30,7 +30,7 @@ describe Async::Reactor do
 		end
 	end
 	
-	with '#close' do
+	with "#close" do
 		it "can close empty reactor" do
 			reactor.close
 			
@@ -74,7 +74,7 @@ describe Async::Reactor do
 		end
 	end
 	
-	with '#run' do
+	with "#run" do
 		it "can run the reactor" do
 			# Run the reactor for 1 second:
 			task = reactor.async do |task|
@@ -105,7 +105,7 @@ describe Async::Reactor do
 		end
 	end
 	
-	with '#print_hierarchy' do
+	with "#print_hierarchy" do
 		it "can print hierarchy" do
 			reactor.async do |parent|
 				parent.async do |child|
@@ -143,7 +143,7 @@ describe Async::Reactor do
 		end
 	end
 	
-	with '#stop' do
+	with "#stop" do
 		it "can stop the reactor" do
 			state = nil
 			
@@ -222,7 +222,7 @@ describe Async::Reactor do
 		expect(result).to be_a(Async::Task)
 	end
 	
-	with '#with_timeout' do
+	with "#with_timeout" do
 		let(:duration) {1}
 		
 		it "stops immediately" do
@@ -262,13 +262,13 @@ describe Async::Reactor do
 		end
 	end
 	
-	with '#to_s' do
+	with "#to_s" do
 		it "shows stopped" do
 			expect(reactor.to_s).to be =~ /stopped/
 		end
 	end
 	
-	with 'Kernel.Async' do
+	with "Kernel.Async" do
 		it "reuses existing scheduler" do
 			# Assign the scheduler:
 			reactor = self.reactor
@@ -285,7 +285,7 @@ describe Async::Reactor do
 		end
 	end
 	
-	with 'Kernel.Sync' do
+	with "Kernel.Sync" do
 		it "reuses existing scheduler" do
 			# Assign the scheduler:
 			reactor = self.reactor
@@ -306,7 +306,7 @@ end
 describe Async::Reactor do
 	include Sus::Fixtures::Async::ReactorContext
 	
-	with '#async' do
+	with "#async" do
 		it "can pass in arguments" do
 			reactor.async(:arg) do |task, arg|
 				expect(arg).to be == :arg

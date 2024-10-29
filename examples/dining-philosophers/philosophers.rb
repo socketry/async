@@ -4,8 +4,8 @@
 # Released under the MIT License.
 # Copyright, 2024, by Samuel Williams.
 
-require 'async'
-require 'async/semaphore'
+require "async"
+require "async/semaphore"
 
 class Philosopher
 	def initialize(name, left_fork, right_fork)

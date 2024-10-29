@@ -3,13 +3,13 @@
 # Released under the MIT License.
 # Copyright, 2018-2024, by Samuel Williams.
 
-require 'async/variable'
+require "async/variable"
 
 module Async
 	ACondition = Sus::Shared("a condition") do
 		let(:condition) {subject.new}
 		
-		it 'can signal waiting task' do
+		it "can signal waiting task" do
 			state = nil
 			
 			reactor.async do
@@ -27,7 +27,7 @@ module Async
 			expect(state).to be == :resumed
 		end
 		
-		it 'should be able to signal stopped task' do
+		it "should be able to signal stopped task" do
 			expect(condition).to be(:empty?)
 			expect(condition).not.to be(:waiting?)
 			
@@ -43,7 +43,7 @@ module Async
 			condition.signal
 		end
 		
-		it 'resumes tasks in order' do
+		it "resumes tasks in order" do
 			order = []
 			
 			5.times do |i|
@@ -84,13 +84,13 @@ module Async
 				super
 			end
 			
-			it 'can timeout while waiting' do
+			it "can timeout while waiting" do
 				@task.wait
 				
 				expect(@state).to be == :timeout
 			end
 			
-			it 'can signal while waiting' do
+			it "can signal while waiting" do
 				waiting.wait
 				ready.resolve
 				

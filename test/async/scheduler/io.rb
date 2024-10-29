@@ -1,11 +1,11 @@
 # frozen_string_literal: true
 
 # Released under the MIT License.
-# Copyright, 2021-2023, by Samuel Williams.
+# Copyright, 2021-2024, by Samuel Williams.
 
-require 'async/scheduler'
-require 'sus/fixtures/async'
-require 'io/nonblock'
+require "async/scheduler"
+require "sus/fixtures/async"
+require "io/nonblock"
 
 describe Async::Scheduler do
 	include Sus::Fixtures::Async::ReactorContext
@@ -29,10 +29,10 @@ describe Async::Scheduler do
 			
 			child = reactor.async do
 				c = s2.getc
-				expect(c).to be == 'a'
+				expect(c).to be == "a"
 			end
 			
-			s1.putc('a')
+			s1.putc("a")
 			
 			child.wait
 		ensure
@@ -47,12 +47,12 @@ describe Async::Scheduler do
 			s2.nonblock = false
 			
 			child = reactor.async do
-				expect(s2.read(1)).to be == 'a'
+				expect(s2.read(1)).to be == "a"
 				expect(s2.read(1)).to be == nil
 			end
 			
 			sleep(0.01)
-			s1.write('a')
+			s1.write("a")
 			sleep(0.01)
 			s1.close
 			

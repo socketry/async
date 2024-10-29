@@ -1,26 +1,26 @@
 # frozen_string_literal: true
 
 # Released under the MIT License.
-# Copyright, 2019-2022, by Samuel Williams.
+# Copyright, 2019-2024, by Samuel Williams.
 
-require 'async/barrier'
-require 'async/clock'
-require 'sus/fixtures/async'
-require 'async/semaphore'
+require "async/barrier"
+require "async/clock"
+require "sus/fixtures/async"
+require "async/semaphore"
 
-require 'chainable_async'
-require 'timer_quantum'
+require "chainable_async"
+require "timer_quantum"
 
 describe Async::Barrier do
 	include Sus::Fixtures::Async::ReactorContext
 	
 	let(:barrier) {subject.new}
 	
-	with '#async' do
+	with "#async" do
 		let(:repeats) {40}
 		let(:delay) {0.01}
 		
-		it 'should wait for all jobs to complete' do
+		it "should wait for all jobs to complete" do
 			finished = 0
 			
 			repeats.times.map do |i|
@@ -46,8 +46,8 @@ describe Async::Barrier do
 		end
 	end
 	
-	with '#wait' do
-		it 'should wait for tasks even after exceptions' do
+	with "#wait" do
+		it "should wait for tasks even after exceptions" do
 			task1 = barrier.async do
 				raise "Boom"
 			end
@@ -67,7 +67,7 @@ describe Async::Barrier do
 			expect(barrier).to be(:empty?)
 		end
 		
-		it 'waits for tasks in order' do
+		it "waits for tasks in order" do
 			order = []
 			
 			5.times do |i|
@@ -82,7 +82,7 @@ describe Async::Barrier do
 		end
 		
 		# It's possible for Barrier#wait to be interrupted with an unexpected exception, and this should not cause the barrier to incorrectly remove that task from the wait list.
-		it 'waits for tasks with timeouts' do
+		it "waits for tasks with timeouts" do
 			begin
 				reactor.with_timeout(5/100.0/2) do
 					5.times do |i|
@@ -103,7 +103,7 @@ describe Async::Barrier do
 		end
 	end
 	
-	with '#stop' do
+	with "#stop" do
 		it "can stop several tasks" do
 			task1 = barrier.async do |task|
 				task.sleep(10)
@@ -167,12 +167,12 @@ describe Async::Barrier do
 		end
 	end
 	
-	with 'semaphore' do
+	with "semaphore" do
 		let(:capacity) {2}
 		let(:semaphore) {Async::Semaphore.new(capacity)}
 		let(:repeats) {capacity * 2}
 		
-		it 'should execute several tasks and wait using a barrier' do
+		it "should execute several tasks and wait using a barrier" do
 			repeats.times do
 				barrier.async(parent: semaphore) do |task|
 					task.sleep 0.01

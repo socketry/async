@@ -4,8 +4,8 @@
 # Copyright, 2022-2024, by Samuel Williams.
 # Copyright, 2024, by Patrik Wenger.
 
-require 'async/waiter'
-require 'sus/fixtures/async'
+require "async/waiter"
+require "sus/fixtures/async"
 
 describe Async::Waiter do
 	include Sus::Fixtures::Async::ReactorContext
@@ -44,13 +44,13 @@ describe Async::Waiter do
 		end.to raise_exception(RuntimeError)
 	end
 
-	with 'barrier parent' do
+	with "barrier parent" do
 		let(:barrier) { Async::Barrier.new }
 		let(:waiter) { subject.new(parent: barrier) }
 
 		it "passes annotation to barrier" do
-			expect(barrier).to receive(:async).with(annotation: 'waited upon task')
-			waiter.async(annotation: 'waited upon task') { }
+			expect(barrier).to receive(:async).with(annotation: "waited upon task")
+			waiter.async(annotation: "waited upon task") { }
 		end
 	end
 end

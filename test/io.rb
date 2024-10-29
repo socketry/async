@@ -3,12 +3,12 @@
 # Released under the MIT License.
 # Copyright, 2022-2024, by Samuel Williams.
 
-require 'sus/fixtures/async'
+require "sus/fixtures/async"
 
 describe IO do
 	include Sus::Fixtures::Async::ReactorContext
 	
-	describe '.pipe' do
+	describe ".pipe" do
 		let(:message) {"Helloooooo World!"}
 		
 		it "can send message via pipe" do
@@ -75,7 +75,7 @@ describe IO do
 		end
 	end
 	
-	describe '/dev/null' do
+	describe "/dev/null" do
 		# Ruby < 3.3.1 will fail this test with the `io_write` scheduler hook enabled, as it will try to io_wait on /dev/null which will fail on some platforms (kqueue).
 		it "can write to /dev/null" do
 			out = File.open("/dev/null", "w")

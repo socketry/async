@@ -2,11 +2,11 @@
 # frozen_string_literal: true
 
 # Released under the MIT License.
-# Copyright, 2018-2022, by Samuel Williams.
+# Copyright, 2018-2024, by Samuel Williams.
 
 # frozen_string_literal: true
 
-require 'async/reactor'
+require "async/reactor"
 
 class Callback
 	def initialize

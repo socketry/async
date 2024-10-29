@@ -4,8 +4,8 @@
 # Copyright, 2017-2024, by Samuel Williams.
 # Copyright, 2017, by Kent Gruber.
 
-require 'fiber'
-require_relative 'list'
+require "fiber"
+require_relative "list"
 
 module Async
 	# A synchronization primitive, which allows fibers to wait until a particular condition is (edge) triggered.

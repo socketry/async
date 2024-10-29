@@ -5,13 +5,13 @@
 # Copyright, 2020, by Jun Jiang.
 # Copyright, 2021, by Julien Portalier.
 
-require_relative 'clock'
-require_relative 'task'
+require_relative "clock"
+require_relative "task"
 
-require 'io/event'
+require "io/event"
 
-require 'console'
-require 'resolv'
+require "console"
+require "resolv"
 
 module Async
 	# Handles scheduling of fibers. Implements the fiber scheduler interface.

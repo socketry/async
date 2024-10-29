@@ -5,13 +5,13 @@
 # Copyright, 2023, by Math Ieu.
 # Copyright, 2023, by Emil Tin.
 
-require 'async'
-require 'async/clock'
-require 'async/queue'
+require "async"
+require "async/clock"
+require "async/queue"
 
-require 'sus/fixtures/console'
+require "sus/fixtures/console"
 
-require 'timer_quantum'
+require "timer_quantum"
 
 describe Async::Task do
 	let(:reactor) {Async::Reactor.new}
@@ -20,7 +20,7 @@ describe Async::Task do
 		Fiber.set_scheduler(nil)
 	end
 	
-	with '#annotate' do
+	with "#annotate" do
 		it "can annotate the current task that has not started yet" do
 			task = Async::Task.new(reactor) do |task|
 				sleep
@@ -46,7 +46,7 @@ describe Async::Task do
 		end
 	end
 	
-	with '.yield' do
+	with ".yield" do
 		it "can yield back to scheduler" do
 			state = nil
 			
@@ -66,7 +66,7 @@ describe Async::Task do
 		end
 	end
 	
-	with '#run' do
+	with "#run" do
 		it "can't be invoked twice" do
 			task = reactor.async do |task|
 			end
@@ -75,7 +75,7 @@ describe Async::Task do
 		end
 	end
 	
-	with '#current?' do
+	with "#current?" do
 		it "can check if it is the currently running task" do
 			task = reactor.async do |task|
 				expect(task).to be(:current?)
@@ -86,7 +86,7 @@ describe Async::Task do
 		end
 	end
 	
-	with '#async' do
+	with "#async" do
 		it "can start child async tasks" do
 			parent = reactor.async do |task|
 				child = task.async do
@@ -190,7 +190,7 @@ describe Async::Task do
 		end
 	end
 	
-	with '#yield' do
+	with "#yield" do
 		it "can yield back to reactor" do
 			state = nil
 			
@@ -206,7 +206,7 @@ describe Async::Task do
 		end
 	end
 	
-	with '#stop' do
+	with "#stop" do
 		it "can't stop finished tasks" do
 			task = reactor.async{}
 			
@@ -541,7 +541,7 @@ describe Async::Task do
 		end
 	end
 	
-	with '#sleep' do
+	with "#sleep" do
 		let(:duration) {0.01}
 		
 		it "can sleep for the requested duration" do
@@ -562,7 +562,7 @@ describe Async::Task do
 		end
 	end
 	
-	with '#with_timeout' do
+	with "#with_timeout" do
 		it "can extend timeout" do
 			reactor.async do |task|
 				task.with_timeout(0.02) do |timer|
@@ -656,7 +656,7 @@ describe Async::Task do
 		end
 	end
 	
-	with '#backtrace' do
+	with "#backtrace" do
 		it "has a backtrace" do
 			Async do
 				task = Async do |task|
@@ -678,7 +678,7 @@ describe Async::Task do
 		end
 	end
 	
-	with '#wait' do
+	with "#wait" do
 		it "will wait on another task to complete" do
 			apples_task = reactor.async do |task|
 				task.sleep(0.01)
@@ -744,8 +744,8 @@ describe Async::Task do
 		end
 	end
 	
-	with '#result' do
-		it 'does not raise exception' do
+	with "#result" do
+		it "does not raise exception" do
 			task = reactor.async do
 				raise "The space time converter has failed."
 			end
@@ -757,7 +757,7 @@ describe Async::Task do
 			expect(task.result).to be_a(RuntimeError)
 		end
 		
-		it 'does not wait for task completion' do
+		it "does not wait for task completion" do
 			task = reactor.async do |task|
 				task.sleep(1)
 			end
@@ -772,34 +772,34 @@ describe Async::Task do
 		end
 	end
 	
-	with '#complete?' do
-		with 'running task' do
-			it 'is not complete?' do
+	with "#complete?" do
+		with "running task" do
+			it "is not complete?" do
 				reactor.async do |task|
 					expect(task).not.to be(:complete?)
 				end
 			end
 		end
 		
-		with 'completed task' do
-			it 'is complete?' do
+		with "completed task" do
+			it "is complete?" do
 				task = reactor.async{}
 				expect(task).to be(:complete?)
 			end
 		end
 	end
 	
-	with '#stopped?' do
-		with 'running task' do
-			it 'is not stopped?' do
+	with "#stopped?" do
+		with "running task" do
+			it "is not stopped?" do
 				reactor.async do |task|
 					expect(task).not.to be(:stopped?)
 				end
 			end
 		end
 		
-		with 'stopped task' do
-			it 'is stopped?' do
+		with "stopped task" do
+			it "is stopped?" do
 				reactor.async do |task|
 					child = task.async do |task|
 						sleep(1)
@@ -813,7 +813,7 @@ describe Async::Task do
 		end
 	end
 	
-	with '#children' do
+	with "#children" do
 		it "enumerates children in same order they are created" do
 			tasks = 10.times.map do |i|
 				reactor.async(annotation: "Task #{i}") {|task| task.sleep(1)}
@@ -823,7 +823,7 @@ describe Async::Task do
 		end
 	end
 	
-	with '#to_s' do
+	with "#to_s" do
 		it "should show running" do
 			apples_task = reactor.async do |task|
 				task.sleep(0.1)
@@ -853,7 +853,7 @@ describe Async::Task do
 		end
 	end
 	
-	with '#defer_stop' do
+	with "#defer_stop" do
 		it "can defer stopping a task" do
 			child_task = reactor.async do |task|
 				task.defer_stop do

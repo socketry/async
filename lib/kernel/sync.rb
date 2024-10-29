@@ -3,6 +3,7 @@
 # Released under the MIT License.
 # Copyright, 2019-2024, by Samuel Williams.
 # Copyright, 2020, by Brian Morearty.
+# Copyright, 2024, by Patrik Wenger.
 
 require_relative "../async/reactor"
 

@@ -3,12 +3,13 @@
 # Released under the MIT License.
 # Copyright, 2019-2024, by Samuel Williams.
 # Copyright, 2020, by Brian Morearty.
+# Copyright, 2024, by Patrik Wenger.
 
-require 'kernel/async'
-require 'kernel/sync'
+require "kernel/async"
+require "kernel/sync"
 
 describe Kernel do
-	with '#Sync' do
+	with "#Sync" do
 		let(:value) {10}
 		
 		it "can run a synchronous task" do
@@ -23,8 +24,8 @@ describe Kernel do
 		end
 
 		it "passes annotation through to initial task" do
-			Sync(annotation: 'foobar') do |task|
-				expect(task.annotation).to be == 'foobar'
+			Sync(annotation: "foobar") do |task|
+				expect(task.annotation).to be == "foobar"
 			end
 		end
 

@@ -4,8 +4,8 @@
 # Released under the MIT License.
 # Copyright, 2023-2024, by Samuel Williams.
 
-require_relative '../../lib/async'
-require 'console'
+require_relative "../../lib/async"
+require "console"
 
 Async do |task|
 	while true

@@ -1,13 +1,13 @@
 # frozen_string_literal: true
 
 # Released under the MIT License.
-# Copyright, 2017-2023, by Samuel Williams.
+# Copyright, 2017-2024, by Samuel Williams.
 
-require 'async/reactor'
-require 'sus/fixtures/async/reactor_context'
+require "async/reactor"
+require "sus/fixtures/async/reactor_context"
 
 describe Async::Reactor do
-	with '.run (in existing reactor)' do
+	with ".run (in existing reactor)" do
 		include Sus::Fixtures::Async::ReactorContext
 		
 		it "should nest reactor" do
@@ -23,7 +23,7 @@ describe Async::Reactor do
 		end
 	end
 	
-	with '::run' do
+	with "::run" do
 		it "should nest reactor" do
 			expect(Async::Task.current?).to be_nil
 			inner_reactor = nil

@@ -5,7 +5,7 @@
 # Copyright, 2019, by Ryan Musgrave.
 # Copyright, 2020-2022, by Bruno Sutic.
 
-require_relative 'notification'
+require_relative "notification"
 
 module Async
 	# A queue which allows items to be processed in order.

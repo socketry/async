@@ -3,7 +3,7 @@
 # Released under the MIT License.
 # Copyright, 2021-2024, by Samuel Williams.
 
-require_relative 'condition'
+require_relative "condition"
 
 module Async
 	# A synchronization primitive that allows one task to wait for another task to resolve a value.

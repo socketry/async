@@ -5,7 +5,7 @@
 # Copyright, 2017, by Kent Gruber.
 # Copyright, 2024, by Patrik Wenger.
 
-source 'https://rubygems.org'
+source "https://rubygems.org"
 
 gemspec
 

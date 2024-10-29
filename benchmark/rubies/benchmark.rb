@@ -4,8 +4,8 @@
 # Released under the MIT License.
 # Copyright, 2019-2024, by Samuel Williams.
 
-require 'socket'
-require 'fiber'
+require "socket"
+require "fiber"
 
 puts
 puts RUBY_DESCRIPTION

@@ -1,15 +1,15 @@
 # frozen_string_literal: true
 
 # Released under the MIT License.
-# Copyright, 2017-2022, by Samuel Williams.
+# Copyright, 2017-2024, by Samuel Williams.
 # Copyright, 2022, by Shannon Skipper.
 
-require 'async/node'
+require "async/node"
 
 describe Async::Node do
 	let(:node) {subject.new}
 	
-	with '#children?' do
+	with "#children?" do
 		with "no children" do
 			it "hasn't got any children" do
 				expect(node).not.to be(:children?)
@@ -24,7 +24,7 @@ describe Async::Node do
 		end
 	end
 	
-	with '#parent=' do
+	with "#parent=" do
 		let(:child) {Async::Node.new(node)}
 		
 		it "should construct nested tree" do
@@ -55,7 +55,7 @@ describe Async::Node do
 		end
 	end
 	
-	with '#print_hierarchy' do
+	with "#print_hierarchy" do
 		let(:buffer) {StringIO.new}
 		let(:output) {buffer.string}
 		let(:lines) {output.lines}
@@ -72,31 +72,31 @@ describe Async::Node do
 		end
 	end
 	
-	with '#inspect' do
+	with "#inspect" do
 		let(:node) {Async::Node.new}
 		
-		it 'should begin with the class name' do
+		it "should begin with the class name" do
 			expect(node.inspect).to be(:start_with?, "#<#{node.class.name}")
 		end
 		
-		it 'should end with hex digits' do
+		it "should end with hex digits" do
 			expect(node.inspect).to be =~ /\h>\z/
 		end
 		
-		it 'should have a standard number of hex digits' do
+		it "should have a standard number of hex digits" do
 			expect(node.inspect).to be =~ /:0x\h{16}>/
 		end
 		
-		it 'should have a colon in the middle' do
-			name, middle, hex = node.inspect.rpartition(':')
+		it "should have a colon in the middle" do
+			name, middle, hex = node.inspect.rpartition(":")
 			
 			expect(name).to be(:end_with?, node.class.name)
-			expect(middle).to be == ':'
+			expect(middle).to be == ":"
 			expect(hex).to be =~ /\A\h+/
 		end
 	end
 	
-	with '#consume' do
+	with "#consume" do
 		it "can't consume middle node" do
 			middle = Async::Node.new(node)
 			bottom = Async::Node.new(middle)
@@ -177,28 +177,28 @@ describe Async::Node do
 		end
 	end
 	
-	with '#annotate' do
-		let(:annotation) {'reticulating splines'}
+	with "#annotate" do
+		let(:annotation) {"reticulating splines"}
 		
 		it "should have no annotation by default" do
 			expect(node.annotation).to be_nil
 		end
 		
-		it 'should output annotation when invoking #to_s' do
+		it "should output annotation when invoking #to_s" do
 			node.annotate(annotation) do
 				expect(node.to_s).to be(:include?, annotation)
 			end
 		end
 		
-		it 'can assign annotation' do
+		it "can assign annotation" do
 			node.annotate(annotation)
 			
 			expect(node.annotation).to be == annotation
 		end
 	end
 	
-	with '#transient' do
-		it 'can move transient child to parent' do
+	with "#transient" do
+		it "can move transient child to parent" do
 			# This example represents a persistent web connection (middle) with a background reader (child). We look at how when that connection goes out of scope, what happens to the child.
 			
 			# node -> middle -> child (transient)
@@ -225,7 +225,7 @@ describe Async::Node do
 			node.terminate
 		end
 		
-		it 'can move transient sibling to parent' do
+		it "can move transient sibling to parent" do
 			# This example represents a server task (middle) which has a single task listening on incoming connections (child2), and a transient task which is monitoring those connections/some shared resource (child1). We look at what happens when the server listener finishes.
 			
 			# node -> middle -> child1 (transient)
@@ -257,7 +257,7 @@ describe Async::Node do
 			expect(middle.children).to be_nil
 		end
 		
-		it 'ignores non-transient children of transient parent' do
+		it "ignores non-transient children of transient parent" do
 			# node -> middle (transient) -> child
 			middle = Async::Node.new(node, transient: true)
 			child = Async::Node.new(middle)
@@ -275,7 +275,7 @@ describe Async::Node do
 		
 		let(:timeout) {nil}
 		
-		it 'does not stop child transient tasks' do
+		it "does not stop child transient tasks" do
 			middle = Async::Node.new(node, annotation: "middle")
 			child1 = Async::Node.new(middle, transient: true, annotation: "child1")
 			child2 = Async::Node.new(middle, annotation: "child2")
@@ -289,8 +289,8 @@ describe Async::Node do
 		end
 	end
 	
-	with '#terminate' do
-		it 'stops all tasks' do
+	with "#terminate" do
+		it "stops all tasks" do
 			middle = Async::Node.new(node, annotation: "middle")
 			child1 = Async::Node.new(middle, transient: true, annotation: "child1")
 			child2 = Async::Node.new(middle, annotation: "child2")
@@ -302,8 +302,8 @@ describe Async::Node do
 		end
 	end
 	
-	with '#traverse' do
-		it 'can traverse without a block' do
+	with "#traverse" do
+		it "can traverse without a block" do
 			middle = Async::Node.new(node, annotation: "middle")
 			child1 = Async::Node.new(middle, transient: true, annotation: "child1")
 			child2 = Async::Node.new(middle, annotation: "child2")

@@ -4,10 +4,10 @@
 # Released under the MIT License.
 # Copyright, 2024, by Samuel Williams.
 
-require 'benchmark/ips'
+require "benchmark/ips"
 
-require 'timers'
-require 'io/event/timers'
+require "timers"
+require "io/event/timers"
 
 Benchmark.ips do |benchmark|
 	benchmark.time = 1

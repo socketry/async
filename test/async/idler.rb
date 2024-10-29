@@ -3,16 +3,16 @@
 # Released under the MIT License.
 # Copyright, 2024, by Samuel Williams.
 
-require 'async/idler'
-require 'sus/fixtures/async'
+require "async/idler"
+require "sus/fixtures/async"
 
-require 'chainable_async'
+require "chainable_async"
 
 describe Async::Idler do
 	include Sus::Fixtures::Async::ReactorContext
 	let(:idler) {subject.new(0.5)}
 	
-	it 'can schedule tasks up to the desired load' do
+	it "can schedule tasks up to the desired load" do
 		expect(Fiber.scheduler.load).to be < 0.1
 		
 		# Generate the load:

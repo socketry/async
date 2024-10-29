@@ -3,7 +3,7 @@
 # Released under the MIT License.
 # Copyright, 2017-2024, by Samuel Williams.
 
-require 'sus/fixtures/async'
+require "sus/fixtures/async"
 require "async/wrapper"
 
 describe Async::Wrapper do
@@ -18,13 +18,13 @@ describe Async::Wrapper do
 		output.close unless output.closed?
 	end
 	
-	with '#wait_readable' do
+	with "#wait_readable" do
 		it "can wait to be readable" do
 			reader = reactor.async do
 				expect(output.wait_readable).to be_truthy
 			end
 			
-			input.io.write('Hello World')
+			input.io.write("Hello World")
 			reader.wait
 		end
 		
@@ -37,7 +37,7 @@ describe Async::Wrapper do
 		it "can wait for readability in sequential tasks" do
 			reactor.async do
 				input.wait_writable(1)
-				input.io.write('Hello World')
+				input.io.write("Hello World")
 			end
 			
 			2.times do
@@ -48,7 +48,7 @@ describe Async::Wrapper do
 		end
 	end
 	
-	with '#wait_writable' do
+	with "#wait_writable" do
 		it "can wait to be writable" do
 			expect(input.wait_writable).to be_truthy
 		end
@@ -66,7 +66,7 @@ describe Async::Wrapper do
 		end
 	end
 	
-	with '#wait_priority' do
+	with "#wait_priority" do
 		let(:pipe) {::Socket.pair(:UNIX, :STREAM)}
 		
 		it "can invoke wait_priority on the underlying io" do
@@ -77,7 +77,7 @@ describe Async::Wrapper do
 		it "can wait for out of band data" do
 			begin
 				# I've tested this successfully on Linux but it fails on Darwin.
-				input.io.send('!', Socket::MSG_OOB)
+				input.io.send("!", Socket::MSG_OOB)
 			rescue => error
 				skip error.message
 			end
@@ -94,7 +94,7 @@ describe Async::Wrapper do
 		it "can wait for any events" do
 			reactor.async do
 				input.wait_any(1)
-				input.io.write('Hello World')
+				input.io.write("Hello World")
 			end
 			
 			expect(output.wait_readable(1)).to be_truthy
@@ -116,18 +116,18 @@ describe Async::Wrapper do
 		end
 	end
 	
-	with '#reactor=' do
-		it 'can assign a wrapper to a reactor' do
+	with "#reactor=" do
+		it "can assign a wrapper to a reactor" do
 			input.reactor = reactor
 			
 			expect(input.reactor).to be == reactor
 		end
 	end
 	
-	with '#dup' do
+	with "#dup" do
 		let(:dup) {input.dup}
 		
-		it 'dups the underlying io' do
+		it "dups the underlying io" do
 			expect(dup.io).not.to be == input.io
 			
 			dup.close
@@ -136,7 +136,7 @@ describe Async::Wrapper do
 		end
 	end
 	
-	with '#close' do
+	with "#close" do
 		it "can't wait on closed wrapper" do
 			input.close
 			output.close

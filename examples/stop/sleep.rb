@@ -2,14 +2,14 @@
 # frozen_string_literal: true
 
 # Released under the MIT License.
-# Copyright, 2019-2022, by Samuel Williams.
+# Copyright, 2019-2024, by Samuel Williams.
 
-require_relative '../../lib/async'
+require_relative "../../lib/async"
 
-require 'async/http/endpoint'
-require 'async/http/server'
+require "async/http/endpoint"
+require "async/http/server"
 
-require 'async/http/internet'
+require "async/http/internet"
 
 # To query the web server:
 # curl http://localhost:9292/kittens
