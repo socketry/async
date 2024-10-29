@@ -14,11 +14,13 @@ describe Kernel do
 			end
 		end
 		
-		it "passes options through to initial task" do
+		it "passes transient: options through to initial task" do
 			Async(transient: true) do |task|
 				expect(task).to be(:transient?)
 			end
-
+		end
+		
+		it "passes annotation: option through to initial task" do
 			Async(annotation: "foobar") do |task|
 				expect(task.annotation).to be == "foobar"
 			end
