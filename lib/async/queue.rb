@@ -88,7 +88,7 @@ module Async
 		end
 		
 		# Signal the queue with a value, the same as {#enqueue}.
-		def signal(value)
+		def signal(value = nil)
 			self.enqueue(value)
 		end
 		
