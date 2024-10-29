@@ -1,6 +1,6 @@
 # Releases
 
-## Unreleased
+## v2.18.0
 
   - Add support for `Sync(annotation:)`, so that you can annotate the block with a description of what it does, even if it doesn't create a new task.
 

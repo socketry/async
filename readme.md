@@ -35,6 +35,10 @@ Please see the [project documentation](https://socketry.github.io/async/) for mo
 
 Please see the [project releases](https://socketry.github.io/async/releases/index) for all releases.
 
+### v2.18.0
+
+  - Add support for `Sync(annotation:)`, so that you can annotate the block with a description of what it does, even if it doesn't create a new task.
+
 ### v2.17.0
 
   - Introduce `Async::Queue#push` and `Async::Queue#pop` for compatibility with `::Queue`.
