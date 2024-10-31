@@ -291,6 +291,16 @@ module Async
 			return @selector.process_wait(Fiber.current, pid, flags)
 		end
 		
+		def blocking_region(work)
+			thread = Thread.new(&work)
+			
+			thread.join
+			
+			thread = nil
+		ensure
+			thread&.kill
+		end
+		
 		# Run one iteration of the event loop.
 		#
 		# When terminating the event loop, we already know we are finished. So we don't need to check the task tree. This is a logical requirement because `run_once` ignores transient tasks. For example, a single top level transient task is not enough to keep the reactor running, but during termination we must still process it in order to terminate child tasks.
