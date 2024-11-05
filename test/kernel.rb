@@ -18,13 +18,17 @@ describe Kernel do
 	
 	with "#system" do
 		it "can execute child process" do
-			# expect(reactor).to receive(:process_wait)
+			expect(reactor).to receive(:process_wait)
 			
-			::Kernel.system("true")
+			result = ::Kernel.system("true")
+			
+			expect(result).to be == true
 			expect($?).to be(:success?)
 		end
 		
 		it "can fail to execute child process" do
+			expect(reactor).to receive(:process_wait)
+			
 			result = ::Kernel.system("does-not-exist")
 			
 			expect(result).to be == nil
