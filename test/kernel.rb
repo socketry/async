@@ -23,6 +23,13 @@ describe Kernel do
 			::Kernel.system("true")
 			expect($?).to be(:success?)
 		end
+		
+		it "can fail to execute child process" do
+			result = ::Kernel.system("does-not-exist")
+			
+			expect(result).to be == nil
+			expect($?).not.to be(:success?)
+		end
 	end
 	
 	with "#`" do
