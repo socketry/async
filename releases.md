@@ -2,6 +2,51 @@
 
 ## Unreleased
 
+### Async::Scheduler Debug
+
+Occasionally on issues, I encounter people asking for help and I need more information. Pressing Ctrl-C to exit a hung program is common, but it doesn't provide enough information to diagnose the problem. I've added a new environment variable, `ASYNC_SCHEDULER_DEBUG=true` which will print out the current state of the scheduler when you press Ctrl-C.
+
+```
+> ASYNC_SCHEDULER_DEBUG=true bundle exec ruby ./test.rb
+^CScheduler interrupted: Interrupt
+#<Async::Reactor:0x0000000000000910 1 children (running)>
+	#<Async::Task:0x0000000000000924 /home/samuel/Developer/socketry/async/lib/async/scheduler.rb:187:in `transfer' (running)>
+	→ /home/samuel/Developer/socketry/async/lib/async/scheduler.rb:187:in `transfer'
+	  /home/samuel/Developer/socketry/async/lib/async/scheduler.rb:187:in `block'
+	  /home/samuel/Developer/socketry/async/lib/async/scheduler.rb:209:in `kernel_sleep'
+	  ./test.rb:4:in `sleep'
+	  ./test.rb:4:in `sleepy'
+	  ./test.rb:10:in `sleepy'
+	  ./test.rb:10:in `sleepy'
+	  ./test.rb:10:in `sleepy'
+	  ./test.rb:14:in `block in <main>'
+	  /home/samuel/Developer/socketry/async/lib/async/task.rb:197:in `block in run'
+	  /home/samuel/Developer/socketry/async/lib/async/task.rb:420:in `block in schedule'
+		#<Async::Task:0x0000000000000938 /home/samuel/Developer/socketry/async/lib/async/scheduler.rb:187:in `transfer' (running)>
+		→ /home/samuel/Developer/socketry/async/lib/async/scheduler.rb:187:in `transfer'
+		  /home/samuel/Developer/socketry/async/lib/async/scheduler.rb:187:in `block'
+		  /home/samuel/Developer/socketry/async/lib/async/scheduler.rb:209:in `kernel_sleep'
+		  ./test.rb:4:in `sleep'
+		  ./test.rb:4:in `sleepy'
+		  ./test.rb:10:in `sleepy'
+		  ./test.rb:10:in `sleepy'
+		  ./test.rb:7:in `block in sleepy'
+		  /home/samuel/Developer/socketry/async/lib/async/task.rb:197:in `block in run'
+		  /home/samuel/Developer/socketry/async/lib/async/task.rb:420:in `block in schedule'
+/home/samuel/Developer/socketry/async/lib/async/scheduler.rb:319:in `select': Interrupt
+	from /home/samuel/Developer/socketry/async/lib/async/scheduler.rb:319:in `run_once!'
+	from /home/samuel/Developer/socketry/async/lib/async/scheduler.rb:355:in `run_once'
+	from /home/samuel/Developer/socketry/async/lib/async/scheduler.rb:417:in `block in run'
+	from /home/samuel/Developer/socketry/async/lib/async/scheduler.rb:388:in `block in run_loop'
+	from /home/samuel/Developer/socketry/async/lib/async/scheduler.rb:385:in `handle_interrupt'
+	from /home/samuel/Developer/socketry/async/lib/async/scheduler.rb:385:in `run_loop'
+	from /home/samuel/Developer/socketry/async/lib/async/scheduler.rb:416:in `run'
+	from /home/samuel/Developer/socketry/async/lib/kernel/async.rb:34:in `Async'
+	from ./test.rb:13:in `<main>'
+```
+
+This gives better visibility into what the scheduler is doing, and should help diagnose issues.
+
 ### Console Shims
 
 The `async` gem depends on `console` gem, because my goal was to have good logging by default without thinking about it too much. However, some users prefer to avoid using the `console` gem for logging, so I've added an experimental set of shims which should allow you to bypass the `console` gem entirely.

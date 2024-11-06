@@ -16,6 +16,9 @@ require "resolv"
 module Async
 	# Handles scheduling of fibers. Implements the fiber scheduler interface.
 	class Scheduler < Node
+		# Whether to enable debug output.
+		DEBUG = ENV.fetch("ASYNC_SCHEDULER_DEBUG", false) == "true"
+		
 		# Raised when an operation is attempted on a closed scheduler.
 		class ClosedError < RuntimeError
 			# Create a new error.
@@ -388,6 +391,11 @@ module Async
 				end
 			rescue Interrupt => interrupt
 				Thread.handle_interrupt(::SignalException => :never) do
+					if DEBUG
+						$stderr.puts "Scheduler interrupted: #{interrupt.inspect}"
+						self.print_hierarchy($stderr)
+					end
+					
 					self.stop
 				end
 				
@@ -395,7 +403,9 @@ module Async
 			end
 			
 			# If the event loop was interrupted, and we finished exiting normally (due to the interrupt), we need to re-raise the interrupt so that the caller can handle it too.
-			Kernel.raise(interrupt) if interrupt
+			if interrupt
+				Kernel.raise(interrupt)
+			end
 		end
 		
 		# Run the reactor until all tasks are finished. Proxies arguments to {#async} immediately before entering the loop, if a block is provided.
