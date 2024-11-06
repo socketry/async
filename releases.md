@@ -1,5 +1,28 @@
 # Releases
 
+## Unreleased
+
+### Console Shims
+
+The `async` gem depends on `console` gem, because my goal was to have good logging by default without thinking about it too much. However, some users prefer to avoid using the `console` gem for logging, so I've added an experimental set of shims which should allow you to bypass the `console` gem entirely.
+
+```ruby
+require 'async/console'
+require 'async'
+
+Async{raise "Boom"}
+```
+
+Will now use `Kernel#warn` to print the task failure warning:
+
+```
+#<Async::Task:0x00000000000012d4 /home/samuel/Developer/socketry/async/lib/async/task.rb:104:in `backtrace' (running)>
+Task may have ended with unhandled exception.
+(irb):4:in `block in <top (required)>': Boom (RuntimeError)
+	from /home/samuel/Developer/socketry/async/lib/async/task.rb:197:in `block in run'
+	from /home/samuel/Developer/socketry/async/lib/async/task.rb:420:in `block in schedule'
+```
+
 ## v2.18.0
 
   - Add support for `Sync(annotation:)`, so that you can annotate the block with a description of what it does, even if it doesn't create a new task.
