@@ -35,7 +35,11 @@ describe Async::Waiter do
 	end
 	
 	it "can wait for tasks even when exceptions occur" do
-		waiter.async do
+		waiter.async do |task|
+			expect(task).to receive(:warn).with_options(have_keys(
+				exception: be_a(RuntimeError),
+			)).and_return(nil)
+			
 			raise "Something went wrong"
 		end
 		

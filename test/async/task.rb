@@ -126,6 +126,8 @@ describe Async::Task do
 			reactor.run do
 				expect do
 					reactor.async do |task|
+						expect(task).to receive(:warn).and_return(nil)
+						
 						raise "boom"
 					end.wait
 				end.to raise_exception(RuntimeError, message: be =~ /boom/)
@@ -156,6 +158,8 @@ describe Async::Task do
 			
 			expect do
 				task = reactor.async do |task|
+					expect(task).to receive(:warn).and_return(nil)
+					
 					raise "boom"
 				end
 			end.not.to raise_exception
@@ -624,6 +628,10 @@ describe Async::Task do
 		
 		it "contains useful backtrace" do
 			task = Async do |task|
+				expect(task).to receive(:warn).with_options(have_keys(
+					exception: be_a(Async::TimeoutError),
+				)).and_return(nil)
+				
 				task.with_timeout(0.001) do
 					sleep_forever
 				end
@@ -686,6 +694,8 @@ describe Async::Task do
 			
 			reactor.run do
 				error_task = reactor.async do |task|
+					expect(task).to receive(:warn).and_return(nil)
+					
 					raise RuntimeError, "brain not provided"
 				end
 				
@@ -726,7 +736,9 @@ describe Async::Task do
 	
 	with "#result" do
 		it "does not raise exception" do
-			task = reactor.async do
+			task = reactor.async do |task|
+				expect(task).to receive(:warn).and_return(nil)
+				
 				raise "The space time converter has failed."
 			end
 			
@@ -746,7 +758,6 @@ describe Async::Task do
 			
 			expect(task.result).to be_nil
 			
-			Console.debug(self) {"Stopping task..."}
 			task.stop
 			
 			expect(task.result).to be_nil

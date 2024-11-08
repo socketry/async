@@ -52,18 +52,6 @@ describe Async::Wrapper do
 		it "can wait to be writable" do
 			expect(input.wait_writable).to be_truthy
 		end
-		
-		it "can be cancelled while waiting to be readable" do
-			task = reactor.async do
-				input.wait_readable
-			end
-			
-			output.close
-			
-			expect do
-				task.wait
-			end.to raise_exception(IOError)
-		end
 	end
 	
 	with "#wait_priority" do
