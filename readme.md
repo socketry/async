@@ -35,6 +35,11 @@ Please see the [project documentation](https://socketry.github.io/async/) for mo
 
 Please see the [project releases](https://socketry.github.io/async/releases/index) for all releases.
 
+### v2.19.0
+
+  - [Async::Scheduler Debugging](https://socketry.github.io/async/releases/index#async::scheduler-debugging)
+  - [Console Shims](https://socketry.github.io/async/releases/index#console-shims)
+
 ### v2.18.0
 
   - Add support for `Sync(annotation:)`, so that you can annotate the block with a description of what it does, even if it doesn't create a new task.

@@ -1,28 +1,26 @@
 # Releases
 
-## Unreleased
+## v2.19.0
 
 ### Async::Scheduler Debugging
 
 Occasionally on issues, I encounter people asking for help and I need more information. Pressing Ctrl-C to exit a hung program is common, but it usually doesn't provide enough information to diagnose the problem. Setting the `CONSOLE_LEVEL=debug` environment variable will now print additional information about the scheduler when you interrupt it, including a backtrace of the current tasks.
 
-```
-> CONSOLE_LEVEL=debug bundle exec ruby ./test.rb
-^C  0.0s    debug: Async::Reactor [oid=0x974] [ec=0x988] [pid=9116] [2024-11-08 14:12:03 +1300]
-               | Scheduler interrupted: Interrupt
-               | #<Async::Reactor:0x0000000000000974 1 children (running)>
-               | 	#<Async::Task:0x000000000000099c /Users/samuel/Developer/socketry/async/lib/async/scheduler.rb:185:in `transfer' (running)>
-               | 	→ /Users/samuel/Developer/socketry/async/lib/async/scheduler.rb:185:in `transfer'
-               | 	  /Users/samuel/Developer/socketry/async/lib/async/scheduler.rb:185:in `block'
-               | 	  /Users/samuel/Developer/socketry/async/lib/async/scheduler.rb:207:in `kernel_sleep'
-               | 	  /Users/samuel/Developer/socketry/async/test.rb:7:in `sleep'
-               | 	  /Users/samuel/Developer/socketry/async/test.rb:7:in `sleepy'
-               | 	  /Users/samuel/Developer/socketry/async/test.rb:12:in `block in <top (required)>'
-               | 	  /Users/samuel/Developer/socketry/async/lib/async/task.rb:197:in `block in run'
-               | 	  /Users/samuel/Developer/socketry/async/lib/async/task.rb:420:in `block in schedule'
-/Users/samuel/Developer/socketry/async/lib/async/scheduler.rb:317:in `select': Interrupt
-... (backtrace continues) ...
-```
+    > CONSOLE_LEVEL=debug bundle exec ruby ./test.rb
+    ^C  0.0s    debug: Async::Reactor [oid=0x974] [ec=0x988] [pid=9116] [2024-11-08 14:12:03 +1300]
+                   | Scheduler interrupted: Interrupt
+                   | #<Async::Reactor:0x0000000000000974 1 children (running)>
+                   | 	#<Async::Task:0x000000000000099c /Users/samuel/Developer/socketry/async/lib/async/scheduler.rb:185:in `transfer' (running)>
+                   | 	→ /Users/samuel/Developer/socketry/async/lib/async/scheduler.rb:185:in `transfer'
+                   | 	  /Users/samuel/Developer/socketry/async/lib/async/scheduler.rb:185:in `block'
+                   | 	  /Users/samuel/Developer/socketry/async/lib/async/scheduler.rb:207:in `kernel_sleep'
+                   | 	  /Users/samuel/Developer/socketry/async/test.rb:7:in `sleep'
+                   | 	  /Users/samuel/Developer/socketry/async/test.rb:7:in `sleepy'
+                   | 	  /Users/samuel/Developer/socketry/async/test.rb:12:in `block in <top (required)>'
+                   | 	  /Users/samuel/Developer/socketry/async/lib/async/task.rb:197:in `block in run'
+                   | 	  /Users/samuel/Developer/socketry/async/lib/async/task.rb:420:in `block in schedule'
+    /Users/samuel/Developer/socketry/async/lib/async/scheduler.rb:317:in `select': Interrupt
+    ... (backtrace continues) ...
 
 This gives better visibility into what the scheduler is doing, and should help diagnose issues.
 
@@ -30,7 +28,7 @@ This gives better visibility into what the scheduler is doing, and should help d
 
 The `async` gem depends on `console` gem, because my goal was to have good logging by default without thinking about it too much. However, some users prefer to avoid using the `console` gem for logging, so I've added an experimental set of shims which should allow you to bypass the `console` gem entirely.
 
-```ruby
+``` ruby
 require 'async/console'
 require 'async'
 
@@ -39,13 +37,11 @@ Async{raise "Boom"}
 
 Will now use `Kernel#warn` to print the task failure warning:
 
-```
-#<Async::Task:0x00000000000012d4 /home/samuel/Developer/socketry/async/lib/async/task.rb:104:in `backtrace' (running)>
-Task may have ended with unhandled exception.
-(irb):4:in `block in <top (required)>': Boom (RuntimeError)
-	from /home/samuel/Developer/socketry/async/lib/async/task.rb:197:in `block in run'
-	from /home/samuel/Developer/socketry/async/lib/async/task.rb:420:in `block in schedule'
-```
+    #<Async::Task:0x00000000000012d4 /home/samuel/Developer/socketry/async/lib/async/task.rb:104:in `backtrace' (running)>
+    Task may have ended with unhandled exception.
+    (irb):4:in `block in <top (required)>': Boom (RuntimeError)
+    	from /home/samuel/Developer/socketry/async/lib/async/task.rb:197:in `block in run'
+    	from /home/samuel/Developer/socketry/async/lib/async/task.rb:420:in `block in schedule'
 
 ## v2.18.0
 
