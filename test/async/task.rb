@@ -57,8 +57,6 @@ describe Async::Task do
 					state = :yielded
 				end
 				
-				# Async::Task.
-				
 				Fiber.scheduler.resume(child.fiber)
 			end
 			
