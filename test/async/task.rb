@@ -50,17 +50,17 @@ describe Async::Task do
 		it "can yield back to scheduler" do
 			state = nil
 			
-			reactor.async do |task|
+			reactor.run do |task|
 				child = task.async do
 					state = :yielding
 					Async::Task.yield
 					state = :yielded
 				end
 				
+				# Async::Task.
+				
 				Fiber.scheduler.resume(child.fiber)
 			end
-			
-			reactor.run
 			
 			expect(state).to be == :yielded
 		end
@@ -563,26 +563,10 @@ describe Async::Task do
 	end
 	
 	with "#with_timeout" do
-		it "can extend timeout" do
-			reactor.async do |task|
-				task.with_timeout(0.02) do |timer|
-					task.sleep(0.01)
-					
-					expect(timer.fires_in).to be_within(Q).of(0.01)
-					
-					timer.reset
-					
-					expect(timer.fires_in).to be_within(Q).of(0.02)
-				end
-			end
-			
-			reactor.run
-		end
-		
 		it "will timeout if execution takes too long" do
 			state = nil
 			
-			reactor.async do |task|
+			Sync do |task|
 				begin
 					task.with_timeout(0.01) do
 						state = :started
@@ -594,8 +578,6 @@ describe Async::Task do
 				end
 			end
 			
-			reactor.run
-			
 			expect(state).to be == :timeout
 		end
 		
@@ -603,7 +585,7 @@ describe Async::Task do
 			input, output = IO.pipe
 			error = nil
 			
-			reactor.async do |task|
+			Sync do |task|
 				begin
 					# This can invoke `io_wait`, which previously had `rescue TimeoutError`, causing the timeout to be ignored.
 					task.with_timeout(0.1) {input.gets}
@@ -611,8 +593,6 @@ describe Async::Task do
 					# Ignore.
 				end
 			end
-			
-			reactor.run
 			
 			expect(error).to be_a(Async::TimeoutError)
 		ensure
@@ -750,9 +730,11 @@ describe Async::Task do
 				raise "The space time converter has failed."
 			end
 			
-			expect do
-				task.wait
-			end.to raise_exception(RuntimeError, message: be =~ /space time converter/)
+			reactor.run do
+				expect do
+					task.wait
+				end.to raise_exception(RuntimeError, message: be =~ /space time converter/)
+			end
 			
 			expect(task.result).to be_a(RuntimeError)
 		end

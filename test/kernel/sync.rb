@@ -63,10 +63,10 @@ describe Kernel do
 
 		
 		it "can propagate error without logging them" do
-			expect(Console).not.to receive(:error)
-			
 			expect do
-				Sync do
+				Sync do |task|
+					expect(task).not.to receive(:warn)
+					
 					raise StandardError, "brain not provided"
 				end
 			end.to raise_exception(StandardError, message: be =~ /brain/)

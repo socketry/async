@@ -48,15 +48,14 @@ describe Async::Barrier do
 	
 	with "#wait" do
 		it "should wait for tasks even after exceptions" do
-			task1 = barrier.async do
+			task1 = barrier.async do |task|
+				expect(task).to receive(:warn).and_return(nil)
+				
 				raise "Boom"
 			end
 			
 			task2 = barrier.async do
 			end
-			
-			expect(task1).to be(:failed?)
-			expect(task2).to be(:finished?)
 			
 			expect{barrier.wait}.to raise_exception(RuntimeError, message: be =~ /Boom/)
 			
@@ -65,6 +64,9 @@ describe Async::Barrier do
 			expect{task1.wait}.to raise_exception(RuntimeError, message: be =~ /Boom/)
 			
 			expect(barrier).to be(:empty?)
+			
+			expect(task1).to be(:failed?)
+			expect(task2).to be(:finished?)
 		end
 		
 		it "waits for tasks in order" do

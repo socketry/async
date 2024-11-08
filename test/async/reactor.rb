@@ -5,8 +5,8 @@
 # Copyright, 2017, by Devin Christensen.
 
 require "async"
+require "async/variable"
 require "sus/fixtures/async"
-require "benchmark/ips"
 
 describe Async::Reactor do
 	let(:reactor) {subject.new}
@@ -198,6 +198,8 @@ describe Async::Reactor do
 	it "can't return" do
 		expect do
 			Async do |task|
+				expect(task).to receive(:warn).and_return(nil)
+				
 				return
 			end.wait
 		end.to raise_exception(LocalJumpError)
@@ -229,14 +231,14 @@ describe Async::Reactor do
 			start_time = Time.now
 			
 			subject.run do |task|
-				condition = Async::Condition.new
+				variable = Async::Variable.new
 				
 				task.with_timeout(duration) do
 					task.async do
-						condition.wait
+						variable.wait
 					end
 					
-					condition.signal
+					variable.resolve
 					
 					task.yield
 					
@@ -254,6 +256,8 @@ describe Async::Reactor do
 		it "raises specified exception" do
 			expect do
 				subject.run do |task|
+					expect(task).to receive(:warn).and_return(nil)
+					
 					task.with_timeout(0.0, timeout_class) do
 						task.sleep(1.0)
 					end

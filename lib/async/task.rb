@@ -198,7 +198,7 @@ module Async
 				rescue => error
 					# I'm not completely happy with this overhead, but the alternative is to not log anything which makes debugging extremely difficult. Maybe we can introduce a debug wrapper which adds extra logging.
 					if @finished.nil?
-						Console.warn(self, "Task may have ended with unhandled exception.", exception: error)
+						warn(self, "Task may have ended with unhandled exception.", exception: error)
 					end
 					
 					raise
@@ -359,6 +359,10 @@ module Async
 		end
 		
 		private
+		
+		def warn(...)
+			Console.warn(...)
+		end
 		
 		# Finish the current task, moving any children to the parent.
 		def finish!
