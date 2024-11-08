@@ -5,7 +5,7 @@
 
 module Async
 	# A convenient wrapper around the internal monotonic clock.
-	# @public Since `stable-v1`.
+	# @public Since *Async v1*.
 	class Clock
 		# Get the current elapsed monotonic time.
 		def self.now

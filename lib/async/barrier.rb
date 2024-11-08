@@ -9,11 +9,11 @@ require_relative "task"
 module Async
 	# A general purpose synchronisation primitive, which allows one task to wait for a number of other tasks to complete. It can be used in conjunction with {Semaphore}.
 	#
-	# @public Since `stable-v1`.
+	# @public Since *Async v1*.
 	class Barrier
 		# Initialize the barrier.
 		# @parameter parent [Task | Semaphore | Nil] The parent for holding any children tasks.
-		# @public Since `stable-v1`.
+		# @public Since *Async v1*.
 		def initialize(parent: nil)
 			@tasks = List.new
 			

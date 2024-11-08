@@ -12,7 +12,7 @@ module Async
 	#
 	# It has a compatible interface with {Notification} and {Condition}, except that it's multi-value.
 	#
-	# @public Since `stable-v1`.
+	# @public Since *Async v1*.
 	class Queue
 		# Create a new queue.
 		#
@@ -99,7 +99,7 @@ module Async
 	end
 	
 	# A queue which limits the number of items that can be enqueued.
-	# @public Since `stable-v1`.
+	# @public Since *Async v1*.
 	class LimitedQueue < Queue
 		# Create a new limited queue.
 		#

@@ -14,7 +14,7 @@ module Kernel
 	# @yields {|task| ...} The block that will execute asynchronously.
 	# 	@parameter task [Async::Task] The task that is executing the given block.
 	#
-	# @public Since `stable-v1`.
+	# @public Since *Async v1*.
 	# @asynchronous Will block until given block completes executing.
 	def Sync(annotation: nil, &block)
 		if task = ::Async::Task.current?

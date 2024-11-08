@@ -27,14 +27,14 @@ module Async
 		end
 		
 		# Whether the fiber scheduler is supported.
-		# @public Since `stable-v1`.
+		# @public Since *Async v1*.
 		def self.supported?
 			true
 		end
 		
 		# Create a new scheduler.
 		#
-		# @public Since `stable-v1`.
+		# @public Since *Async v1*.
 		# @parameter parent [Node | Nil] The parent node to use for task hierarchy.
 		# @parameter selector [IO::Event::Selector] The selector to use for event handling.
 		def initialize(parent = nil, selector: nil)
@@ -52,6 +52,7 @@ module Async
 		end
 		
 		# Compute the scheduler load according to the busy and idle times that are updated by the run loop.
+		#
 		# @returns [Float] The load of the scheduler. 0.0 means no load, 1.0 means fully loaded or over-loaded.
 		def load
 			total_time = @busy_time + @idle_time
@@ -95,7 +96,7 @@ module Async
 		end
 		
 		# Terminate all child tasks and close the scheduler.
-		# @public Since `stable-v1`.
+		# @public Since *Async v1*.
 		def close
 			self.run_loop do
 				until self.terminate
@@ -115,7 +116,7 @@ module Async
 		end
 		
 		# @returns [Boolean] Whether the scheduler has been closed.
-		# @public Since `stable-v1`.
+		# @public Since *Async v1*.
 		def closed?
 			@selector.nil?
 		end
@@ -167,6 +168,8 @@ module Async
 		end
 		
 		# Invoked when a fiber tries to perform a blocking operation which cannot continue. A corresponding call {unblock} must be performed to allow this fiber to continue.
+		#
+
 		# @asynchronous May only be called on same thread as fiber scheduler.
 		def block(blocker, timeout)
 			# $stderr.puts "block(#{blocker}, #{Fiber.current}, #{timeout})"
@@ -190,7 +193,13 @@ module Async
 			timer&.cancel!
 		end
 		
+		# Unblock a fiber that was previously blocked.
+		#
+		# @public Since *Async v2* and *Ruby v3.1*.
 		# @asynchronous May be called from any thread.
+		#
+		# @parameter blocker [Object] The object that was blocking the fiber.
+		# @parameter fiber [Fiber] The fiber to unblock.
 		def unblock(blocker, fiber)
 			# $stderr.puts "unblock(#{blocker}, #{fiber})"
 			
@@ -201,7 +210,12 @@ module Async
 			end
 		end
 		
-		# @asynchronous May be non-blocking..
+		# Sleep for the specified duration.
+		#
+		# @public Since *Async v2* and *Ruby v3.1*.
+		# @asynchronous May be non-blocking.
+		#
+		# @parameter duration [Numeric | Nil] The time in seconds to sleep, or if nil, indefinitely.
 		def kernel_sleep(duration = nil)
 			if duration
 				self.block(nil, duration)
@@ -210,14 +224,18 @@ module Async
 			end
 		end
 		
-		# @asynchronous May be non-blocking..
+		# Resolve the address of the given hostname.
+		#
+		# @public Since *Async v2*.
+		# @asynchronous May be non-blocking.
+		#
+		# @parameter hostname [String] The hostname to resolve.
 		def address_resolve(hostname)
 			# On some platforms, hostnames may contain a device-specific suffix (e.g. %en0). We need to strip this before resolving.
 			# See <https://github.com/socketry/async/issues/180> for more details.
 			hostname = hostname.split("%", 2).first
 			::Resolv.getaddresses(hostname)
 		end
-		
 		
 		if IO.method_defined?(:timeout)
 			private def get_timeout(io)
@@ -229,7 +247,14 @@ module Async
 			end
 		end
 		
-		# @asynchronous May be non-blocking..
+		# Wait for the specified IO to become ready for the specified events.
+		#
+		# @public Since *Async v2*.
+		# @asynchronous May be non-blocking.
+		#
+		# @parameter io [IO] The IO object to wait on.
+		# @parameter events [Integer] The events to wait for, e.g. `IO::READABLE`, `IO::WRITABLE`, etc.
+		# @parameter timeout [Float | Nil] The maximum time to wait, or if nil, indefinitely.
 		def io_wait(io, events, timeout = nil)
 			fiber = Fiber.current
 			
@@ -251,6 +276,15 @@ module Async
 		end
 		
 		if ::IO::Event::Support.buffer?
+			# Read from the specified IO into the buffer.
+			#
+			# @public Since *Async v2* and Ruby with `IO::Buffer` support.
+			# @asynchronous May be non-blocking.
+			#
+			# @parameter io [IO] The IO object to read from.
+			# @parameter buffer [IO::Buffer] The buffer to read into.
+			# @parameter length [Integer] The minimum number of bytes to read.
+			# @parameter offset [Integer] The offset within the buffer to read into.
 			def io_read(io, buffer, length, offset = 0)
 				fiber = Fiber.current
 				
@@ -266,6 +300,15 @@ module Async
 			end
 			
 			if RUBY_ENGINE != "ruby" || RUBY_VERSION >= "3.3.1"
+				# Write the specified buffer to the IO.
+				#
+				# @public Since *Async v2* and *Ruby v3.3.1* with `IO::Buffer` support.
+				# @asynchronous May be non-blocking.
+				#
+				# @parameter io [IO] The IO object to write to.
+				# @parameter buffer [IO::Buffer] The buffer to write from.
+				# @parameter length [Integer] The minimum number of bytes to write.
+				# @parameter offset [Integer] The offset within the buffer to write from.
 				def io_write(io, buffer, length, offset = 0)
 					fiber = Fiber.current
 					
@@ -283,6 +326,10 @@ module Async
 		end
 		
 		# Wait for the specified process ID to exit.
+		#
+		# @public Since *Async v2*.
+		# @asynchronous May be non-blocking.
+		#
 		# @parameter pid [Integer] The process ID to wait for.
 		# @parameter flags [Integer] A bit-mask of flags suitable for `Process::Status.wait`.
 		# @returns [Process::Status] A process status instance.
@@ -335,7 +382,10 @@ module Async
 		end
 		
 		# Run one iteration of the event loop.
-		# Does not handle interrupts.
+		#
+		# @public Since *Async v1*.
+		# @asynchronous Must be invoked from blocking (root) fiber.
+		#
 		# @parameter timeout [Float | Nil] The maximum timeout, or if nil, indefinite.
 		# @returns [Boolean] Whether there is more work to do.
 		def run_once(timeout = nil)
@@ -354,6 +404,7 @@ module Async
 		end
 		
 		# Checks and clears the interrupted state of the scheduler.
+		#
 		# @returns [Boolean] Whether the reactor has been interrupted.
 		private def interrupted?
 			if @interrupted
@@ -368,7 +419,9 @@ module Async
 			return false
 		end
 		
-		# Stop all children, including transient children, ignoring any signals.
+		# Stop all children, including transient children.
+		#
+		# @public Since *Async v1*.
 		def stop
 			@children&.each do |child|
 				child.stop
@@ -387,6 +440,7 @@ module Async
 					end
 				end
 			rescue Interrupt => interrupt
+				# If an interrupt did occur during an iteration of the event loop, we need to handle it. More specifically, `self.stop` is not safe to interrupt without potentially corrupting the task tree.
 				Thread.handle_interrupt(::SignalException => :never) do
 					Console.debug(self) do |buffer|
 						buffer.puts "Scheduler interrupted: #{interrupt.inspect}"
@@ -406,6 +460,13 @@ module Async
 		end
 		
 		# Run the reactor until all tasks are finished. Proxies arguments to {#async} immediately before entering the loop, if a block is provided.
+		#
+		# Forwards all parameters to {#async} if a block is given.
+		#
+		# @public Since *Async v1*.
+		#
+		# @yields {|task| ...} The top level task, if a block is given.
+		# @returns [Task] The initial task that was scheduled into the reactor.
 		def run(...)
 			Kernel.raise ClosedError if @selector.nil?
 			
@@ -418,30 +479,23 @@ module Async
 			return initial_task
 		end
 		
-		# Start an asynchronous task within the specified reactor. The task will be
-		# executed until the first blocking call, at which point it will yield and
-		# and this method will return.
+		# Start an asynchronous task within the specified reactor. The task will be executed until the first blocking call, at which point it will yield and and this method will return.
 		#
-		# This is the main entry point for scheduling asynchronus tasks.
+		# @public Since *Async v1*.
+		# @asynchronous May context switch immediately to new task.
+		# @deprecated Use {#run} or {Task#async} instead.
 		#
 		# @yields {|task| ...} Executed within the task.
 		# @returns [Task] The task that was scheduled into the reactor.
-		# @deprecated With no replacement.
 		def async(*arguments, **options, &block)
+			# warn "Async::Scheduler#async is deprecated. Use `run` or `Task#async` instead.", uplevel: 1, category: :deprecated
+			
 			Kernel.raise ClosedError if @selector.nil?
 			
 			task = Task.new(Task.current? || self, **options, &block)
 			
-			# I want to take a moment to explain the logic of this.
-			# When calling an async block, we deterministically execute it until the
-			# first blocking operation. We don't *have* to do this - we could schedule
-			# it for later execution, but it's useful to:
-			# - Fail at the point of the method call where possible.
-			# - Execute determinstically where possible.
-			# - Avoid scheduler overhead if no blocking operation is performed.
 			task.run(*arguments)
 			
-			# Console.debug "Initial execution of task #{fiber} complete (#{result} -> #{fiber.alive?})..."
 			return task
 		end
 		
@@ -450,7 +504,14 @@ module Async
 		end
 		
 		# Invoke the block, but after the specified timeout, raise {TimeoutError} in any currenly blocking operation. If the block runs to completion before the timeout occurs or there are no non-blocking operations after the timeout expires, the code will complete without any exception.
+		#
+		# @public Since *Async v1*.
+		# @asynchronous May raise an exception at any interruption point (e.g. blocking operations).
+		#
 		# @parameter duration [Numeric] The time in seconds, in which the task should complete.
+		# @parameter exception [Class] The exception class to raise.
+		# @parameter message [String] The message to pass to the exception.
+		# @yields {|duration| ...} The block to execute with a timeout.
 		def with_timeout(duration, exception = TimeoutError, message = "execution expired", &block)
 			fiber = Fiber.current
 			
@@ -465,6 +526,15 @@ module Async
 			timer&.cancel!
 		end
 		
+		# Invoke the block, but after the specified timeout, raise the specified exception with the given message. If the block runs to completion before the timeout occurs or there are no non-blocking operations after the timeout expires, the code will complete without any exception.
+		#
+		# @public Since *Async v1* and *Ruby v3.1*. May be invoked from `Timeout.timeout`.
+		# @asynchronous May raise an exception at any interruption point (e.g. blocking operations).
+		#
+		# @parameter duration [Numeric] The time in seconds, in which the task should complete.
+		# @parameter exception [Class] The exception class to raise.
+		# @parameter message [String] The message to pass to the exception.
+		# @yields {|duration| ...} The block to execute with a timeout.
 		def timeout_after(duration, exception, message, &block)
 			with_timeout(duration, exception, message) do |timer|
 				yield duration

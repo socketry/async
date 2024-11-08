@@ -7,7 +7,7 @@ require_relative "list"
 
 module Async
 	# A synchronization primitive, which limits access to a given resource.
-	# @public Since `stable-v1`.
+	# @public Since *Async v1*.
 	class Semaphore
 		# @parameter limit [Integer] The maximum number of times the semaphore can be acquired before it blocks.
 		# @parameter parent [Task | Semaphore | Nil] The parent for holding any children tasks.

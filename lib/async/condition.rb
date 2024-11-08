@@ -9,7 +9,7 @@ require_relative "list"
 
 module Async
 	# A synchronization primitive, which allows fibers to wait until a particular condition is (edge) triggered.
-	# @public Since `stable-v1`.
+	# @public Since *Async v1*.
 	class Condition
 		# Create a new condition.
 		def initialize

@@ -40,7 +40,7 @@ module Async
 	end
 	
 	# Raised if a timeout occurs on a specific Fiber. Handled gracefully by `Task`.
-	# @public Since `stable-v1`.
+	# @public Since *Async v1*.
 	class TimeoutError < StandardError
 		# Create a new timeout error.
 		#
@@ -50,7 +50,7 @@ module Async
 		end
 	end
 	
-	# @public Since `stable-v1`.
+	# @public Since *Async v1*.
 	class Task < Node
 		# Raised when a child task is created within a task that has finished execution.
 		class FinishedError < RuntimeError
@@ -210,6 +210,10 @@ module Async
 		
 		# Run an asynchronous task as a child of the current task.
 		#
+		# @public Since *Async v1*.
+		# @asynchronous May context switch immediately to the new task.
+		#
+		# @yields {|task| ...} in the context of the new task.
 		# @raises [FinishedError] If the task has already finished.
 		# @returns [Task] The child task.
 		def async(*arguments, **options, &block)
@@ -217,6 +221,13 @@ module Async
 			
 			task = Task.new(self, **options, &block)
 			
+			# When calling an async block, we deterministically execute it until the first blocking operation. We don't *have* to do this - we could schedule it for later execution, but it's useful to:
+			#
+			# - Fail at the point of the method call where possible.
+			# - Execute determinstically where possible.
+			# - Avoid scheduler overhead if no blocking operation is performed.
+			#
+			# There are different strategies (greedy vs non-greedy). We are currently using a greedy strategy.
 			task.run(*arguments)
 			
 			return task
@@ -302,7 +313,7 @@ module Async
 		# If stop is invoked a second time, it will be immediately executed.
 		#
 		# @yields {} The block of code to execute.
-		# @public Since `stable-v1`.
+		# @public Since *Async v1*.
 		def defer_stop
 			# Tri-state variable for controlling stop:
 			# - nil: defer_stop has not been called.

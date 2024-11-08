@@ -12,12 +12,15 @@ module Async
 	#
 	# This is an experimental feature.
 	module Console
+		# Log a message at the debug level. The shim is silent.
 		def self.debug(...)
 		end
 		
+		# Log a message at the info level. The shim is silent.
 		def self.info(...)
 		end
 		
+		# Log a message at the warn level. The shim redirects to `Kernel#warn`.
 		def self.warn(*arguments, exception: nil, **options)
 			if exception
 				super(*arguments, exception.full_message, **options)
@@ -26,10 +29,12 @@ module Async
 			end
 		end
 		
+		# Log a message at the error level. The shim redirects to `Kernel#warn`.
 		def self.error(...)
 			self.warn(...)
 		end
 		
+		# Log a message at the fatal level. The shim redirects to `Kernel#warn`.
 		def self.fatal(...)
 			self.warn(...)
 		end

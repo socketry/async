@@ -7,7 +7,8 @@ module Async
 	# A load balancing mechanism that can be used process work when the system is idle.
 	class Idler
 		# Create a new idler.
-		# @public Since `stable-v2`.
+		#
+		# @public Since *Async v2*.
 		#
 		# @parameter maximum_load [Numeric] The maximum load before we start shedding work.
 		# @parameter backoff [Numeric] The initial backoff time, used for delaying work.
