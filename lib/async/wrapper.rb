@@ -4,6 +4,8 @@
 # Copyright, 2017-2024, by Samuel Williams.
 # Copyright, 2017, by Kent Gruber.
 
+warn "Async::Wrapper is deprecated and will be removed on 2025-03-31. Please use native interfaces instead.", uplevel: 1, category: :deprecated
+
 module Async
 	# Represents an asynchronous IO within a reactor.
 	# @deprecated With no replacement. Prefer native interfaces.
