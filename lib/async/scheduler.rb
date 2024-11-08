@@ -16,9 +16,6 @@ require "resolv"
 module Async
 	# Handles scheduling of fibers. Implements the fiber scheduler interface.
 	class Scheduler < Node
-		# Whether to enable debug output.
-		DEBUG = ENV.fetch("ASYNC_SCHEDULER_DEBUG", false) == "true"
-		
 		# Raised when an operation is attempted on a closed scheduler.
 		class ClosedError < RuntimeError
 			# Create a new error.
@@ -391,9 +388,9 @@ module Async
 				end
 			rescue Interrupt => interrupt
 				Thread.handle_interrupt(::SignalException => :never) do
-					if DEBUG
-						$stderr.puts "Scheduler interrupted: #{interrupt.inspect}"
-						self.print_hierarchy($stderr)
+					Console.debug(self) do |buffer|
+						buffer.puts "Scheduler interrupted: #{interrupt.inspect}"
+						self.print_hierarchy(buffer)
 					end
 					
 					self.stop

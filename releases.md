@@ -2,47 +2,26 @@
 
 ## Unreleased
 
-### Async::Scheduler Debug
+### Async::Scheduler Debugging
 
-Occasionally on issues, I encounter people asking for help and I need more information. Pressing Ctrl-C to exit a hung program is common, but it doesn't provide enough information to diagnose the problem. I've added a new environment variable, `ASYNC_SCHEDULER_DEBUG=true` which will print out the current state of the scheduler when you press Ctrl-C.
+Occasionally on issues, I encounter people asking for help and I need more information. Pressing Ctrl-C to exit a hung program is common, but it usually doesn't provide enough information to diagnose the problem. Setting the `CONSOLE_LEVEL=debug` environment variable will now print additional information about the scheduler when you interrupt it, including a backtrace of the current tasks.
 
 ```
-> ASYNC_SCHEDULER_DEBUG=true bundle exec ruby ./test.rb
-^CScheduler interrupted: Interrupt
-#<Async::Reactor:0x0000000000000910 1 children (running)>
-	#<Async::Task:0x0000000000000924 /home/samuel/Developer/socketry/async/lib/async/scheduler.rb:187:in `transfer' (running)>
-	→ /home/samuel/Developer/socketry/async/lib/async/scheduler.rb:187:in `transfer'
-	  /home/samuel/Developer/socketry/async/lib/async/scheduler.rb:187:in `block'
-	  /home/samuel/Developer/socketry/async/lib/async/scheduler.rb:209:in `kernel_sleep'
-	  ./test.rb:4:in `sleep'
-	  ./test.rb:4:in `sleepy'
-	  ./test.rb:10:in `sleepy'
-	  ./test.rb:10:in `sleepy'
-	  ./test.rb:10:in `sleepy'
-	  ./test.rb:14:in `block in <main>'
-	  /home/samuel/Developer/socketry/async/lib/async/task.rb:197:in `block in run'
-	  /home/samuel/Developer/socketry/async/lib/async/task.rb:420:in `block in schedule'
-		#<Async::Task:0x0000000000000938 /home/samuel/Developer/socketry/async/lib/async/scheduler.rb:187:in `transfer' (running)>
-		→ /home/samuel/Developer/socketry/async/lib/async/scheduler.rb:187:in `transfer'
-		  /home/samuel/Developer/socketry/async/lib/async/scheduler.rb:187:in `block'
-		  /home/samuel/Developer/socketry/async/lib/async/scheduler.rb:209:in `kernel_sleep'
-		  ./test.rb:4:in `sleep'
-		  ./test.rb:4:in `sleepy'
-		  ./test.rb:10:in `sleepy'
-		  ./test.rb:10:in `sleepy'
-		  ./test.rb:7:in `block in sleepy'
-		  /home/samuel/Developer/socketry/async/lib/async/task.rb:197:in `block in run'
-		  /home/samuel/Developer/socketry/async/lib/async/task.rb:420:in `block in schedule'
-/home/samuel/Developer/socketry/async/lib/async/scheduler.rb:319:in `select': Interrupt
-	from /home/samuel/Developer/socketry/async/lib/async/scheduler.rb:319:in `run_once!'
-	from /home/samuel/Developer/socketry/async/lib/async/scheduler.rb:355:in `run_once'
-	from /home/samuel/Developer/socketry/async/lib/async/scheduler.rb:417:in `block in run'
-	from /home/samuel/Developer/socketry/async/lib/async/scheduler.rb:388:in `block in run_loop'
-	from /home/samuel/Developer/socketry/async/lib/async/scheduler.rb:385:in `handle_interrupt'
-	from /home/samuel/Developer/socketry/async/lib/async/scheduler.rb:385:in `run_loop'
-	from /home/samuel/Developer/socketry/async/lib/async/scheduler.rb:416:in `run'
-	from /home/samuel/Developer/socketry/async/lib/kernel/async.rb:34:in `Async'
-	from ./test.rb:13:in `<main>'
+> CONSOLE_LEVEL=debug bundle exec ruby ./test.rb
+^C  0.0s    debug: Async::Reactor [oid=0x974] [ec=0x988] [pid=9116] [2024-11-08 14:12:03 +1300]
+               | Scheduler interrupted: Interrupt
+               | #<Async::Reactor:0x0000000000000974 1 children (running)>
+               | 	#<Async::Task:0x000000000000099c /Users/samuel/Developer/socketry/async/lib/async/scheduler.rb:185:in `transfer' (running)>
+               | 	→ /Users/samuel/Developer/socketry/async/lib/async/scheduler.rb:185:in `transfer'
+               | 	  /Users/samuel/Developer/socketry/async/lib/async/scheduler.rb:185:in `block'
+               | 	  /Users/samuel/Developer/socketry/async/lib/async/scheduler.rb:207:in `kernel_sleep'
+               | 	  /Users/samuel/Developer/socketry/async/test.rb:7:in `sleep'
+               | 	  /Users/samuel/Developer/socketry/async/test.rb:7:in `sleepy'
+               | 	  /Users/samuel/Developer/socketry/async/test.rb:12:in `block in <top (required)>'
+               | 	  /Users/samuel/Developer/socketry/async/lib/async/task.rb:197:in `block in run'
+               | 	  /Users/samuel/Developer/socketry/async/lib/async/task.rb:420:in `block in schedule'
+/Users/samuel/Developer/socketry/async/lib/async/scheduler.rb:317:in `select': Interrupt
+... (backtrace continues) ...
 ```
 
 This gives better visibility into what the scheduler is doing, and should help diagnose issues.

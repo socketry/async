@@ -8,7 +8,11 @@ require "async/reactor"
 require "async/barrier"
 require "net/http"
 
+require "sus/fixtures/console"
+
 describe Async::Scheduler do
+	include_context Sus::Fixtures::Console::CapturedLogger
+	
 	it "is supported" do
 		expect(Async::Scheduler).to be(:supported?)
 	end
@@ -208,5 +212,39 @@ describe Async::Scheduler do
 			expect(state).to be == :finished
 			expect(child_task).not.to be(:transient?)
 		end
+	end
+	
+	it "prints out the stack trace of the scheduler" do
+		ready = Thread::Queue.new
+		thread = Thread.current
+		
+		scheduler = Async::Scheduler.new
+		
+		# This will interrupt the scheduler once it's running:
+		Thread.new do
+			ready.pop
+			thread.raise(Interrupt)
+		end
+		
+		expect do
+			begin
+				Fiber.set_scheduler(scheduler)
+				
+				scheduler.run do
+					while true
+						sleep(0)
+						ready.push(true)
+					end
+				end
+			ensure
+				Fiber.set_scheduler(nil)
+			end
+		end.to raise_exception(Interrupt)
+		
+		expect_console.to have_logged(
+			severity: be == :debug,
+			subject: be == scheduler,
+			message: be =~ /Scheduler interrupted/,
+		)
 	end
 end
