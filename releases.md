@@ -3,6 +3,7 @@
 ## Unreleased
 
   - Ruby v3.1 support is dropped.
+  - `Async::Wrapper` which was previously deprecated, is now removed.
 
 ## v2.23.0
 
