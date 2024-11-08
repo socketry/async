@@ -75,6 +75,8 @@ module Async
 		# Invoked when the fiber scheduler is being closed.
 		#
 		# Executes the run loop until all tasks are finished, then closes the scheduler.
+		#
+		# Introduced in Ruby v3.1.
 		def scheduler_close(error = $!)
 			# If the execution context (thread) was handling an exception, we want to exit as quickly as possible:
 			unless error
@@ -167,6 +169,9 @@ module Async
 		end
 		
 		# Invoked when a fiber tries to perform a blocking operation which cannot continue. A corresponding call {unblock} must be performed to allow this fiber to continue.
+		#
+		# Introduced in Ruby v3.1.
+		#
 		# @asynchronous May only be called on same thread as fiber scheduler.
 		def block(blocker, timeout)
 			# $stderr.puts "block(#{blocker}, #{Fiber.current}, #{timeout})"
@@ -190,6 +195,10 @@ module Async
 			timer&.cancel!
 		end
 		
+		# Unblock a fiber that was previously blocked.
+		#
+		# Introduced in Ruby v3.1.
+		#
 		# @asynchronous May be called from any thread.
 		def unblock(blocker, fiber)
 			# $stderr.puts "unblock(#{blocker}, #{fiber})"
