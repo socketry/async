@@ -1,5 +1,13 @@
 # Releases
 
+## Unreleased
+
+### Traces and Metrics Providers
+
+Async now has [traces](https://github.com/socketry/traces) and [metrics](https://github.com/socketry/metrics) providers for various core classes. This allows you to emit traces and metrics to a suitable backend (including DataDog, New Relic, OpenTelemetry, etc.) for monitoring and debugging purposes.
+
+To take advantage of this feature, you will need to introduce your own `config/traces.rb` and `config/metrics.rb`. Async's own repository includes these files for testing purposes, you could copy them into your own project and modify them as needed.
+
 ## v2.19.0
 
 ### Async::Scheduler Debugging

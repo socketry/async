@@ -25,6 +25,9 @@ group :test do
 	gem "decode"
 	gem "rubocop"
 	
+	gem "traces"
+	gem "metrics"
+	
 	gem "sus-fixtures-async"
 	gem "sus-fixtures-console", "~> 0.3"
 	
