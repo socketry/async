@@ -35,6 +35,10 @@ Please see the [project documentation](https://socketry.github.io/async/) for mo
 
 Please see the [project releases](https://socketry.github.io/async/releases/index) for all releases.
 
+### v2.20.0
+
+  - [Traces and Metrics Providers](https://socketry.github.io/async/releases/index#traces-and-metrics-providers)
+
 ### v2.19.0
 
   - [Async::Scheduler Debugging](https://socketry.github.io/async/releases/index#async::scheduler-debugging)

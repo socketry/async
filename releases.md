@@ -1,6 +1,6 @@
 # Releases
 
-## Unreleased
+## v2.20.0
 
 ### Traces and Metrics Providers
 
