@@ -338,6 +338,25 @@ module Async
 			return @selector.process_wait(Fiber.current, pid, flags)
 		end
 		
+		# Wait for the given work to be executed.
+		#
+		# @public Since *Async v2.19* and *Ruby v3.4*.
+		# @asynchronous May be non-blocking.
+		#
+		# @parameter work [Proc] The work to execute on a background thread.
+		# @returns [Object] The result of the work.
+		def blocking_operation_wait(work)
+			thread = Thread.new(&work)
+			
+			result = thread.join
+			
+			thread = nil
+			
+			return result
+		ensure
+			thread&.kill
+		end
+		
 		# Run one iteration of the event loop.
 		#
 		# When terminating the event loop, we already know we are finished. So we don't need to check the task tree. This is a logical requirement because `run_once` ignores transient tasks. For example, a single top level transient task is not enough to keep the reactor running, but during termination we must still process it in order to terminate child tasks.
