@@ -7,6 +7,7 @@
 
 require_relative "clock"
 require_relative "task"
+require_relative "worker_pool"
 
 require "io/event"
 
@@ -49,6 +50,7 @@ module Async
 			@idle_time = 0.0
 			
 			@timers = ::IO::Event::Timers.new
+			@worker_pool = WorkerPool.new
 		end
 		
 		# Compute the scheduler load according to the busy and idle times that are updated by the run loop.
@@ -112,6 +114,11 @@ module Async
 			
 			selector&.close
 			
+			worker_pool = @worker_pool
+			@worker_pool = nil
+			
+			worker_pool&.close
+			
 			consume
 		end
 		
@@ -169,8 +176,11 @@ module Async
 		
 		# Invoked when a fiber tries to perform a blocking operation which cannot continue. A corresponding call {unblock} must be performed to allow this fiber to continue.
 		#
-
+		# @public Since *Async v2*.
 		# @asynchronous May only be called on same thread as fiber scheduler.
+		#
+		# @parameter blocker [Object] The object that is blocking the fiber.
+		# @parameter timeout [Float | Nil] The maximum time to block, or if nil, indefinitely.
 		def block(blocker, timeout)
 			# $stderr.puts "block(#{blocker}, #{Fiber.current}, #{timeout})"
 			fiber = Fiber.current
@@ -346,15 +356,7 @@ module Async
 		# @parameter work [Proc] The work to execute on a background thread.
 		# @returns [Object] The result of the work.
 		def blocking_operation_wait(work)
-			thread = Thread.new(&work)
-			
-			result = thread.join
-			
-			thread = nil
-			
-			return result
-		ensure
-			thread&.kill
+			@worker_pool.call(work)
 		end
 		
 		# Run one iteration of the event loop.
