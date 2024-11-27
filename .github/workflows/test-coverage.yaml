@@ -32,6 +32,10 @@ jobs:
           - os: ubuntu
             ruby: "head"
             selector: URing
+          - os: ubuntu
+            ruby: "head"
+            selector: URing
+            worker_pool: "true"
     
     steps:
     - uses: actions/checkout@v4
@@ -46,13 +50,14 @@ jobs:
       timeout-minutes: 5
       env:
         IO_EVENT_SELECTOR: ${{matrix.selector}}
+        ASYNC_SCHEDULER_DEFAULT_WORKER_POOL: ${{matrix.worker_pool}}
       run: bundle exec bake test
     
     - uses: actions/upload-artifact@v4
       with:
         include-hidden-files: true
         if-no-files-found: error
-        name: coverage-${{matrix.os}}-${{matrix.ruby}}-${{matrix.selector}}
+        name: coverage-${{matrix.os}}-${{matrix.ruby}}-${{matrix.selector}}-${{matrix.worker_pool}}
         path: .covered.db
   
   validate:
