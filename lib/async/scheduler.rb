@@ -17,6 +17,10 @@ require "resolv"
 module Async
 	# Handles scheduling of fibers. Implements the fiber scheduler interface.
 	class Scheduler < Node
+		DEFAULT_WORKER_POOL = ENV.fetch("ASYNC_SCHEDULER_DEFAULT_WORKER_POOL", nil).then do |value|
+			value == "true" ? true : nil
+		end
+		
 		# Raised when an operation is attempted on a closed scheduler.
 		class ClosedError < RuntimeError
 			# Create a new error.
@@ -38,7 +42,7 @@ module Async
 		# @public Since *Async v1*.
 		# @parameter parent [Node | Nil] The parent node to use for task hierarchy.
 		# @parameter selector [IO::Event::Selector] The selector to use for event handling.
-		def initialize(parent = nil, selector: nil)
+		def initialize(parent = nil, selector: nil, worker_pool: DEFAULT_WORKER_POOL)
 			super(parent)
 			
 			@selector = selector || ::IO::Event::Selector.new(Fiber.current)
@@ -50,7 +54,15 @@ module Async
 			@idle_time = 0.0
 			
 			@timers = ::IO::Event::Timers.new
-			@worker_pool = WorkerPool.new
+			if worker_pool == true
+				@worker_pool = WorkerPool.new
+			else
+				@worker_pool = worker_pool
+			end
+			
+			if @worker_pool
+				self.singleton_class.prepend(WorkerPool::BlockingOperationWait)
+			end
 		end
 		
 		# Compute the scheduler load according to the busy and idle times that are updated by the run loop.
@@ -346,17 +358,6 @@ module Async
 		# @asynchronous May be non-blocking..
 		def process_wait(pid, flags)
 			return @selector.process_wait(Fiber.current, pid, flags)
-		end
-		
-		# Wait for the given work to be executed.
-		#
-		# @public Since *Async v2.19* and *Ruby v3.4*.
-		# @asynchronous May be non-blocking.
-		#
-		# @parameter work [Proc] The work to execute on a background thread.
-		# @returns [Object] The result of the work.
-		def blocking_operation_wait(work)
-			@worker_pool.call(work)
 		end
 		
 		# Run one iteration of the event loop.

@@ -10,6 +10,19 @@ module Async
 	#
 	# @private
 	class WorkerPool
+		module BlockingOperationWait
+			# Wait for the given work to be executed.
+			#
+			# @public Since *Async v2.19* and *Ruby v3.4*.
+			# @asynchronous May be non-blocking.
+			#
+			# @parameter work [Proc] The work to execute on a background thread.
+			# @returns [Object] The result of the work.
+			def blocking_operation_wait(work)
+				@worker_pool.call(work)
+			end
+		end
+		
 		class Promise
 			def initialize(work)
 				@work = work

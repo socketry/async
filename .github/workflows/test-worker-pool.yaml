@@ -1,0 +1,38 @@
+name: Test
+
+on: [push, pull_request]
+
+permissions:
+  contents: read
+
+env:
+  CONSOLE_OUTPUT: XTerm
+  ASYNC_SCHEDULER_DEFAULT_WORKER_POOL: true
+
+jobs:
+  test:
+    name: ${{matrix.ruby}} on ${{matrix.os}} / ASYNC_SCHEDULER_DEFAULT_WORKER_POOL=true
+    runs-on: ${{matrix.os}}-latest
+    
+    strategy:
+      matrix:
+        os:
+          - ubuntu
+        
+        ruby:
+          - head
+    
+    steps:
+    - uses: actions/checkout@v3
+    - uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: ${{matrix.ruby}}
+        bundler-cache: true
+    
+    - name: Run tests
+      timeout-minutes: 10
+      run: bundle exec bake test
+    
+    - name: Run external tests
+      timeout-minutes: 10
+      run: bundle exec bake test:external
