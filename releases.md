@@ -8,9 +8,7 @@ Ruby 3.4 will feature a new fiber scheduler hook, `blocking_operation_wait` whic
 
 The Async scheduler optionally supports this feature using a worker pool, by using the following environment variable:
 
-```
-ASYNC_SCHEDULER_DEFAULT_WORKER_POOL=true
-```
+    ASYNC_SCHEDULER_DEFAULT_WORKER_POOL=true
 
 This will cause the scheduler to use a worker pool for general blocking operations, rather than blocking the event loop.
 
