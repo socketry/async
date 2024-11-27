@@ -1,5 +1,21 @@
 # Releases
 
+## v2.21.1
+
+### Worker Pool
+
+Ruby 3.4 will feature a new fiber scheduler hook, `blocking_operation_wait` which allows the scheduler to redirect the work given to `rb_nogvl` to a worker pool.
+
+The Async scheduler optionally supports this feature using a worker pool, by using the following environment variable:
+
+```
+ASYNC_SCHEDULER_DEFAULT_WORKER_POOL=true
+```
+
+This will cause the scheduler to use a worker pool for general blocking operations, rather than blocking the event loop.
+
+It should be noted that this isn't a net win, as the overhead of using a worker pool can be significant compared to the `rb_nogvl` work. As such, it is recommended to benchmark your application with and without the worker pool to determine if it is beneficial.
+
 ## v2.20.0
 
 ### Traces and Metrics Providers
