@@ -11,7 +11,7 @@ require "async/queue"
 
 require "sus/fixtures/console"
 
-require "timer_quantum"
+require "sus/fixtures/time/quantum"
 
 describe Async::Task do
 	let(:reactor) {Async::Reactor.new}
@@ -559,7 +559,7 @@ describe Async::Task do
 			end
 			
 			# This is too unstable on travis.
-			expect(time).to be_within(Q).of(duration)
+			expect(time).to be_within(Sus::Fixtures::Time::QUANTUM).of(duration)
 			expect(state).to be == :finished
 		end
 	end

@@ -29,7 +29,8 @@ group :test do
 	gem "metrics"
 	
 	gem "sus-fixtures-async"
-	gem "sus-fixtures-console", "~> 0.3"
+	gem "sus-fixtures-console"
+	gem "sus-fixtures-time"
 	
 	gem "bake-test"
 	gem "bake-test-external"

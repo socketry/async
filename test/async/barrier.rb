@@ -8,8 +8,7 @@ require "async/clock"
 require "sus/fixtures/async"
 require "async/semaphore"
 
-require "chainable_async"
-require "timer_quantum"
+require "async/chainable_async"
 
 describe Async::Barrier do
 	include Sus::Fixtures::Async::ReactorContext
@@ -40,7 +39,7 @@ describe Async::Barrier do
 			
 			duration = Async::Clock.measure{barrier.wait}
 			
-			expect(duration).to be_within(Q*repeats).of(delay)
+			expect(duration).to be_within(repeats * Sus::Fixtures::Time::QUANTUM).of(delay)
 			expect(finished).to be == repeats
 			expect(barrier).to be(:empty?)
 		end
@@ -186,5 +185,5 @@ describe Async::Barrier do
 		end
 	end
 	
-	it_behaves_like ChainableAsync
+	it_behaves_like Async::ChainableAsync
 end

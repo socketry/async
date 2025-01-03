@@ -7,8 +7,7 @@ require "async/semaphore"
 require "async/barrier"
 require "sus/fixtures/async"
 
-require "chainable_async"
-require "timer_quantum"
+require "async/chainable_async"
 
 describe Async::Semaphore do
 	include Sus::Fixtures::Async::ReactorContext
@@ -195,5 +194,5 @@ describe Async::Semaphore do
 		end
 	end
 	
-	it_behaves_like ChainableAsync
+	it_behaves_like Async::ChainableAsync
 end

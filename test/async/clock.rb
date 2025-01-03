@@ -4,8 +4,7 @@
 # Copyright, 2018-2024, by Samuel Williams.
 
 require "async/clock"
-
-require "timer_quantum"
+require "sus/fixtures/time/quantum"
 
 describe Async::Clock do
 	let(:clock) {subject.new}
@@ -15,7 +14,7 @@ describe Async::Clock do
 			sleep 0.01
 		end
 		
-		expect(duration).to be_within(Q).of(0.01)
+		expect(duration).to be_within(Sus::Fixtures::Time::QUANTUM).of(0.01)
 	end
 	
 	it "can get current offset" do
@@ -29,7 +28,7 @@ describe Async::Clock do
 			clock.stop!
 		end
 		
-		expect(clock.total).to be_within(2 * Q).of(0.02)
+		expect(clock.total).to be_within(2 * Sus::Fixtures::Time::QUANTUM).of(0.02)
 	end
 	
 	with "#total" do

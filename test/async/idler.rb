@@ -6,7 +6,7 @@
 require "async/idler"
 require "sus/fixtures/async"
 
-require "chainable_async"
+require "async/chainable_async"
 
 describe Async::Idler do
 	include Sus::Fixtures::Async::ReactorContext
@@ -33,5 +33,5 @@ describe Async::Idler do
 		expect(Fiber.scheduler.load).to be_within(0.1).of(0.5)
 	end
 	
-	it_behaves_like ChainableAsync
+	it_behaves_like Async::ChainableAsync
 end

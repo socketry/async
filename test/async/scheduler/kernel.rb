@@ -4,8 +4,9 @@
 # Copyright, 2021-2024, by Samuel Williams.
 
 require "async/scheduler"
+
 require "sus/fixtures/async"
-require "timer_quantum"
+require "sus/fixtures/time/quantum"
 
 describe Async::Scheduler do
 	include Sus::Fixtures::Async::ReactorContext
@@ -20,7 +21,7 @@ describe Async::Scheduler do
 				sleep(duration)
 			end
 			
-			expect(time_taken).to be_within(Q).of(duration)
+			expect(time_taken).to be_within(Sus::Fixtures::Time::QUANTUM).of(duration)
 		end
 		
 		it "can sleep forever" do
