@@ -5,7 +5,6 @@
 
 require "async"
 require "async/variable"
-require "child_process"
 
 describe Fiber do
 	with ".new" do
@@ -76,8 +75,19 @@ describe Fiber do
 			expect(sequence).to be == [0, 1, 2]
 		end
 		
+		def spawn_child_ruby(code)
+			lib_path = File.expand_path("../lib", __dir__)
+			
+			IO.popen(["ruby", "-I#{lib_path}"], "r+", err: [:child, :out]) do |process|
+				process.write(code)
+				process.close_write
+				
+				return process.read
+			end
+		end
+		
 		it "correctly handles exceptions in process" do
-			buffer = ChildProcess.spawn(<<~RUBY)
+			buffer = spawn_child_ruby(<<~RUBY)
 				require 'async'
 				
 				scheduler = Async::Scheduler.new
