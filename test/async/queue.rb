@@ -244,13 +244,21 @@ describe Async::LimitedQueue do
 					queue << :item2
 				end
 				
-				reactor.async do |task|
-					task.sleep 0.01
-					expect(queue.items).to contain_exactly :item1
-					queue.dequeue
-					expect(queue.items).to contain_exactly :item2
+				expect(queue.dequeue).to be == :item1
+				expect(queue.dequeue).to be == :item2
+			end
+
+			with "#pop" do
+				it "waits until a queue is dequeued" do
+					reactor.async do
+						queue << :item2
+					end
+					
+					expect(queue.pop).to be == :item1
+					expect(queue.pop).to be == :item2
 				end
 			end
 		end
 	end
 end
+

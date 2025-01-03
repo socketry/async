@@ -125,13 +125,16 @@ module Async
 		# If the queue is full, this method will block until there is space available.
 		#
 		# @parameter item [Object] The item to add to the queue.
-		def <<(item)
+		def push(item)
 			while limited?
 				@full.wait
 			end
 			
 			super
 		end
+
+		# Compatibility with {::Queue#push}.
+		alias << push
 		
 		# Add multiple items to the queue.
 		#
@@ -163,5 +166,8 @@ module Async
 			
 			return item
 		end
+		
+		# Compatibility with {::Queue#pop}.
+		alias pop dequeue
 	end
 end
