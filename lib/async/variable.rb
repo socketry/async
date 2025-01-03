@@ -31,7 +31,10 @@ module Async
 			condition.signal(value)
 		end
 		
-		alias value= resolve
+		# Alias for {#resolve}.
+		def value=(value)
+			self.resolve(value)
+		end
 		
 		# Whether the value has been resolved.
 		#
@@ -48,6 +51,9 @@ module Async
 			return @value
 		end
 		
-		alias value wait
+		# Alias for {#wait}.
+		def value
+			self.wait
+		end
 	end
 end

@@ -45,7 +45,9 @@ module Async
 		end
 		
 		# Compatibility with {::Queue#push}.
-		alias << push
+		def <<(item)
+			self.push(item)
+		end
 		
 		# Add multiple items to the queue.
 		def enqueue(*items)
@@ -64,7 +66,9 @@ module Async
 		end
 		
 		# Compatibility with {::Queue#pop}.
-		alias pop dequeue
+		def pop
+			self.dequeue
+		end
 		
 		# Process each item in the queue.
 		#
@@ -132,9 +136,6 @@ module Async
 			
 			super
 		end
-
-		# Compatibility with {::Queue#push}.
-		alias << push
 		
 		# Add multiple items to the queue.
 		#
@@ -166,8 +167,5 @@ module Async
 			
 			return item
 		end
-		
-		# Compatibility with {::Queue#pop}.
-		alias pop dequeue
 	end
 end

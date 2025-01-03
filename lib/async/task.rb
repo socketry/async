@@ -181,7 +181,10 @@ module Async
 			@status == :completed
 		end
 		
-		alias complete? completed?
+		# Alias for {#completed?}.
+		def complete?
+			self.completed?
+		end
 		
 		# @attribute [Symbol] The status of the execution of the task, one of `:initialized`, `:running`, `:complete`, `:stopped` or `:failed`.
 		attr :status
