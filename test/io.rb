@@ -90,4 +90,18 @@ describe IO do
 			out.close
 		end
 	end
+	
+	with "#close" do
+		it "can interrupt reading fiber when closing" do
+			r, w = IO.pipe
+			
+			read_task = Async do
+				r.read(5)
+			end
+			
+			r.close
+			
+			expect{read_task.wait}.to raise_exception(IOError)
+		end
+	end
 end
