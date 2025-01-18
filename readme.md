@@ -6,7 +6,7 @@ Async is a composable asynchronous I/O framework for Ruby based on [io-event](ht
 > [tus-ruby-server](https://github.com/janko/tus-ruby-server) – would really benefit from non-blocking I/O. It's really
 > beautifully designed." *– [janko](https://github.com/janko)*
 
-[![Development Status](https://github.com/socketry/async/workflows/Test/badge.svg)](https://github.com/socketry/async/actions?workflow=Test)
+[![Development Status](https://github.com/socketry/async/workflows/Test/badge.svg)](https://github.com/socketry/async/actions?workflow=Test) [<img src="https://api.gitsponsors.com/api/badge/img?id=87380483" height="20">](https://api.gitsponsors.com/api/badge/link?p=U4gCxvzG7eUksiJSe0MSlN/IQp/rOEmM4wKYQwPrkiFn78vaBdtOdFQLsJu4pzyegaVzeek/1axVEWxd6fq1Ww==)
 
 ## Features
 
