@@ -21,6 +21,14 @@ VariableContext = Sus::Shared("a variable") do
 		
 		variable.resolve(value)
 	end
+
+	it "can wait for the value to be resolved using setter" do
+		Async do
+			expect(variable.wait).to be == value
+		end
+		
+		variable.value = value
+	end
 	
 	it "can't resolve it a 2nd time" do
 		variable.resolve(value)
