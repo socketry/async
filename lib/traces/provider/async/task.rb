@@ -12,13 +12,16 @@ Traces::Provider(Async::Task) do
 			trace_context = Traces.trace_context
 		end
 		
+		attributes = {
+			"block" => block,
+			"transient" => self.transient?,
+		}
+		
 		super do
 			Traces.trace_context = trace_context
 			
 			if annotation = self.annotation
-				attributes = {
-					"annotation" => annotation
-				}
+				attributes["annotation"] = annotation
 			end
 			
 			Traces.trace("async.task", attributes: attributes) do
