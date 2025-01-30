@@ -4,5 +4,5 @@
 # Copyright, 2017-2024, by Samuel Williams.
 
 module Async
-	VERSION = "2.21.1"
+	VERSION = "2.21.2"
 end
