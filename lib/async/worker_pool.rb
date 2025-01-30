@@ -10,6 +10,7 @@ module Async
 	#
 	# @private
 	class WorkerPool
+		# Used to augment the scheduler to add support for blocking operations.
 		module BlockingOperationWait
 			# Wait for the given work to be executed.
 			#
@@ -23,7 +24,11 @@ module Async
 			end
 		end
 		
+		# Execute the given work in a background thread.
 		class Promise
+			# Create a new promise.
+			#
+			# @parameter work [Proc] The work to be done.
 			def initialize(work)
 				@work = work
 				@state = :pending
@@ -33,6 +38,7 @@ module Async
 				@thread = nil
 			end
 			
+			# Execute the work and resolve the promise.
 			def call
 				work = nil
 				
@@ -67,6 +73,7 @@ module Async
 				end
 			end
 			
+			# Cancel the work and raise an exception in the background thread.
 			def cancel
 				return unless @work
 				
@@ -77,6 +84,9 @@ module Async
 				end
 			end
 			
+			# Wait for the work to be done.
+			#
+			# @returns [Object] The result of the work.
 			def wait
 				@guard.synchronize do
 					while @state == :pending
@@ -92,19 +102,22 @@ module Async
 			end
 		end
 		
-		# A handle to the work being done.
+		# A background worker thread.
 		class Worker
+			# Create a new worker.
 			def initialize
 				@work = ::Thread::Queue.new
 				@thread = ::Thread.new(&method(:run))
 			end
 			
+			# Execute work until the queue is closed.
 			def run
 				while work = @work.pop
 					work.call
 				end
 			end
 			
+			# Close the worker thread.
 			def close
 				if thread = @thread
 					@thread = nil
