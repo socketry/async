@@ -8,6 +8,11 @@ require "traces/provider"
 
 Traces::Provider(Async::Task) do
 	def schedule(&block)
+		# If we are not actively tracing anything, then we can skip this:
+		unless Traces.active?
+			return super(&block)
+		end
+		
 		unless self.transient?
 			trace_context = Traces.trace_context
 		end
@@ -18,6 +23,7 @@ Traces::Provider(Async::Task) do
 			"transient" => self.transient?,
 		}
 		
+		# Run the trace in the context of the child task:
 		super do
 			Traces.trace_context = trace_context
 			
@@ -26,6 +32,7 @@ Traces::Provider(Async::Task) do
 			end
 			
 			Traces.trace("async.task", attributes: attributes) do
+				# Yes, this is correct, we already called super above:
 				yield
 			end
 		end
