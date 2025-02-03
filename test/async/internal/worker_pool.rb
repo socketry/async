@@ -4,10 +4,10 @@
 # Copyright, 2022-2024, by Samuel Williams.
 # Copyright, 2024, by Patrik Wenger.
 
-require "async/worker_pool"
+require "async/internal/worker_pool"
 require "sus/fixtures/async"
 
-describe Async::WorkerPool do
+describe Async::Internal::WorkerPool do
 	let(:worker_pool) {subject.new(size: 1)}
 	
 	it "offloads work to a thread" do

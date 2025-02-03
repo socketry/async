@@ -7,7 +7,10 @@
 
 require_relative "clock"
 require_relative "task"
-require_relative "worker_pool"
+
+require_relative "internal/worker_pool"
+require_relative "internal/blocking_operation_wait_log"
+require_relative "internal/blocking_operation_wait_inline"
 
 require "io/event"
 
@@ -19,6 +22,10 @@ module Async
 	class Scheduler < Node
 		DEFAULT_WORKER_POOL = ENV.fetch("ASYNC_SCHEDULER_DEFAULT_WORKER_POOL", nil).then do |value|
 			value == "true" ? true : nil
+		end
+		
+		LOG_BLOCKING_OPERATIONS = ENV.fetch("ASYNC_SCHEDULER_LOG_BLOCKING_OPERATIONS", nil).then do |value|
+			value == "true"
 		end
 		
 		# Raised when an operation is attempted on a closed scheduler.
@@ -55,13 +62,21 @@ module Async
 			
 			@timers = ::IO::Event::Timers.new
 			if worker_pool == true
-				@worker_pool = WorkerPool.new
+				@worker_pool = Internal::WorkerPool.new
 			else
 				@worker_pool = worker_pool
 			end
 			
 			if @worker_pool
-				self.singleton_class.prepend(WorkerPool::BlockingOperationWait)
+				self.singleton_class.prepend(Internal::WorkerPool::BlockingOperationWait)
+			end
+			
+			if LOG_BLOCKING_OPERATIONS
+				unless @worker_pool
+					self.singleton_class.prepend(Internal::BlockingOperationWaitInline)
+				end
+				
+				self.singleton_class.prepend(Internal::BlockingOperationWaitLog)
 			end
 		end
 		
