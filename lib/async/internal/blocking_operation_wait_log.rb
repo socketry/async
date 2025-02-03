@@ -49,6 +49,8 @@ module Async
 		
 		module BlockingOperationWaitLog
 			def run(...)
+				$stderr.puts "Blocking operation wait log enabled."
+				
 				@blocking_operations = {}
 				
 				super
