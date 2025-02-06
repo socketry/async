@@ -46,7 +46,7 @@ def run_async(count, repeats = 10000)
 		count.times.map do
 			task.async do |subtask|
 				repeats.times do
-					subtask.sleep(DURATION)
+					sleep(DURATION)
 				end
 			end
 		end.each(&:wait)

@@ -8,7 +8,7 @@ require "async"
 describe Enumerator do
 	def some_yielder(task)
 		yield 1
-		task.sleep(0.002)
+		sleep(0.002)
 		yield 2
 	end
 	
@@ -56,7 +56,7 @@ describe Enumerator do
 		Async do |task|
 			fiber = Fiber.new do
 				Fiber.yield 1
-				task.sleep(0.002)
+				sleep(0.002)
 				Fiber.yield 2
 			end
 			

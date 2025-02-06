@@ -6,6 +6,7 @@
 require "async/barrier"
 require "async/clock"
 require "sus/fixtures/async"
+require "sus/fixtures/time"
 require "async/semaphore"
 
 require "async/chainable_async"
@@ -24,12 +25,12 @@ describe Async::Barrier do
 			
 			repeats.times.map do |i|
 				barrier.async do |task|
-					task.sleep(delay)
+					sleep(delay)
 					finished += 1
 					
 					# This task is a child task but not part of the barrier.
 					task.async do
-						task.sleep(delay*3)
+						sleep(delay*3)
 					end
 				end
 			end
@@ -88,7 +89,7 @@ describe Async::Barrier do
 				reactor.with_timeout(5/100.0/2) do
 					5.times do |i|
 						barrier.async do |task|
-							task.sleep(i/100.0)
+							sleep(i/100.0)
 						end
 					end
 					
@@ -107,11 +108,11 @@ describe Async::Barrier do
 	with "#stop" do
 		it "can stop several tasks" do
 			task1 = barrier.async do |task|
-				task.sleep(10)
+				sleep(10)
 			end
 			
 			task2 = barrier.async do |task|
-				task.sleep(10)
+				sleep(10)
 			end
 			
 			barrier.stop
@@ -122,11 +123,11 @@ describe Async::Barrier do
 		
 		it "can stop several tasks when waiting on barrier" do
 			task1 = barrier.async do |task|
-				task.sleep(10)
+				sleep(10)
 			end
 			
 			task2 = barrier.async do |task|
-				task.sleep(10)
+				sleep(10)
 			end
 			
 			task3 = reactor.async do
@@ -146,7 +147,7 @@ describe Async::Barrier do
 		
 		it "several tasks can wait on the same barrier" do
 			task1 = barrier.async do |task|
-				task.sleep(10)
+				sleep(10)
 			end
 			
 			task2 = reactor.async do |task|
@@ -176,7 +177,7 @@ describe Async::Barrier do
 		it "should execute several tasks and wait using a barrier" do
 			repeats.times do
 				barrier.async(parent: semaphore) do |task|
-					task.sleep 0.01
+					sleep 0.01
 				end
 			end
 			

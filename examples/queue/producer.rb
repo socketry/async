@@ -16,7 +16,7 @@ Async do
 		Async do |task|
 			while true
 				t = rand
-				task.sleep(t)
+				sleep(t)
 				items.enqueue(t)
 			end
 		end

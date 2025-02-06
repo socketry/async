@@ -35,7 +35,7 @@ Async do |parent|
 	tasks = server.run
 	
 	#while true
-	parent.sleep(10)
+	sleep(10)
 	parent.reactor.print_hierarchy
 	#end
 	

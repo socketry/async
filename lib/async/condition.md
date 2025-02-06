@@ -15,7 +15,7 @@ Sync do
 	end
 	
 	Async do |task|
-		task.sleep(1)
+		sleep(1)
 		Console.info "Signalling condition..."
 		condition.signal("Hello World")
 	end

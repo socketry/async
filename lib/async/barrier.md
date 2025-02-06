@@ -18,7 +18,7 @@ Sync do
 	# Sleep sort the numbers:
 	numbers.each do |number|
 		barrier.async do |task|
-			task.sleep(number)
+			sleep(number)
 			sorted << number
 		end
 	end

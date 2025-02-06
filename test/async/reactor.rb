@@ -21,7 +21,7 @@ describe Async::Reactor do
 			inner_fiber = nil
 			
 			subject.run do |task|
-				task.sleep(0)
+				sleep(0)
 				inner_fiber = Fiber.current
 			end
 			
@@ -65,7 +65,7 @@ describe Async::Reactor do
 		it "terminates nested tasks" do
 			top = reactor.async do |parent|
 				parent.async do |child|
-					child.sleep(1)
+					sleep(1)
 				end
 			end
 			
@@ -127,7 +127,7 @@ describe Async::Reactor do
 		it "can include backtrace" do
 			reactor.async do |parent|
 				child = parent.async do |child|
-					child.sleep 1
+					sleep 1
 				end
 				
 				output = StringIO.new
@@ -149,12 +149,12 @@ describe Async::Reactor do
 			
 			reactor.async(annotation: "sleep(10)") do |task|
 				state = :started
-				task.sleep(10)
+				sleep(10)
 				state = :stopped
 			end
 			
 			reactor.async(annotation: "reactor.stop") do |task|
-				task.sleep(0.01)
+				sleep(0.01)
 				task.reactor.stop
 			end
 			
@@ -259,7 +259,7 @@ describe Async::Reactor do
 					expect(task).to receive(:warn).and_return(nil)
 					
 					task.with_timeout(0.0, timeout_class) do
-						task.sleep(1.0)
+						sleep(1.0)
 					end
 				end.wait
 			end.to raise_exception(timeout_class)

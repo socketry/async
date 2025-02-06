@@ -36,7 +36,7 @@ describe Async::Condition do
 			producer = task.async do |subtask|
 				subtask.yield
 				condition.signal
-				subtask.sleep(10)
+				sleep(10)
 			end
 			
 			condition.wait

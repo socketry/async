@@ -33,7 +33,7 @@ callback = Callback.new
 begin
 	callback.run do |task|
 		while true
-			task.sleep(2)
+			sleep(2)
 			puts "Hello from task!"
 		end
 	end

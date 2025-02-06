@@ -77,7 +77,7 @@ describe Async::Task do
 		it "can check if it is the currently running task" do
 			task = reactor.async do |task|
 				expect(task).to be(:current?)
-				task.sleep(0.1)
+				sleep(0.1)
 			end
 			
 			expect(task).not.to be(:current?)
@@ -88,7 +88,7 @@ describe Async::Task do
 		it "can start child async tasks" do
 			parent = reactor.async do |task|
 				child = task.async do
-					task.sleep(1)
+					sleep(1)
 				end
 				
 				expect(child).not.to be_nil
@@ -262,7 +262,7 @@ describe Async::Task do
 			reactor.run do
 				task = reactor.async do |task|
 					state = :started
-					task.sleep(10)
+					sleep(10)
 					state = :finished
 				end
 				
@@ -278,7 +278,7 @@ describe Async::Task do
 			reactor.run do
 				task = reactor.async do |task|
 					child = task.async do |subtask|
-						subtask.sleep(1)
+						sleep(1)
 					end
 					
 					begin
@@ -367,10 +367,10 @@ describe Async::Task do
 					task.async do |task|
 						child_task = task
 						
-						task.sleep(10)
+						sleep(10)
 					end
 					
-					task.sleep(10)
+					sleep(10)
 				end
 				
 				expect(parent_task).not.to be_nil
@@ -402,7 +402,7 @@ describe Async::Task do
 						end
 					end.resume
 					
-					task.sleep(1)
+					sleep(1)
 				end
 			end
 			
@@ -419,21 +419,21 @@ describe Async::Task do
 					
 					task.async do |task|
 						children_tasks << task
-						task.sleep(0.02)
+						sleep(0.02)
 					end
 					
 					task.async do |task|
 						children_tasks << task
-						task.sleep(0.01)
+						sleep(0.01)
 						parent_task.stop
 					end
 					
 					task.async do |task|
 						children_tasks << task
-						task.sleep(0.02)
+						sleep(0.02)
 					end
 					
-					task.sleep(0.02)
+					sleep(0.02)
 				end
 			end
 			
@@ -483,11 +483,11 @@ describe Async::Task do
 							
 							ready.enqueue(true)
 							
-							task.sleep(10)
+							sleep(10)
 						end
-						task.sleep(10)
+						sleep(10)
 					end
-					task.sleep(10)
+					sleep(10)
 				end
 				
 				ready.dequeue
@@ -550,7 +550,7 @@ describe Async::Task do
 			state = nil
 			
 			reactor.async do |task|
-				task.sleep(duration)
+				sleep(duration)
 				state = :finished
 			end
 			
@@ -572,7 +572,7 @@ describe Async::Task do
 				begin
 					task.with_timeout(0.01) do
 						state = :started
-						task.sleep(10)
+						sleep(10)
 						state = :finished
 					end
 				rescue Async::TimeoutError
@@ -608,7 +608,7 @@ describe Async::Task do
 			reactor.async do |task|
 				state = :started
 				task.with_timeout(0.01) do
-					task.sleep(0.001)
+					sleep(0.001)
 					state = :finished
 				end
 			end
@@ -620,7 +620,7 @@ describe Async::Task do
 		
 		def sleep_forever
 			while true
-				Async::Task.current.sleep(1)
+				sleep(1)
 			end
 		end
 		
@@ -646,7 +646,7 @@ describe Async::Task do
 		it "has a backtrace" do
 			Async do
 				task = Async do |task|
-					task.sleep(1)
+					sleep(1)
 				end
 				
 				expect(task.backtrace).to have_value(be =~ /sleep/)
@@ -667,13 +667,13 @@ describe Async::Task do
 	with "#wait" do
 		it "will wait on another task to complete" do
 			apples_task = reactor.async do |task|
-				task.sleep(0.01)
+				sleep(0.01)
 				
 				:apples
 			end
 			
 			oranges_task = reactor.async do |task|
-				task.sleep(0.01)
+				sleep(0.01)
 				
 				:oranges
 			end
@@ -751,7 +751,7 @@ describe Async::Task do
 		
 		it "does not wait for task completion" do
 			task = reactor.async do |task|
-				task.sleep(1)
+				sleep(1)
 			end
 			
 			expect(task.result).to be_nil
@@ -807,7 +807,7 @@ describe Async::Task do
 	with "#children" do
 		it "enumerates children in same order they are created" do
 			tasks = 10.times.map do |i|
-				reactor.async(annotation: "Task #{i}") {|task| task.sleep(1)}
+				reactor.async(annotation: "Task #{i}") {sleep(1)}
 			end
 			
 			expect(reactor.children.each.to_a).to be == tasks
@@ -816,8 +816,8 @@ describe Async::Task do
 	
 	with "#to_s" do
 		it "should show running" do
-			apples_task = reactor.async do |task|
-				task.sleep(0.1)
+			apples_task = reactor.async do
+				sleep(0.1)
 			end
 			
 			expect(apples_task.to_s).to be =~ /running/

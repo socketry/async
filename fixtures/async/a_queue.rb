@@ -36,7 +36,7 @@ module Async
 			it "can enumerate queue items" do
 				reactor.async do |task|
 					10.times do |item|
-						task.sleep(0.0001)
+						sleep(0.0001)
 						queue.enqueue(item)
 					end
 					
@@ -55,7 +55,7 @@ module Async
 		it "should process items in order" do
 			reactor.async do |task|
 				10.times do |i|
-					task.sleep(0.001)
+					sleep(0.001)
 					queue.enqueue(i)
 				end
 			end
