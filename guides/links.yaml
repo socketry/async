@@ -2,7 +2,7 @@ getting-started:
   order: 1
 compatibility:
   order: 4
-event-loop:
+scheduler:
   order: 3
 asynchronous-tasks:
   order: 2
