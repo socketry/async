@@ -58,4 +58,22 @@ describe Async::Clock do
 			expect(total).to be >= 0.0
 		end
 	end
+	
+	with "#reset!" do
+		it "resets the total time" do
+			clock.start!
+			sleep(0.0001)
+			clock.stop!
+			expect(clock.total).to be > 0.0
+			clock.reset!
+			expect(clock.total).to be == 0.0
+		end
+		
+		it "resets the start time" do
+			clock.start!
+			clock.reset!
+			sleep(0.0001)
+			expect(clock.total).to be > 0.0
+		end
+	end
 end

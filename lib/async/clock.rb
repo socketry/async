@@ -61,5 +61,14 @@ module Async
 			
 			return total
 		end
+		
+		# Reset the total elapsed time. If the clock is currently running, reset the start time to now.
+		def reset!
+			@total = 0
+			
+			if @started
+				@started = Clock.now
+			end
+		end
 	end
 end
