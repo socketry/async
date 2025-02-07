@@ -24,7 +24,7 @@ Please see the [project documentation](https://socketry.github.io/async/) for mo
 
   - [Asynchronous Tasks](https://socketry.github.io/async/guides/asynchronous-tasks/index) - This guide explains how asynchronous tasks work and how to use them.
 
-  - [Event Loop](https://socketry.github.io/async/guides/event-loop/index) - This guide gives an overview of how the event loop is implemented.
+  - [Scheduler](https://socketry.github.io/async/guides/scheduler/index) - This guide gives an overview of how the scheduler is implemented.
 
   - [Compatibility](https://socketry.github.io/async/guides/compatibility/index) - This guide gives an overview of the compatibility of Async with Ruby and other frameworks.
 
