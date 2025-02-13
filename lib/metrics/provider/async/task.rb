@@ -14,8 +14,6 @@ Metrics::Provider(Async::Task) do
 		ASYNC_TASK_SCHEDULED.emit(1)
 		
 		super(&block)
-	rescue => error
-		raise
 	ensure
 		ASYNC_TASK_FINISHED.emit(1)
 	end
