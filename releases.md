@@ -1,5 +1,27 @@
 # Releases
 
+## Unreleased
+
+### Fiber Stall Profiler
+
+After several iterations of experimentation, we are officially introducing the fiber stall profiler, implemented using the optional `fiber-profiler` gem. This gem is not included by default, but can be added to your project:
+
+```bash
+$ bundle add fiber-profiler
+```
+
+After adding the gem, you can enable the fiber stall profiler by setting the `FIBER_PROFILER_CAPTURE=true` environment variable:
+
+```bash
+$ FIBER_PROFILER_CAPTURE=true bundle exec ruby -rasync -e 'Async{Fiber.blocking{sleep 0.1}}'
+Fiber stalled for 0.105 seconds
+-e:1 in c-call '#<Class:Fiber>#blocking' (0.105s)
+	-e:1 in c-call 'Kernel#sleep' (0.105s)
+Skipped 1 calls that were too short to be meaningful.
+```
+
+The fiber profiler will help you find problems with your code that cause the event loop to stall, which can be a common source of performance issues in asynchronous code.
+
 ## v2.21.1
 
 ### Worker Pool
