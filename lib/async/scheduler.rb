@@ -15,6 +15,14 @@ require "console"
 require "resolv"
 
 module Async
+	begin
+		require "fiber/profiler"
+		Profiler = Fiber::Profiler
+	rescue LoadError
+		# Fiber::Profiler is not available.
+		Profiler = nil
+	end
+	
 	# Handles scheduling of fibers. Implements the fiber scheduler interface.
 	class Scheduler < Node
 		DEFAULT_WORKER_POOL = ENV.fetch("ASYNC_SCHEDULER_DEFAULT_WORKER_POOL", nil).then do |value|
@@ -42,10 +50,12 @@ module Async
 		# @public Since *Async v1*.
 		# @parameter parent [Node | Nil] The parent node to use for task hierarchy.
 		# @parameter selector [IO::Event::Selector] The selector to use for event handling.
-		def initialize(parent = nil, selector: nil, worker_pool: DEFAULT_WORKER_POOL)
+		def initialize(parent = nil, selector: nil, profiler: Profiler&.default, worker_pool: DEFAULT_WORKER_POOL)
 			super(parent)
 			
 			@selector = selector || ::IO::Event::Selector.new(Fiber.current)
+			@profiler = profiler
+			
 			@interrupted = false
 			
 			@blocked = 0
@@ -492,13 +502,19 @@ module Async
 		def run(...)
 			Kernel.raise ClosedError if @selector.nil?
 			
-			initial_task = self.async(...) if block_given?
-			
-			self.run_loop do
-				run_once
+			begin
+				@profiler&.start
+				
+				initial_task = self.async(...) if block_given?
+				
+				self.run_loop do
+					run_once
+				end
+				
+				return initial_task
+			ensure
+				@profiler&.stop
 			end
-			
-			return initial_task
 		end
 		
 		# Start an asynchronous task within the specified reactor. The task will be executed until the first blocking call, at which point it will yield and and this method will return.

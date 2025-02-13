@@ -45,12 +45,14 @@ describe IO do
 		it "can write with timeout" do
 			skip_unless_constant_defined(:TimeoutError, IO)
 			
+			big = "x" * 1024 * 1024
+			
 			input, output = IO.pipe
 			output.timeout = 0.001
 			
 			expect do
 				while true
-					output.write("Hello")
+					output.write(big)
 				end
 			end.to raise_exception(::IO::TimeoutError)
 		end
