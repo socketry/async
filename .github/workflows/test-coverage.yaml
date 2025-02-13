@@ -11,7 +11,7 @@ env:
 
 jobs:
   test:
-    name: ${{matrix.ruby}} on ${{matrix.os}} with ${{matrix.selector}}
+    name: ${{matrix.ruby}} on ${{matrix.os}} with ${{matrix.io_event_selector}}
     runs-on: ${{matrix.os}}-latest
     
     strategy:
