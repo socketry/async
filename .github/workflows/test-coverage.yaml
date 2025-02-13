@@ -19,33 +19,35 @@ jobs:
         include:
           - os: ubuntu
             ruby: "3.1"
-            selector: EPoll
+            io_event_selector: EPoll
           - os: ubuntu
             ruby: "3.2"
-            selector: EPoll
+            io_event_selector: EPoll
           - os: ubuntu
             ruby: "3.3"
-            selector: EPoll
+            io_event_selector: EPoll
           - os: ubuntu
             ruby: "3.4"
-            selector: EPoll
+            io_event_selector: EPoll
           - os: ubuntu
             ruby: "3.4"
-            selector: URing
+            io_event_selector: URing
           - os: ubuntu
             ruby: "3.4"
-            selector: URing
-            fiber_profile_capture: "true"
+            io_event_selector: URing
+            fiber_profiler_capture: "true"
           - os: ubuntu
             ruby: "head"
-            selector: URing
+            io_event_selector: URing
           - os: ubuntu
             ruby: "head"
-            selector: URing
-            worker_pool: "true"
+            io_event_selector: URing
+            async_scheduler_worker_pool: "true"
     
     env:
-      FIBER_PROFILER_CAPTURE: ${{matrix.fiber_profile_capture}}
+      IO_EVENT_SELECTOR: ${{matrix.io_event_selector}}
+      ASYNC_SCHEDULER_WORKER_POOL: ${{matrix.async_scheduler_worker_pool}}
+      FIBER_PROFILER_CAPTURE: ${{matrix.fiber_profiler_capture}}
     
     steps:
     - uses: actions/checkout@v4
@@ -58,17 +60,13 @@ jobs:
     
     - name: Run tests
       timeout-minutes: 5
-      env:
-        IO_EVENT_SELECTOR: ${{matrix.selector}}
-        ASYNC_SCHEDULER_DEFAULT_WORKER_POOL: ${{matrix.worker_pool}}
-        FIBER_PROFILER_CAPTURE: ${{matrix.fiber_profile_capture}}
       run: bundle exec bake test
     
     - uses: actions/upload-artifact@v4
       with:
         include-hidden-files: true
         if-no-files-found: error
-        name: coverage-${{matrix.os}}-${{matrix.ruby}}-${{matrix.selector}}-${{matrix.worker_pool}}-${{matrix.fiber_profile_capture}}
+        name: coverage-${{matrix.os}}-${{matrix.ruby}}-${{matrix.io_event_selector}}-${{matrix.async_scheduler_worker_pool}}-${{matrix.fiber_profiler_capture}}
         path: .covered.db
   
   validate:

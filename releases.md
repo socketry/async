@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+  - Rename `ASYNC_SCHEDULER_DEFAULT_WORKER_POOL` to `ASYNC_SCHEDULER_WORKER_POOL`.
+
 ### Fiber Stall Profiler
 
 After several iterations of experimentation, we are officially introducing the fiber stall profiler, implemented using the optional `fiber-profiler` gem. This gem is not included by default, but can be added to your project:
@@ -30,7 +32,7 @@ Ruby 3.4 will feature a new fiber scheduler hook, `blocking_operation_wait` whic
 
 The Async scheduler optionally supports this feature using a worker pool, by using the following environment variable:
 
-    ASYNC_SCHEDULER_DEFAULT_WORKER_POOL=true
+    ASYNC_SCHEDULER_WORKER_POOL=true
 
 This will cause the scheduler to use a worker pool for general blocking operations, rather than blocking the event loop.
 

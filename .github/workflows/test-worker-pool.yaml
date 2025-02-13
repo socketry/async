@@ -7,11 +7,11 @@ permissions:
 
 env:
   CONSOLE_OUTPUT: XTerm
-  ASYNC_SCHEDULER_DEFAULT_WORKER_POOL: true
+  ASYNC_SCHEDULER_WORKER_POOL: true
 
 jobs:
   test:
-    name: ${{matrix.ruby}} on ${{matrix.os}} / ASYNC_SCHEDULER_DEFAULT_WORKER_POOL=true
+    name: ${{matrix.ruby}} on ${{matrix.os}} / ASYNC_SCHEDULER_WORKER_POOL=true
     runs-on: ${{matrix.os}}-latest
     
     strategy:

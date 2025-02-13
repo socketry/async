@@ -25,7 +25,7 @@ module Async
 	
 	# Handles scheduling of fibers. Implements the fiber scheduler interface.
 	class Scheduler < Node
-		DEFAULT_WORKER_POOL = ENV.fetch("ASYNC_SCHEDULER_DEFAULT_WORKER_POOL", nil).then do |value|
+		WORKER_POOL = ENV.fetch("ASYNC_SCHEDULER_WORKER_POOL", nil).then do |value|
 			value == "true" ? true : nil
 		end
 		
@@ -50,7 +50,7 @@ module Async
 		# @public Since *Async v1*.
 		# @parameter parent [Node | Nil] The parent node to use for task hierarchy.
 		# @parameter selector [IO::Event::Selector] The selector to use for event handling.
-		def initialize(parent = nil, selector: nil, profiler: Profiler&.default, worker_pool: DEFAULT_WORKER_POOL)
+		def initialize(parent = nil, selector: nil, profiler: Profiler&.default, worker_pool: WORKER_POOL)
 			super(parent)
 			
 			@selector = selector || ::IO::Event::Selector.new(Fiber.current)
