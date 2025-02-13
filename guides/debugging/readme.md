@@ -23,7 +23,7 @@ Using `Fiber.blocking{}` prevents any context switching until the block is compl
 
 ### Debugging with IRB
 
-You ca use IRB to debug your Async program. In some cases, you will want to stop the world and inspect the state of your program. You can do this by wrapping `binding.irb` inside a `Fiber.blocking{}` block:
+You can use IRB to debug your Async program. In some cases, you will want to stop the world and inspect the state of your program. You can do this by wrapping `binding.irb` inside a `Fiber.blocking{}` block:
 
 ```ruby
 Async do
