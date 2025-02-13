@@ -10,6 +10,7 @@ source "https://rubygems.org"
 gemspec
 
 # gem "io-event", git: "https://github.com/socketry/io-event.git"
+gem "fiber-profiler"
 
 group :maintenance, optional: true do
 	gem "bake-gem"
