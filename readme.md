@@ -36,6 +36,11 @@ Please see the [project documentation](https://socketry.github.io/async/) for mo
 
 Please see the [project releases](https://socketry.github.io/async/releases/index) for all releases.
 
+### v2.23.0
+
+  - Rename `ASYNC_SCHEDULER_DEFAULT_WORKER_POOL` to `ASYNC_SCHEDULER_WORKER_POOL`.
+  - [Fiber Stall Profiler](https://socketry.github.io/async/releases/index#fiber-stall-profiler)
+
 ### v2.21.1
 
   - [Worker Pool](https://socketry.github.io/async/releases/index#worker-pool)

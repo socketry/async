@@ -1,6 +1,6 @@
 # Releases
 
-## Unreleased
+## v2.23.0
 
   - Rename `ASYNC_SCHEDULER_DEFAULT_WORKER_POOL` to `ASYNC_SCHEDULER_WORKER_POOL`.
 
@@ -8,13 +8,13 @@
 
 After several iterations of experimentation, we are officially introducing the fiber stall profiler, implemented using the optional `fiber-profiler` gem. This gem is not included by default, but can be added to your project:
 
-```bash
+``` bash
 $ bundle add fiber-profiler
 ```
 
 After adding the gem, you can enable the fiber stall profiler by setting the `FIBER_PROFILER_CAPTURE=true` environment variable:
 
-```bash
+``` bash
 $ FIBER_PROFILER_CAPTURE=true bundle exec ruby -rasync -e 'Async{Fiber.blocking{sleep 0.1}}'
 Fiber stalled for 0.105 seconds
 -e:1 in c-call '#<Class:Fiber>#blocking' (0.105s)
