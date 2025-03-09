@@ -90,4 +90,129 @@ describe IO do
 			out.close
 		end
 	end
+	
+	with "#close" do
+		it "can interrupt reading fiber when closing" do
+			r, w = IO.pipe
+			
+			read_task = Async do
+				r.read(5)
+				nil
+			rescue IOError => e
+				e.to_s
+			end
+
+			r.close
+
+			expect(read_task.wait).to be == 'closed stream'
+		end
+
+		it "can interrupt reading fiber when closing from another fiber" do
+			r, w = IO.pipe
+
+			read_task = Async do
+				r.read(5)
+				nil
+			rescue IOError => e
+				e.to_s
+			end
+
+			close_task = Async do
+				r.close
+			end
+
+			close_task.wait
+			expect(read_task.wait).to be == 'closed stream'
+		end
+
+		it "can interrupt reading fiber when closing from a new thread" do
+			r, w = IO.pipe
+
+			read_task = Async do
+				r.read(5)
+				nil
+			rescue IOError => e
+				e.to_s
+			end
+
+			close_thread = Thread.new do
+				r.close
+			end
+
+			close_thread.value
+			expect(read_task.wait).to be == 'closed stream'
+		end
+
+		it "can interrupt reading fiber when closing from a fiber in a new thread" do
+			r, w = IO.pipe
+
+			read_task = Async do
+				r.read(5)
+				nil
+			rescue IOError => e
+				e.to_s
+			end
+
+			close_thread = Thread.new do
+				close_task = Async do
+					r.close
+				end
+				close_task.wait
+			end
+
+			close_thread.value
+			expect(read_task.wait).to be == 'closed stream'
+		end
+
+		it "can interrupt reading thread when closing from a fiber" do
+			r, w = IO.pipe
+
+			read_thread = Thread.new do
+				Thread.current.report_on_exception = false
+				r.read(5)
+				nil
+			rescue IOError => e
+				e.to_s
+			end
+
+			# Wait until read_thread blocks on I/O
+			while read_thread.status != 'sleep'
+				sleep(0.001)
+			end
+
+			close_task = Async do
+				r.close
+			end
+
+			close_task.wait
+			expect(read_thread.value).to be == 'closed stream'
+		end
+
+		it "can interrupt reading fiber in a new thread when closing from a fiber" do
+			r, w = IO.pipe
+
+			read_thread = Thread.new do
+				Thread.current.report_on_exception = false
+				read_task = Async do
+					r.read(5)
+					nil
+				rescue IOError => e
+					e.to_s
+				end
+				read_task.wait
+			end
+
+			# Wait until read_thread blocks on I/O
+			while read_thread.status != 'sleep'
+				sleep(0.001)
+			end
+
+			close_task = Async do
+				r.close
+			end
+			close_task.wait
+
+			expect(read_thread.value).to be == 'closed stream'
+		end
+	end
 end

@@ -357,6 +357,32 @@ module Async
 			end
 		end
 		
+		# Used to defer stopping the current task until later.
+		class RaiseException
+			# Create a new stop later operation.
+			#
+			# @parameter task [Task] The task to stop later.
+			def initialize(fiber, exception)
+				@fiber = fiber
+				@exception = exception
+			end
+			
+			# @returns [Boolean] Whether the task is alive.
+			def alive?
+				@fiber.alive?
+			end
+			
+			# Transfer control to the operation - this will stop the task.
+			def transfer
+				@fiber.raise(@exception)
+			end
+		end
+		
+		# Raise an exception on the specified fiber, waking up the event loop if necessary.
+		def fiber_interrupt(fiber, exception)
+			unblock(nil, RaiseException.new(fiber, exception))
+		end
+		
 		# Wait for the specified process ID to exit.
 		#
 		# @public Since *Async v2*.
