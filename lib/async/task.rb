@@ -298,7 +298,7 @@ module Async
 					begin
 						# There is a chance that this will stop the fiber that originally called stop. If that happens, the exception handling in `#stopped` will rescue the exception and re-raise it later.
 						Fiber.scheduler.raise(@fiber, Stop)
-					rescue FiberError => error
+					rescue FiberError
 						# In some cases, this can cause a FiberError (it might be resumed already), so we schedule it to be stopped later:
 						Fiber.scheduler.push(Stop::Later.new(self))
 					end
