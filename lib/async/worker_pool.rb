@@ -14,7 +14,7 @@ module Async
 		module BlockingOperationWait
 			# Wait for the given work to be executed.
 			#
-			# @public Since *Async v2.19* and *Ruby v3.4*.
+			# @public Since *Async v2.21* and *Ruby v3.4*.
 			# @asynchronous May be non-blocking.
 			#
 			# @parameter work [Proc] The work to execute on a background thread.
