@@ -20,8 +20,17 @@ module Async
 		# @parameter available [Notification] The notification to use for signaling when items are available.
 		def initialize(parent: nil, available: Notification.new)
 			@items = []
+			@closed = false
 			@parent = parent
 			@available = available
+		end
+		
+		def close
+			@closed = true
+			
+			while @available.waiting?
+				@available.signal(nil)
+			end
 		end
 		
 		# @attribute [Array] The items in the queue.
@@ -59,6 +68,10 @@ module Async
 		# Remove and return the next item from the queue.
 		def dequeue
 			while @items.empty?
+				if @closed
+					return nil
+				end
+				
 				@available.wait
 			end
 			

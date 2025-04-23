@@ -85,21 +85,28 @@ describe Async::Barrier do
 		
 		# It's possible for Barrier#wait to be interrupted with an unexpected exception, and this should not cause the barrier to incorrectly remove that task from the wait list.
 		it "waits for tasks with timeouts" do
+			repeats = 5
+			count = 0
+			
 			begin
-				reactor.with_timeout(5/100.0/2) do
-					5.times do |i|
+				reactor.with_timeout(repeats/100.0/2) do
+					repeats.times do |i|
 						barrier.async do |task|
 							sleep(i/100.0)
 						end
 					end
 					
-					expect(barrier.tasks.size).to be == 5
-					barrier.wait
+					expect(barrier.tasks.size).to be == repeats
+					
+					barrier.wait do |task|
+						task.wait
+						count += 1
+					end
 				end
 			rescue Async::TimeoutError
 				# Expected.
 			ensure
-				expect(barrier.tasks.size).to be == 2
+				expect(barrier.tasks.size).to be == (repeats - count)
 				barrier.stop
 			end
 		end
