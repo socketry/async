@@ -31,6 +31,7 @@ end
 
   - Ruby v3.1 support is dropped.
   - `Async::Wrapper` which was previously deprecated, is now removed.
+  - `Async::Barrier` now waits in order of completion rather than order of creation. This means that if you create a barrier with 3 tasks, and one of them completes (or fails) before the others, it will be the first to be yielded to the barrier.
 
 ### Flexible Timeouts
 

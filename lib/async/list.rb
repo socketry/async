@@ -134,7 +134,7 @@ module Async
 			return removed(node)
 		end
 		
-		# @returns [Boolean] Returns true if the list is empty.
+		# @returns [Boolean] True if the list is empty.
 		def empty?
 			@size == 0
 		end
