@@ -1,5 +1,9 @@
 # Releases
 
+## Unreleased
+
+  - Ruby v3.1 support is dropped.
+
 ## v2.23.0
 
   - Rename `ASYNC_SCHEDULER_DEFAULT_WORKER_POOL` to `ASYNC_SCHEDULER_WORKER_POOL`.

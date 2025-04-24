@@ -269,16 +269,6 @@ module Async
 			::Resolv.getaddresses(hostname)
 		end
 		
-		if IO.method_defined?(:timeout)
-			private def get_timeout(io)
-				io.timeout
-			end
-		else
-			private def get_timeout(io)
-				nil
-			end
-		end
-		
 		# Wait for the specified IO to become ready for the specified events.
 		#
 		# @public Since *Async v2*.
@@ -295,7 +285,7 @@ module Async
 				timer = @timers.after(timeout) do
 					fiber.transfer
 				end
-			elsif timeout = get_timeout(io)
+			elsif timeout = io.timeout
 				# Otherwise, if we default to the io's timeout, we raise an exception:
 				timer = @timers.after(timeout) do
 					fiber.raise(::IO::TimeoutError, "Timeout (#{timeout}s) while waiting for IO to become ready!")
@@ -320,7 +310,7 @@ module Async
 			def io_read(io, buffer, length, offset = 0)
 				fiber = Fiber.current
 				
-				if timeout = get_timeout(io)
+				if timeout = io.timeout
 					timer = @timers.after(timeout) do
 						fiber.raise(::IO::TimeoutError, "Timeout (#{timeout}s) while waiting for IO to become readable!")
 					end
@@ -344,7 +334,7 @@ module Async
 				def io_write(io, buffer, length, offset = 0)
 					fiber = Fiber.current
 					
-					if timeout = get_timeout(io)
+					if timeout = io.timeout
 						timer = @timers.after(timeout) do
 							fiber.raise(::IO::TimeoutError, "Timeout (#{timeout}s) while waiting for IO to become writable!")
 						end
