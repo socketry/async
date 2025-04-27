@@ -20,6 +20,18 @@ module Async
 				expect(queue.size).to be == 1
 				expect(queue.dequeue).to be == :item
 			end
+			
+			it "can't add an item to a closed queue" do
+				queue.push(:item)
+				expect(queue).to have_attributes(size: be == 1)
+				expect(queue.dequeue).to be == :item
+				
+				queue.close
+				
+				expect do
+					queue.push(:item)
+				end.to raise_exception(Async::Queue::ClosedError)
+			end
 		end
 		
 		with "#pop" do

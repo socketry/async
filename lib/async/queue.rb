@@ -15,6 +15,11 @@ module Async
 	#
 	# @public Since *Async v1*.
 	class Queue
+		# An error raised when trying to enqueue items to a closed queue.
+		# @public Since *Async v2.24*.
+		class ClosedError < RuntimeError
+		end
+		
 		# Create a new queue.
 		#
 		# @parameter parent [Interface(:async) | Nil] The parent task to use for async operations.
@@ -26,6 +31,7 @@ module Async
 			@available = available
 		end
 		
+		# Close the queue, causing all waiting tasks to return `nil`. Any subsequent calls to {enqueue} will raise an exception.
 		def close
 			@closed = true
 			
@@ -61,6 +67,10 @@ module Async
 		
 		# Add multiple items to the queue.
 		def enqueue(*items)
+			if @closed
+				raise ClosedError, "Cannot enqueue items to a closed queue."
+			end
+			
 			@items.concat(items)
 			
 			@available.signal unless self.empty?
@@ -133,6 +143,14 @@ module Async
 		# @attribute [Integer] The maximum number of items that can be enqueued.
 		attr :limit
 		
+		def close
+			super
+			
+			while @full.waiting?
+				@full.signal(nil)
+			end
+		end
+		
 		# @returns [Boolean] Whether trying to enqueue an item would block.
 		def limited?
 			@items.size >= @limit
@@ -160,6 +178,10 @@ module Async
 			while !items.empty?
 				while limited?
 					@full.wait
+				end
+				
+				if @closed
+					raise ClosedError, "Cannot enqueue items to a closed queue."
 				end
 				
 				available = @limit - @items.size
