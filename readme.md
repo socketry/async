@@ -35,6 +35,12 @@ Please see the [project documentation](https://socketry.github.io/async/) for mo
 
 Please see the [project releases](https://socketry.github.io/async/releases/index) for all releases.
 
+### v2.24.0
+
+  - Ruby v3.1 support is dropped.
+  - `Async::Wrapper` which was previously deprecated, is now removed.
+  - [Flexible Timeouts](https://socketry.github.io/async/releases/index#flexible-timeouts)
+
 ### v2.23.0
 
   - Rename `ASYNC_SCHEDULER_DEFAULT_WORKER_POOL` to `ASYNC_SCHEDULER_WORKER_POOL`.
