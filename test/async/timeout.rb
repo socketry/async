@@ -11,6 +11,15 @@ describe Async::Timeout do
 		end
 	end
 	
+	with "#now" do
+		it "can get the current time" do
+			scheduler.with_timeout(1) do |timeout|
+				expect(timeout.now).to be >= 0
+				expect(timeout.now).to be <= timeout.time
+			end
+		end
+	end
+	
 	with "#adjust" do
 		it "can adjust the timeout" do
 			scheduler.with_timeout(1) do |timeout|
