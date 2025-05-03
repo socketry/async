@@ -13,31 +13,31 @@ module Async
 			@handle = handle
 		end
 		
-		# @returns [Numeric] The time remaining until the timeout occurs.
+		# @returns [Numeric] The time remaining until the timeout occurs, in seconds.
 		def duration
 			@handle.time - @timers.now
 		end
 		
-		# Update the duration of the timeout, rescheduling it if necessary.
+		# Update the duration of the timeout.
 		#
 		# The duration is relative to the current time, e.g. setting the duration to 5 means the timeout will occur in 5 seconds from now.
 		#
-		# @parameter value [Numeric] The new duration to assign to the timeout.
+		# @parameter value [Numeric] The new duration to assign to the timeout, in seconds.
 		def duration=(value)
 			self.reschedule(@timers.now + value)
 		end
 		
-		# Adjust the timeout by the specified duration, rescheduling it if necessary.
+		# Adjust the timeout by the specified duration.
 		#
 		# The duration is relative to the timeout time, e.g. adjusting the timeout by 5 increases the current duration by 5 seconds.
 		#
-		# @parameter duration [Numeric] The duration to adjust the timeout by.
+		# @parameter duration [Numeric] The duration to adjust the timeout by, in seconds.
 		# @returns [Numeric] The new time at which the timeout will occur.
 		def adjust(duration)
 			self.reschedule(time + duration)
 		end
 		
-		# @returns [Numeric] The time at which the timeout will occur.
+		# @returns [Numeric] The time at which the timeout will occur, in seconds since {now}.
 		def time
 			@handle.time
 		end
@@ -55,7 +55,7 @@ module Async
 			@timers.now
 		end
 		
-		# Cancel the timeout.
+		# Cancel the timeout, preventing it from executing.
 		def cancel!
 			@handle.cancel!
 		end
