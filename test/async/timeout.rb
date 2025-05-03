@@ -45,5 +45,14 @@ describe Async::Timeout do
 				expect(timeout).to be(:cancelled?)
 			end
 		end
+		
+		it "can't reschedule a cancelled timeout" do
+			scheduler.with_timeout(1) do |timeout|
+				timeout.cancel!
+				expect do
+					timeout.adjust(1)
+				end.to raise_exception(Async::Timeout::CancelledError)
+			end
+		end
 	end
 end

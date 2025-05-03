@@ -58,6 +58,9 @@ module Async
 			@handle.cancelled?
 		end
 		
+		class CancelledError < RuntimeError
+		end
+		
 		# Reschedule the timeout to occur at the specified time.
 		#
 		# @parameter time [Numeric] The new time to schedule the timeout for.
@@ -72,7 +75,7 @@ module Async
 				
 				return time
 			else
-				raise RuntimeError, "Cannot reschedule a cancelled timeout!"
+				raise CancelledError, "Cannot reschedule a cancelled timeout!"
 			end
 		end
 	end
