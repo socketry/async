@@ -7,6 +7,7 @@
 
 require_relative "clock"
 require_relative "task"
+require_relative "timeout"
 require_relative "worker_pool"
 
 require "io/event"
@@ -539,7 +540,7 @@ module Async
 		# @parameter duration [Numeric] The time in seconds, in which the task should complete.
 		# @parameter exception [Class] The exception class to raise.
 		# @parameter message [String] The message to pass to the exception.
-		# @yields {|duration| ...} The block to execute with a timeout.
+		# @yields {|timeout| ...} The block to execute with a timeout.
 		def with_timeout(duration, exception = TimeoutError, message = "execution expired", &block)
 			fiber = Fiber.current
 			
@@ -549,7 +550,11 @@ module Async
 				end
 			end
 			
-			yield timer
+			if block.arity.zero?
+				yield
+			else
+				yield Timeout.new(@timers, timer)
+			end
 		ensure
 			timer&.cancel!
 		end
@@ -564,7 +569,7 @@ module Async
 		# @parameter message [String] The message to pass to the exception.
 		# @yields {|duration| ...} The block to execute with a timeout.
 		def timeout_after(duration, exception, message, &block)
-			with_timeout(duration, exception, message) do |timer|
+			with_timeout(duration, exception, message) do
 				yield duration
 			end
 		end
