@@ -50,7 +50,7 @@ module Async
 			self.reschedule(value)
 		end
 		
-		# @returns [Numeric] The current time in the scheduler.
+		# @returns [Numeric] The current time in the scheduler, relative to the time of this timeout, in seconds.
 		def now
 			@timers.now
 		end
