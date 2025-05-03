@@ -58,6 +58,7 @@ module Async
 			@handle.cancelled?
 		end
 		
+		# Raised when attempting to reschedule a cancelled timeout.
 		class CancelledError < RuntimeError
 		end
 		
