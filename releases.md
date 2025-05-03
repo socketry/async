@@ -5,6 +5,34 @@
   - Ruby v3.1 support is dropped.
   - `Async::Wrapper` which was previously deprecated, is now removed.
 
+### Flexible Timeouts
+
+When {ruby Async::Scheduler#with_timeout} is invoked with a block, it can receive a {ruby Async::Timeout} instance. This allows you to adjust or cancel the timeout while the block is executing. This is useful for long-running tasks that may need to adjust their timeout based on external factors.
+
+``` ruby
+Async do
+	Async::Scheduler.with_timeout(5) do |timeout|
+		# Do some work that may take a while...
+		
+		if some_condition
+			timeout.cancel! # Cancel the timeout
+		else
+			# Add 10 seconds to the current timeout:
+			timeout.adjust(10)
+			
+			# Reduce the timeout by 10 seconds:
+			timeout.adjust(-10)
+			
+			# Set the timeout to 10 seconds from now:
+			timeout.duration = 10
+			
+			# Increase the current duration:
+			timeout.duration += 10
+		end
+	end
+end
+```
+
 ## v2.23.0
 
   - Rename `ASYNC_SCHEDULER_DEFAULT_WORKER_POOL` to `ASYNC_SCHEDULER_WORKER_POOL`.

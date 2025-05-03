@@ -553,7 +553,7 @@ module Async
 			if block.arity.zero?
 				yield
 			else
-				yield Timeout.new(@timers, timer, duration)
+				yield Timeout.new(@timers, timer)
 			end
 		ensure
 			timer&.cancel!

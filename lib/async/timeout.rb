@@ -8,31 +8,33 @@ module Async
 	# @public Since *Async v2.24*.
 	class Timeout
 		# Initialize a new timeout.
-		def initialize(timers, handle, duration = nil)
+		def initialize(timers, handle)
 			@timers = timers
 			@handle = handle
-			@duration = duration || (handle.time - timers.now)
 		end
 		
-		# @attribute [Numeric] The duration of the timeout.
-		attr :duration
+		# @returns [Numeric] The time remaining until the timeout occurs.
+		def duration
+			@handle.time - @timers.now
+		end
 		
 		# Update the duration of the timeout, rescheduling it if necessary.
 		#
-		# The duration is relative to the time the timeout was created.
+		# The duration is relative to the current time, e.g. setting the duration to 5 means the timeout will occur in 5 seconds from now.
 		#
 		# @parameter value [Numeric] The new duration to assign to the timeout.
 		def duration=(value)
-			delta = value - @duration
-			self.reschedule(time + delta, value)
+			self.reschedule(@timers.now + value)
 		end
 		
 		# Adjust the timeout by the specified duration, rescheduling it if necessary.
 		#
+		# The duration is relative to the timeout time, e.g. adjusting the timeout by 5 increases the current duration by 5 seconds.
+		#
 		# @parameter duration [Numeric] The duration to adjust the timeout by.
 		# @returns [Numeric] The new time at which the timeout will occur.
 		def adjust(duration)
-			self.reschedule(time + duration, @duration + duration)
+			self.reschedule(time + duration)
 		end
 		
 		# @returns [Numeric] The time at which the timeout will occur.
@@ -46,6 +48,11 @@ module Async
 		# @returns [Numeric] The new time at which the timeout will occur.
 		def time=(value)
 			self.reschedule(value)
+		end
+		
+		# @returns [Numeric] The current time in the scheduler.
+		def now
+			@timers.now
 		end
 		
 		# Cancel the timeout.
@@ -65,13 +72,11 @@ module Async
 		# Reschedule the timeout to occur at the specified time.
 		#
 		# @parameter time [Numeric] The new time to schedule the timeout for.
-		# @parameter duration [Numeric | Nil] The new duration to assign to the timeout.
 		# @returns [Numeric] The new time at which the timeout will occur.
-		private def reschedule(time, duration = nil)
+		private def reschedule(time)
 			if block = @handle&.block
 				@handle.cancel!
 				
-				@duration = duration || (time - @timers.now)
 				@handle = @timers.schedule(time, block)
 				
 				return time

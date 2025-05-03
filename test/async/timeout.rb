@@ -7,7 +7,7 @@ describe Async::Timeout do
 	it "can schedule a timeout" do
 		scheduler.with_timeout(1) do |timeout|
 			expect(timeout.time).to be >= 0
-			expect(timeout.duration).to be == 1
+			expect(timeout.duration).to (be > 0).and(be <= 1)
 		end
 	end
 	
@@ -15,7 +15,7 @@ describe Async::Timeout do
 		it "can adjust the timeout" do
 			scheduler.with_timeout(1) do |timeout|
 				timeout.adjust(1)
-				expect(timeout.duration).to be == 2
+				expect(timeout.duration).to (be > 1).and(be <= 2)
 			end
 		end
 	end
@@ -24,7 +24,14 @@ describe Async::Timeout do
 		it "can set the timeout duration" do
 			scheduler.with_timeout(1) do |timeout|
 				timeout.duration = 2
-				expect(timeout.duration).to be == 2
+				expect(timeout.duration).to (be > 1).and(be <= 2)
+			end
+		end
+		
+		it "can increase the timeout duration" do
+			scheduler.with_timeout(1) do |timeout|
+				timeout.duration += 2
+				expect(timeout.duration).to (be > 2).and(be <= 3)
 			end
 		end
 	end
