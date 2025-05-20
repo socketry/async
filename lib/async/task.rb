@@ -61,7 +61,7 @@ module Async
 				super
 			end
 		end
-		
+
 		# @deprecated With no replacement.
 		def self.yield
 			Fiber.scheduler.transfer
@@ -73,7 +73,33 @@ module Async
 				task.run(*arguments)
 			end
 		end
-		
+
+		@@unhandled_exception_handler = nil
+
+		# Set the global handler for unhandled exceptions in tasks.
+		#
+		# This configured handler is deprioritized below the instance-level handler set by `Async::Task#unhandled_exception_handler`.
+		#
+		# This allows you to customize how Async deals with unhandled exceptions,
+		# such as logging them to a different destination, adding custom metadata,
+		# or sending them to an error monitoring service.
+		#
+		# @example Setting a custom exception handler
+		#   Async::Task.unhandled_exception_handler { |task, exception|
+		#     MyLogger.error("Async task failed: #{exception.message}",
+		#                    task_id: task.object_id,
+		#                    backtrace: exception.backtrace)
+		#   }
+		#
+		# @example Resetting to default behavior
+		#   Async::Task.unhandled_exception_handler(nil)
+		#
+		# @param [Proc, nil] block The handler proc to be called with task and exception
+		# @return [Proc, nil] The current handler
+		def self.unhandled_exception_handler(guard = nil, &block)
+			@@unhandled_exception_handler = block || guard
+		end
+
 		# Create a new task.
 		# @parameter reactor [Reactor] the reactor this task will run within.
 		# @parameter parent [Task] the parent task.
@@ -124,6 +150,35 @@ module Async
 			else
 				super
 			end
+		end
+
+		# Set the task instance-level handler for unhandled exceptions in tasks.
+		#
+		# This configured handler is prioritized over the global handler set by `Async::Task.unhandled_exception_handler`.
+		#
+		# This allows you to customize how Async deals with unhandled exceptions,
+		# such as logging them to a different destination, adding custom metadata,
+		# or sending them to an error monitoring service.
+		#
+		# @example Setting a custom exception handler
+		#   Async do |task|
+		# 	  task.unhandled_exception_handler { |task, exception|
+		# 		  MyLogger.error("Async task failed: #{exception.message}",
+		# 		 	  			       task_id: task.object_id,
+		# 					           backtrace: exception.backtrace)
+		# 		}
+		#   end
+		#
+		# @example Resetting to default behavior
+		#   Async do |task|
+		#     ...
+		# 	  task.unhandled_exception_handler(nil)
+		#   end
+		#
+		# @param [Proc, nil] block The handler proc to be called with task and exception
+		# @return [Proc, nil] The current handler
+		def unhandled_exception_handler(guard = nil, &block)
+			@unhandled_exception_handler = block || guard
 		end
 		
 		# @returns [String] A description of the task and it's current status.
@@ -201,7 +256,17 @@ module Async
 				rescue => error
 					# I'm not completely happy with this overhead, but the alternative is to not log anything which makes debugging extremely difficult. Maybe we can introduce a debug wrapper which adds extra logging.
 					if @finished.nil?
-						warn(self, "Task may have ended with unhandled exception.", exception: error)
+						begin
+							if @unhandled_exception_handler
+								@unhandled_exception_handler.call(self, error)
+							elsif @@unhandled_exception_handler
+								@@unhandled_exception_handler.call(self, error)
+							else
+								warn(self, "Task may have ended with unhandled exception.", exception: error)
+							end
+						rescue => e
+							warn(self, "Exception occurred in unhandled exception handler.", exception: e)
+						end
 					end
 					
 					raise
