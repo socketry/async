@@ -9,6 +9,8 @@ require "async"
 require "async/clock"
 require "async/queue"
 
+require "console"
+
 require "sus/fixtures/console"
 
 require "sus/fixtures/time/quantum"
@@ -935,7 +937,121 @@ describe Async::Task do
 				message: be == "Task may have ended with unhandled exception."
 			)
 		end
-		
+
+		it "does class-level customized error handling if a task fails without being waited on" do
+			failed_task = nil
+
+			# set a class-level customized error handler
+			Async::Task.unhandled_exception_handler { |task, error|
+				Console.warn(task, "class-level customized error handler", exception: error)
+			}
+
+			reactor.async do |task|
+				task.async do |task|
+					failed_task = task
+					raise "boom"
+				end
+			end
+
+			reactor.run
+
+			expect_console.to have_logged(
+				severity: be == :warn,
+				subject: be_equal(failed_task),
+				message: be == "class-level customized error handler"
+			)
+
+			# reset the class-level customized error handler
+			Async::Task.unhandled_exception_handler(nil)
+
+			reactor.async do |task|
+				task.async do |task|
+					failed_task = task
+					raise "boom"
+				end
+			end
+			reactor.run
+
+			expect_console.to have_logged(
+				severity: be == :warn,
+				subject: be_equal(failed_task),
+				message: be == "Task may have ended with unhandled exception."
+			)
+		end
+
+		it "does task instance-level customized error handling if a task fails without being waited on" do
+			failed_task = nil
+
+			# set a class-level customized error handler, but this should be ignored due to the priority
+			Async::Task.unhandled_exception_handler { |task, error|
+				Console.warn(task, "class-level customized error handler", exception: error)
+			}
+
+			reactor.async do |task|
+				task.async do |task|
+					# set a task instance-level customized error handler; this should be respected
+					task.unhandled_exception_handler { |task, error|
+						Console.warn(task, "instance-level customized error handler", exception: error)
+					}
+					failed_task = task
+					raise "boom"
+				end
+			end
+
+			reactor.run
+
+			expect_console.to have_logged(
+				severity: be == :warn,
+				subject: be_equal(failed_task),
+				message: be == "instance-level customized error handler"
+			)
+
+			# reset the customized error handlers
+			Async::Task.unhandled_exception_handler(nil)
+
+			reactor.async do |task|
+				task.async do |task|
+					# set a task instance-level customized error handler; this should be respected
+					task.unhandled_exception_handler { |task, error|
+						Console.warn(task, "instance-level customized error handler", exception: error)
+					}
+					task.unhandled_exception_handler(nil) # reset
+					failed_task = task
+					raise "boom"
+				end
+			end
+
+			reactor.run
+
+			expect_console.to have_logged(
+				severity: be == :warn,
+				subject: be_equal(failed_task),
+				message: be == "Task may have ended with unhandled exception."
+			)
+		end
+
+		it "catches the exception from the customized unhandled exception handler" do
+			failed_task = nil
+
+			reactor.async do |task|
+				task.async do |task|
+					task.unhandled_exception_handler { |task, error|
+						raise "exception in unhandled exception handler"
+					}
+					failed_task = task
+					raise "boom"
+				end
+			end
+
+			reactor.run
+
+			expect_console.to have_logged(
+				severity: be == :warn,
+				subject: be_equal(failed_task),
+				message: be == "Exception occurred in unhandled exception handler."
+			)
+		end
+
 		it "does not log a warning if a task fails and is waited on" do
 			failed_task = nil
 			
