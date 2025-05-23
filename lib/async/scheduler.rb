@@ -349,7 +349,7 @@ module Async
 		end
 		
 		# Used to defer stopping the current task until later.
-		class RaiseException
+		class FiberInterrupt
 			# Create a new stop later operation.
 			#
 			# @parameter task [Task] The task to stop later.
@@ -371,7 +371,7 @@ module Async
 		
 		# Raise an exception on the specified fiber, waking up the event loop if necessary.
 		def fiber_interrupt(fiber, exception)
-			unblock(nil, RaiseException.new(fiber, exception))
+			unblock(nil, FiberInterrupt.new(fiber, exception))
 		end
 		
 		# Wait for the specified process ID to exit.
