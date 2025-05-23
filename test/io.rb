@@ -104,7 +104,7 @@ describe IO do
 
 			r.close
 
-			expect(read_task.wait).to be == 'closed stream'
+			expect(read_task.wait).to be == "closed stream"
 		end
 
 		it "can interrupt reading fiber when closing from another fiber" do
@@ -122,7 +122,7 @@ describe IO do
 			end
 
 			close_task.wait
-			expect(read_task.wait).to be == 'closed stream'
+			expect(read_task.wait).to be == "closed stream"
 		end
 
 		it "can interrupt reading fiber when closing from a new thread" do
@@ -140,7 +140,7 @@ describe IO do
 			end
 
 			close_thread.value
-			expect(read_task.wait).to be == 'closed stream'
+			expect(read_task.wait).to be == "closed stream"
 		end
 
 		it "can interrupt reading fiber when closing from a fiber in a new thread" do
@@ -161,7 +161,7 @@ describe IO do
 			end
 
 			close_thread.value
-			expect(read_task.wait).to be == 'closed stream'
+			expect(read_task.wait).to be == "closed stream"
 		end
 
 		it "can interrupt reading thread when closing from a fiber" do
@@ -176,7 +176,7 @@ describe IO do
 			end
 
 			# Wait until read_thread blocks on I/O
-			while read_thread.status != 'sleep'
+			while read_thread.status != "sleep"
 				sleep(0.001)
 			end
 
@@ -185,7 +185,7 @@ describe IO do
 			end
 
 			close_task.wait
-			expect(read_thread.value).to be == 'closed stream'
+			expect(read_thread.value).to be == "closed stream"
 		end
 
 		it "can interrupt reading fiber in a new thread when closing from a fiber" do
@@ -203,7 +203,7 @@ describe IO do
 			end
 
 			# Wait until read_thread blocks on I/O
-			while read_thread.status != 'sleep'
+			while read_thread.status != "sleep"
 				sleep(0.001)
 			end
 
@@ -212,7 +212,7 @@ describe IO do
 			end
 			close_task.wait
 
-			expect(read_thread.value).to be == 'closed stream'
+			expect(read_thread.value).to be == "closed stream"
 		end
 	end
 end
