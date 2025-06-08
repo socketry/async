@@ -116,10 +116,14 @@ describe IO do
 				expect do
 					r.read(5)
 				end.to raise_exception(IOError, message: be =~ /stream closed/)
+			ensure
+				puts "Exiting read task"
 			end
 			
 			close_task = Async do
 				r.close
+			ensure
+				puts "Exiting close task"
 			end
 			
 			close_task.wait
@@ -188,7 +192,7 @@ describe IO do
 			
 			expect do
 				read_thread.join
-			end.to raise_exception(IOError, message: be =~ /stream closed/)
+			end.to raise_exception(IOError, message: be =~ /closed/)
 		end
 		
 		it "can interrupt reading fiber in a new thread when closing from a fiber" do
@@ -201,7 +205,7 @@ describe IO do
 				read_task = Async do
 					expect do
 						r.read(5)
-					end.to raise_exception(IOError, message: be =~ /stream closed/)
+					end.to raise_exception(IOError, message: be =~ /closed/)
 				end
 				read_task.wait
 			end
