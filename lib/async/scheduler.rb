@@ -8,7 +8,6 @@
 require_relative "clock"
 require_relative "task"
 require_relative "timeout"
-require_relative "worker_pool"
 
 require "io/event"
 
@@ -45,7 +44,29 @@ module Async
 		def self.supported?
 			true
 		end
+
+		# Used to augment the scheduler to add support for blocking operations.
+		module BlockingOperationWait
+			# Wait for the given work to be executed.
+			#
+			# @public Since *Async v2.21* and *Ruby v3.4*.
+			# @asynchronous May be non-blocking.
+			#
+			# @parameter work [Proc] The work to execute on a background thread.
+			# @returns [Object] The result of the work.
+			def blocking_operation_wait(work)
+				@worker_pool.call(work)
+			end
+		end
+
+		private_constant :BlockingOperationWait
 		
+		if ::IO::Event.const_defined?(:WorkerPool)
+			WorkerPool = ::IO::Event::WorkerPool
+		else
+			WorkerPool = nil
+		end
+
 		# Create a new scheduler.
 		#
 		# @public Since *Async v1*.
@@ -65,14 +86,15 @@ module Async
 			@idle_time = 0.0
 			
 			@timers = ::IO::Event::Timers.new
+			
 			if worker_pool == true
-				@worker_pool = WorkerPool.new
+				@worker_pool = WorkerPool&.new
 			else
 				@worker_pool = worker_pool
 			end
-			
+
 			if @worker_pool
-				self.singleton_class.prepend(WorkerPool::BlockingOperationWait)
+				self.singleton_class.prepend(BlockingOperationWait)
 			end
 		end
 		
