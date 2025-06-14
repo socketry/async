@@ -1,5 +1,13 @@
 # Releases
 
+## Unreleased
+
+### Use `IO::Event::WorkerPool` for Blocking Operations
+
+The `Async::WorkerPool` implementation has been removed in favor of using `IO::Event::WorkerPool` directly. This change simplifies the codebase by delegating worker pool functionality to the `io-event` gem, which provides a more efficient and well-tested implementation.
+
+To enable the worker pool, you can set the `ASYNC_SCHEDULER_WORKER_POOL` environment variable to `true`. This will allow the scheduler to use a worker pool for blocking operations, which can help improve performance in applications that perform a lot of CPU-bound operations (e.g. `rb_nogvl`).
+
 ## v2.24.0
 
   - Ruby v3.1 support is dropped.
