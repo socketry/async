@@ -8,6 +8,23 @@ The `Async::WorkerPool` implementation has been removed in favor of using `IO::E
 
 To enable the worker pool, you can set the `ASYNC_SCHEDULER_WORKER_POOL` environment variable to `true`. This will allow the scheduler to use a worker pool for blocking operations, which can help improve performance in applications that perform a lot of CPU-bound operations (e.g. `rb_nogvl`).
 
+### Better handling of `IO#close` using `fiber_interrupt`
+
+`IO#close` interrupts fibers that are waiting on the IO using the new `fiber_interrupt` hook introduced in Ruby 3.5/4.0. This means that if you close an IO while a fiber is waiting on it, the fiber will be interrupted and will raise an `IOError`. This is a change from previous versions of Ruby, where closing an IO would not interrupt fibers waiting on it, and would instead interrupt the entire event loop (essentially a bug).
+
+```ruby
+r, w = IO.pipe
+
+Async do
+	child = Async do
+		r.gets
+	end
+	
+	r.close # This will interrupt the child fiber.
+	child.wait # This will raise an `IOError` because the IO was closed.
+end
+```
+
 ## v2.24.0
 
   - Ruby v3.1 support is dropped.
