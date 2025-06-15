@@ -90,4 +90,135 @@ describe IO do
 			out.close
 		end
 	end
+	
+	with "#close" do
+		it "can interrupt reading fiber when closing" do
+			skip_unless_minimum_ruby_version("3.5")
+			
+			r, w = IO.pipe
+			
+			read_task = Async do
+				expect do
+					r.read(5)
+				end.to raise_exception(IOError, message: be =~ /stream closed/)
+			end
+			
+			r.close
+			read_task.wait
+		end
+		
+		it "can interrupt reading fiber when closing from another fiber" do
+			skip_unless_minimum_ruby_version("3.5")
+			
+			r, w = IO.pipe
+			
+			read_task = Async do
+				expect do
+					r.read(5)
+				end.to raise_exception(IOError, message: be =~ /stream closed/)
+			ensure
+				puts "Exiting read task"
+			end
+			
+			close_task = Async do
+				r.close
+			ensure
+				puts "Exiting close task"
+			end
+			
+			close_task.wait
+			read_task.wait
+		end
+		
+		it "can interrupt reading fiber when closing from a new thread" do
+			skip_unless_minimum_ruby_version("3.5")
+			
+			r, w = IO.pipe
+			
+			read_task = Async do
+				expect do
+					r.read(5)
+				end.to raise_exception(IOError, message: be =~ /stream closed/)
+			end
+			
+			close_thread = Thread.new do
+				r.close
+			end
+			
+			close_thread.value
+			read_task.wait
+		end
+		
+		it "can interrupt reading fiber when closing from a fiber in a new thread" do
+			skip_unless_minimum_ruby_version("3.5")
+			
+			r, w = IO.pipe
+			
+			read_task = Async do
+				expect do
+					r.read(5)
+				end.to raise_exception(IOError, message: be =~ /stream closed/)
+			end
+			
+			close_thread = Thread.new do
+				close_task = Async do
+					r.close
+				end
+				close_task.wait
+			end
+			
+			close_thread.value
+			read_task.wait
+		end
+		
+		it "can interrupt reading thread when closing from a fiber" do
+			skip_unless_minimum_ruby_version("3.5")
+			
+			r, w = IO.pipe
+			
+			read_thread = Thread.new do
+				Thread.current.report_on_exception = false
+				r.read(5)
+			end
+			
+			# Wait until read_thread blocks on I/O
+			Thread.pass until read_thread.status == "sleep"
+			
+			close_task = Async do
+				r.close
+			end
+			
+			close_task.wait
+			
+			expect do
+				read_thread.join
+			end.to raise_exception(IOError, message: be =~ /closed/)
+		end
+		
+		it "can interrupt reading fiber in a new thread when closing from a fiber" do
+			skip_unless_minimum_ruby_version("3.5")
+			
+			r, w = IO.pipe
+			
+			read_thread = Thread.new do
+				Thread.current.report_on_exception = false
+				read_task = Async do
+					expect do
+						r.read(5)
+					end.to raise_exception(IOError, message: be =~ /closed/)
+				end
+				read_task.wait
+			end
+			
+			# Wait until read_thread blocks on I/O
+			Thread.pass until read_thread.status == "sleep"
+			
+			close_task = Async do
+				r.close
+			end
+			close_task.wait
+			
+			read_thread.value
+		end
+	end
 end

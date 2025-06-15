@@ -256,7 +256,7 @@ module Async
 		# @parameter blocker [Object] The object that was blocking the fiber.
 		# @parameter fiber [Fiber] The fiber to unblock.
 		def unblock(blocker, fiber)
-			# $stderr.puts "unblock(#{blocker}, #{fiber})"
+			# Fiber.blocking{$stderr.puts "unblock(#{blocker}, #{fiber})"}
 			
 			# This operation is protected by the GVL:
 			if selector = @selector
@@ -272,6 +272,8 @@ module Async
 		#
 		# @parameter duration [Numeric | Nil] The time in seconds to sleep, or if nil, indefinitely.
 		def kernel_sleep(duration = nil)
+			# Fiber.blocking{$stderr.puts "kernel_sleep(#{duration}, #{Fiber.current})"}
+			
 			if duration
 				self.block(nil, duration)
 			else
@@ -368,6 +370,34 @@ module Async
 					timer&.cancel!
 				end
 			end
+		end
+		
+		# Used to defer stopping the current task until later.
+		class FiberInterrupt
+			# Create a new stop later operation.
+			#
+			# @parameter task [Task] The task to stop later.
+			def initialize(fiber, exception)
+				@fiber = fiber
+				@exception = exception
+			end
+			
+			# @returns [Boolean] Whether the task is alive.
+			def alive?
+				@fiber.alive?
+			end
+			
+			# Transfer control to the operation - this will stop the task.
+			def transfer
+				# Fiber.blocking{$stderr.puts "FiberInterrupt#transfer(#{@fiber}, #{@exception})"}
+				@fiber.raise(@exception)
+			end
+		end
+		
+		# Raise an exception on the specified fiber, waking up the event loop if necessary.
+		def fiber_interrupt(fiber, exception)
+			# Fiber.blocking{$stderr.puts "fiber_interrupt(#{fiber}, #{exception})"}
+			unblock(nil, FiberInterrupt.new(fiber, exception))
 		end
 		
 		# Wait for the specified process ID to exit.
