@@ -217,4 +217,43 @@ describe IO do
 			read_thread.value
 		end
 	end
+	
+	describe ".select" do
+		it "can select readable IO" do
+			expect(Fiber.scheduler).to receive(:io_select)
+
+			input, output = IO.pipe
+			
+			begin
+				# Write some data to make it readable
+				output.write("Hello World")
+				
+				readables, writables, errorables = IO.select([input], nil, nil, 0.1)
+				
+				expect(readables).to have_value(be == input)
+				expect(writables).to be(:empty?)
+				expect(errorables).to be(:empty?)
+			ensure
+				input.close
+				output.close
+			end
+		end
+		
+		it "can select writable IO" do
+			expect(Fiber.scheduler).to receive(:io_select)
+			
+			input, output = IO.pipe
+				
+			begin
+				readables, writables, errorables = IO.select(nil, [output], nil, 0.1)
+				
+				expect(readables).to be(:empty?)
+				expect(writables).to have_value(be == output)
+				expect(errorables).to be(:empty?)
+			ensure
+				input.close
+				output.close
+			end
+		end
+	end
 end

@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Added support for `io_select` hook in the fiber scheduler, allowing non-blocking `IO.select` operations. This enables better integration with code that uses `IO.select` for multiplexing IO operations.
+
 ### Use `IO::Event::WorkerPool` for Blocking Operations
 
 The `Async::WorkerPool` implementation has been removed in favor of using `IO::Event::WorkerPool` directly. This change simplifies the codebase by delegating worker pool functionality to the `io-event` gem, which provides a more efficient and well-tested implementation.
