@@ -1,8 +1,8 @@
 # Releases
 
-## Unreleased
+## v2.25.0
 
-- Added support for `io_select` hook in the fiber scheduler, allowing non-blocking `IO.select` operations. This enables better integration with code that uses `IO.select` for multiplexing IO operations.
+  - Added support for `io_select` hook in the fiber scheduler, allowing non-blocking `IO.select` operations. This enables better integration with code that uses `IO.select` for multiplexing IO operations.
 
 ### Use `IO::Event::WorkerPool` for Blocking Operations
 
@@ -14,7 +14,7 @@ To enable the worker pool, you can set the `ASYNC_SCHEDULER_WORKER_POOL` environ
 
 `IO#close` interrupts fibers that are waiting on the IO using the new `fiber_interrupt` hook introduced in Ruby 3.5/4.0. This means that if you close an IO while a fiber is waiting on it, the fiber will be interrupted and will raise an `IOError`. This is a change from previous versions of Ruby, where closing an IO would not interrupt fibers waiting on it, and would instead interrupt the entire event loop (essentially a bug).
 
-```ruby
+``` ruby
 r, w = IO.pipe
 
 Async do

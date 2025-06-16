@@ -35,6 +35,12 @@ Please see the [project documentation](https://socketry.github.io/async/) for mo
 
 Please see the [project releases](https://socketry.github.io/async/releases/index) for all releases.
 
+### v2.25.0
+
+  - Added support for `io_select` hook in the fiber scheduler, allowing non-blocking `IO.select` operations. This enables better integration with code that uses `IO.select` for multiplexing IO operations.
+  - [Use `IO::Event::WorkerPool` for Blocking Operations](https://socketry.github.io/async/releases/index#use-io::event::workerpool-for-blocking-operations)
+  - [Better handling of `IO#close` using `fiber_interrupt`](https://socketry.github.io/async/releases/index#better-handling-of-io#close-using-fiber_interrupt)
+
 ### v2.24.0
 
   - Ruby v3.1 support is dropped.
