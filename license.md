@@ -1,6 +1,6 @@
 # MIT License
 
-Copyright, 2017-2024, by Samuel Williams.  
+Copyright, 2017-2025, by Samuel Williams.  
 Copyright, 2017, by Kent Gruber.  
 Copyright, 2017, by Devin Christensen.  
 Copyright, 2018, by Sokolov Yura.  
@@ -27,6 +27,11 @@ Copyright, 2023, by Emil Tin.
 Copyright, 2023, by Gert Goet.  
 Copyright, 2024, by Dimitar Peychinov.  
 Copyright, 2024, by Jamie McCarthy.  
+Copyright, 2025, by Jahfer Husain.  
+Copyright, 2025, by Mark Montroy.  
+Copyright, 2025, by Shigeru Nakajima.  
+Copyright, 2025, by Alan Wu.  
+Copyright, 2025, by Shopify Inc.  
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

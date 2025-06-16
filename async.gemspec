@@ -7,7 +7,7 @@ Gem::Specification.new do |spec|
 	spec.version = Async::VERSION
 	
 	spec.summary = "A concurrency framework for Ruby."
-	spec.authors = ["Samuel Williams", "Bruno Sutic", "Jeremy Jung", "Olle Jonsson", "Patrik Wenger", "Devin Christensen", "Emil Tin", "Jamie McCarthy", "Kent Gruber", "Brian Morearty", "Colin Kelley", "Dimitar Peychinov", "Gert Goet", "Jiang Jinyang", "Julien Portalier", "Jun Jiang", "Ken Muryoi", "Leon Löchner", "Masafumi Okura", "Masayuki Yamamoto", "Math Ieu", "Ryan Musgrave", "Salim Semaoune", "Shannon Skipper", "Sokolov Yura", "Stefan Wrobel", "Trevor Turk"]
+	spec.authors = ["Samuel Williams", "Bruno Sutic", "Jeremy Jung", "Olle Jonsson", "Patrik Wenger", "Devin Christensen", "Emil Tin", "Jamie McCarthy", "Kent Gruber", "Alan Wu", "Brian Morearty", "Colin Kelley", "Dimitar Peychinov", "Gert Goet", "Jahfer Husain", "Jiang Jinyang", "Julien Portalier", "Jun Jiang", "Ken Muryoi", "Leon Löchner", "Mark Montroy", "Masafumi Okura", "Masayuki Yamamoto", "Math Ieu", "Ryan Musgrave", "Salim Semaoune", "Shannon Skipper", "Shigeru Nakajima", "Shopify Inc.", "Sokolov Yura", "Stefan Wrobel", "Trevor Turk"]
 	spec.license = "MIT"
 	
 	spec.cert_chain  = ["release.cert"]
@@ -23,11 +23,11 @@ Gem::Specification.new do |spec|
 	
 	spec.files = Dir.glob(["{lib}/**/*", "*.md"], File::FNM_DOTMATCH, base: __dir__)
 	
-	spec.required_ruby_version = ">= 3.1"
+	spec.required_ruby_version = ">= 3.2"
 	
 	spec.add_dependency "console", "~> 1.29"
 	spec.add_dependency "fiber-annotation"
 	spec.add_dependency "io-event", "~> 1.11"
-	spec.add_dependency "traces", "~> 0.15"
 	spec.add_dependency "metrics", "~> 0.12"
+	spec.add_dependency "traces", "~> 0.15"
 end
