@@ -116,14 +116,10 @@ describe IO do
 				expect do
 					r.read(5)
 				end.to raise_exception(IOError, message: be =~ /stream closed/)
-			ensure
-				puts "Exiting read task"
 			end
 			
 			close_task = Async do
 				r.close
-			ensure
-				puts "Exiting close task"
 			end
 			
 			close_task.wait
