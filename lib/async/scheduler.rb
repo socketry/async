@@ -414,6 +414,16 @@ module Async
 			return @selector.process_wait(Fiber.current, pid, flags)
 		end
 		
+		# Wait for the specified IOs to become ready for the specified events.
+		#
+		# @public Since *Async v2.25*.
+		# @asynchronous May be non-blocking.
+		def io_select(...)
+			Thread.new do
+				::IO.select(...)
+			end.value
+		end
+		
 		# Run one iteration of the event loop.
 		#
 		# When terminating the event loop, we already know we are finished. So we don't need to check the task tree. This is a logical requirement because `run_once` ignores transient tasks. For example, a single top level transient task is not enough to keep the reactor running, but during termination we must still process it in order to terminate child tasks.
