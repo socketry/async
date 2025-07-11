@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 # Released under the MIT License.
-# Copyright, 2022-2024, by Samuel Williams.
+# Copyright, 2022-2025, by Samuel Williams.
 
 module Async
 	# A general doublely linked list. This is used internally by {Async::Barrier} and {Async::Condition} to manage child tasks.

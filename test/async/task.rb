@@ -726,7 +726,7 @@ describe Async::Task do
 
 		it "will not raise exception values returned by the task" do
 			error = StandardError.new
-			task = reactor.async { error }
+			task = reactor.async {error}
 			expect(task.wait).to be == error
 			expect(task.result).to be == error
 		end
