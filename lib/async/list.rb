@@ -18,6 +18,7 @@ module Async
 			sprintf("#<%s:0x%x size=%d>", self.class.name, object_id, @size)
 		end
 		
+		# @returns [String] A short summary of the list.
 		alias inspect to_s
 		
 		# Fast, safe, unbounded accumulation of children.
@@ -238,6 +239,12 @@ module Async
 			attr_accessor :head
 			attr_accessor :tail
 			
+			# @returns [String] A string representation of the node.
+			def to_s
+				sprintf("#<%s:0x%x>", self.class.name, object_id)
+			end
+			
+			# @returns [String] A string representation of the node.
 			alias inspect to_s
 		end
 		

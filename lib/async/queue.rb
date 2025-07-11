@@ -147,6 +147,8 @@ module Async
 		# @attribute [Integer] The maximum number of items that can be enqueued.
 		attr :limit
 		
+		# Close the queue, causing all waiting tasks to return `nil`. Any subsequent calls to {enqueue} will raise an exception.
+		# Also signals all tasks waiting for the queue to be full.
 		def close
 			super
 			

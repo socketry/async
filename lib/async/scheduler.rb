@@ -591,6 +591,8 @@ module Async
 			return task
 		end
 		
+		# Create a new fiber and return it without starting execution.
+		# @returns [Fiber] The fiber that was created.
 		def fiber(...)
 			return async(...).fiber
 		end

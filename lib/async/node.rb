@@ -180,6 +180,7 @@ module Async
 			"\#<#{self.description}>"
 		end
 		
+		# @returns [String] A description of the node.
 		alias inspect to_s
 		
 		# Change the parent of this node.
