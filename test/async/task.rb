@@ -276,9 +276,12 @@ describe Async::Task do
 		
 		it "can stop nested tasks with exception handling" do
 			reactor.run do
-				task = reactor.async do |task|
+				child = nil
+				
+				parent = reactor.async do |task|
 					child = task.async do |subtask|
-						sleep(1)
+						# Never comes back:
+						Fiber.scheduler.transfer
 					end
 					
 					begin
@@ -288,11 +291,15 @@ describe Async::Task do
 					end
 				end
 				
-				subtask = task.children.first
-				task.stop
+				# Ensure the parent has a chance to run:
+				Fiber.scheduler.yield
 				
-				expect(task.status).to be == :stopped
-				expect(subtask.status).to be == :stopped
+				parent.stop
+				parent.wait
+				expect(parent.status).to be == :stopped
+				
+				child.wait
+				expect(child.status).to be == :stopped
 			end
 		end
 		
