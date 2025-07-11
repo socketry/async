@@ -1,6 +1,5 @@
 A synchronization primitive, which allows one task to wait for a number of other tasks to complete. It can be used in conjunction with {Semaphore}.
 
-
 ## Example
 
 ~~~ ruby
