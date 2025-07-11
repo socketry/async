@@ -83,6 +83,36 @@ describe Async::Barrier do
 			expect(order).to be == [0, 1, 2, 3, 4]
 		end
 		
+		it "can wait for first N tasks to complete" do
+			results = []
+			completed_count = 0
+			
+			# Create 5 tasks with different completion times
+			5.times do |i|
+				barrier.async do |task|
+					sleep(i * 0.01)  # Task 0 completes first, task 4 completes last
+					"result_#{i}"
+				end
+			end
+			
+			# Wait for only the first 3 tasks to complete
+			barrier.wait do |task|
+				results << task.wait
+				completed_count += 1
+				break if completed_count >= 3
+			end
+			
+			# Should have exactly 3 results
+			expect(results.size).to be == 3
+			expect(completed_count).to be == 3
+			
+			# Results should be in completion order (fastest first)
+			expect(results).to be == ["result_0", "result_1", "result_2"]
+			
+			# Barrier should still have 2 tasks remaining
+			expect(barrier.tasks.size).to be == 2
+		end
+		
 		# It's possible for Barrier#wait to be interrupted with an unexpected exception, and this should not cause the barrier to incorrectly remove that task from the wait list.
 		it "waits for tasks with timeouts" do
 			repeats = 5
