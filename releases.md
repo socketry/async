@@ -2,9 +2,9 @@
 
 ## Unreleased
 
-	- `Async::Notification#signal` now returns `true` if a task was signaled, `false` otherwise, providing better feedback for notification operations.
+  - `Async::Notification#signal` now returns `true` if a task was signaled, `false` otherwise, providing better feedback for notification operations.
 
-### Async::Barrier Improvements
+### `Async::Barrier` Improvements
 
 `Async::Barrier` now provides more flexible and predictable behavior for waiting on task completion:
 
@@ -43,9 +43,9 @@ end
 
 This makes `Async::Barrier` a superset of `Async::Waiter` functionality, providing more flexible task coordination patterns.
 
-### Queue Closing Functionality
+### Introduce `Async::Queue#close`
 
-`Async::Queue` and `Async::LimitedQueue` now support closing, which provides better resource management and error handling:
+`Async::Queue` and `Async::LimitedQueue` can now be closed, which provides better resource management and error handling:
 
 - **New `close` method**: Both queue types now have a `close` method that prevents further items from being added and signals any waiting tasks.
 - **Consistent error handling**: All queue modification methods (`push`, `enqueue`, `<<`) now raise `Async::Queue::ClosedError` when called on a closed queue.
@@ -106,7 +106,7 @@ end
 
 ### Flexible Timeouts
 
-When {ruby Async::Scheduler\#with\_timeout} is invoked with a block, it can receive a {ruby Async::Timeout} instance. This allows you to adjust or cancel the timeout while the block is executing. This is useful for long-running tasks that may need to adjust their timeout based on external factors.
+When `Async::Scheduler#with_timeout` is invoked with a block, it can receive a `Async::Timeout` instance. This allows you to adjust or cancel the timeout while the block is executing. This is useful for long-running tasks that may need to adjust their timeout based on external factors.
 
 ``` ruby
 Async do
@@ -180,7 +180,7 @@ To take advantage of this feature, you will need to introduce your own `config/t
 
 ## v2.19.0
 
-### Async::Scheduler Debugging
+### `Async::Scheduler` Debugging
 
 Occasionally on issues, I encounter people asking for help and I need more information. Pressing Ctrl-C to exit a hung program is common, but it usually doesn't provide enough information to diagnose the problem. Setting the `CONSOLE_LEVEL=debug` environment variable will now print additional information about the scheduler when you interrupt it, including a backtrace of the current tasks.
 
