@@ -95,8 +95,9 @@ describe Async::LimitedQueue do
 
 			queue.close
 
-			waiting_task.wait
-			expect(waiting_task).to be(:finished?)
+			expect do
+				waiting_task.wait
+			end.to raise_exception(Async::Queue::ClosedError)
 		end
 	end
 end
