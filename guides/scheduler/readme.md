@@ -58,7 +58,7 @@ reactor = Async::Scheduler.new
 
 # Run the reactor for 1 second:
 reactor.async do |task|
-	task.sleep 1
+	sleep 1
 	puts "Finished!"
 end
 
