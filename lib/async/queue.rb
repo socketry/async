@@ -15,14 +15,29 @@ module Async
 	#
 	# @public Since *Async v1*.
 	class Queue
+		# An error raised when trying to enqueue items to a closed queue.
+		# @public Since *Async v2.24*.
+		class ClosedError < RuntimeError
+		end
+		
 		# Create a new queue.
 		#
 		# @parameter parent [Interface(:async) | Nil] The parent task to use for async operations.
 		# @parameter available [Notification] The notification to use for signaling when items are available.
 		def initialize(parent: nil, available: Notification.new)
 			@items = []
+			@closed = false
 			@parent = parent
 			@available = available
+		end
+		
+		# Close the queue, causing all waiting tasks to return `nil`. Any subsequent calls to {enqueue} will raise an exception.
+		def close
+			@closed = true
+			
+			while @available.waiting?
+				@available.signal(nil)
+			end
 		end
 		
 		# @attribute [Array] The items in the queue.
@@ -40,6 +55,10 @@ module Async
 		
 		# Add an item to the queue.
 		def push(item)
+			if @closed
+				raise ClosedError, "Cannot push items to a closed queue."
+			end
+			
 			@items << item
 			
 			@available.signal unless self.empty?
@@ -52,6 +71,10 @@ module Async
 		
 		# Add multiple items to the queue.
 		def enqueue(*items)
+			if @closed
+				raise ClosedError, "Cannot enqueue items to a closed queue."
+			end
+			
 			@items.concat(items)
 			
 			@available.signal unless self.empty?
@@ -60,6 +83,10 @@ module Async
 		# Remove and return the next item from the queue.
 		def dequeue
 			while @items.empty?
+				if @closed
+					return nil
+				end
+				
 				@available.wait
 			end
 			
@@ -120,9 +147,17 @@ module Async
 		# @attribute [Integer] The maximum number of items that can be enqueued.
 		attr :limit
 		
+		def close
+			super
+			
+			while @full.waiting?
+				@full.signal(nil)
+			end
+		end
+		
 		# @returns [Boolean] Whether trying to enqueue an item would block.
 		def limited?
-			@items.size >= @limit
+			!@closed && @items.size >= @limit
 		end
 		
 		# Add an item to the queue.
@@ -147,6 +182,10 @@ module Async
 			while !items.empty?
 				while limited?
 					@full.wait
+				end
+				
+				if @closed
+					raise ClosedError, "Cannot enqueue items to a closed queue."
 				end
 				
 				available = @limit - @items.size

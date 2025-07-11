@@ -20,6 +20,18 @@ module Async
 				expect(queue.size).to be == 1
 				expect(queue.dequeue).to be == :item
 			end
+			
+			it "can't add an item to a closed queue" do
+				queue.push(:item)
+				expect(queue).to have_attributes(size: be == 1)
+				expect(queue.dequeue).to be == :item
+				
+				queue.close
+				
+				expect do
+					queue.push(:item)
+				end.to raise_exception(Async::Queue::ClosedError)
+			end
 		end
 		
 		with "#pop" do
@@ -118,6 +130,19 @@ module Async
 				expect(queue.wait).to be == :item
 			end
 		end
+
+		with "#close" do
+			it "signals waiting tasks when closed" do
+				waiting_task = reactor.async do
+					queue.dequeue
+				end
+
+				queue.close
+
+				waiting_task.wait
+				expect(waiting_task).to be(:finished?)
+			end
+		end
 		
 		with "an empty queue" do
 			it "is expected to be empty" do
@@ -161,6 +186,42 @@ module Async
 				end
 				
 				expect(count).to be == repeats
+			end
+		end
+
+		with "a closed queue" do
+			before do
+				queue.close
+			end
+
+			it "prevents push after close" do
+				expect{queue.push(:item)}.to raise_exception(Async::Queue::ClosedError)
+			end
+
+			it "prevents enqueue after close" do
+				expect{queue.enqueue(:item)}.to raise_exception(Async::Queue::ClosedError)
+			end
+
+			it "prevents << after close" do
+				expect{queue << :item}.to raise_exception(Async::Queue::ClosedError)
+			end
+
+			it "returns nil from dequeue when closed and empty" do
+				expect(queue.dequeue).to be_nil
+			end
+
+			it "returns nil from pop when closed and empty" do
+				expect(queue.pop).to be_nil
+			end
+
+			it "signals waiting tasks when closed" do
+				waiting_task = reactor.async do
+					queue.dequeue
+				end
+
+				# Already closed, so just check if the task finishes:
+				waiting_task.wait
+				expect(waiting_task).to be(:finished?)
 			end
 		end
 		

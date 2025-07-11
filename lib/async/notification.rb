@@ -10,12 +10,14 @@ module Async
 	# @public Since *Async v1*.
 	class Notification < Condition
 		# Signal to a given task that it should resume operations.
+		#
+		# @returns [Boolean] if a task was signalled.
 		def signal(value = nil, task: Task.current)
-			return if @waiting.empty?
+			return false if @waiting.empty?
 			
 			Fiber.scheduler.push Signal.new(self.exchange, value)
 			
-			return nil
+			return true
 		end
 		
 		Signal = Struct.new(:waiting, :value) do
