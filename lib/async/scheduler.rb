@@ -420,6 +420,9 @@ module Async
 		# @asynchronous May be non-blocking.
 		def io_select(...)
 			Thread.new do
+				# Don't make unnecessary output, since we will propagate the exception:
+				Thread.current.report_on_exception = false
+				
 				::IO.select(...)
 			end.value
 		end
