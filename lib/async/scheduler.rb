@@ -583,7 +583,7 @@ module Async
 		# @yields {|task| ...} Executed within the task.
 		# @returns [Task] The task that was scheduled into the reactor.
 		def async(*arguments, **options, &block)
-			# warn "Async::Scheduler#async is deprecated. Use `run` or `Task#async` instead.", uplevel: 1, category: :deprecated
+			warn("Async::Scheduler#async is deprecated. Use `run` or `Task#async` instead.", uplevel: 1, category: :deprecated) if $VERBOSE
 			
 			Kernel.raise ClosedError if @selector.nil?
 			

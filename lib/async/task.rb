@@ -65,6 +65,8 @@ module Async
 		
 		# @deprecated With no replacement.
 		def self.yield
+			warn("`Async::Task.yield` is deprecated with no replacement.", uplevel: 1, category: :deprecated) if $VERBOSE
+			
 			Fiber.scheduler.transfer
 		end
 		
@@ -134,6 +136,8 @@ module Async
 		
 		# @deprecated Prefer {Kernel#sleep} except when compatibility with `stable-v1` is required.
 		def sleep(duration = nil)
+			warn("`Async::Task#sleep` is deprecated, use `Kernel#sleep` instead.", uplevel: 1, category: :deprecated) if $VERBOSE
+			
 			super
 		end
 		

@@ -42,6 +42,8 @@ module Async
 		
 		# @deprecated Replaced by {#waiting?}
 		def empty?
+			warn("`Async::Condition#empty?` is deprecated, use `Async::Condition#waiting?` instead.", uplevel: 1, category: :deprecated) if $VERBOSE
+			
 			@waiting.empty?
 		end
 		

@@ -12,6 +12,8 @@ module Async
 	class Reactor < Scheduler
 		# @deprecated Replaced by {Kernel::Async}.
 		def self.run(...)
+			warn("`Async::Reactor.run{}` is deprecated, use `Async{}` instead.", uplevel: 1, category: :deprecated) if $VERBOSE
+			
 			Async(...)
 		end
 		

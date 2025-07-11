@@ -6,12 +6,15 @@
 
 module Async
 	# A composable synchronization primitive, which allows one task to wait for a number of other tasks to complete. It can be used in conjunction with {Semaphore} and/or {Barrier}.
+	# @deprecated `Async::Waiter` is deprecated, use `Async::Barrier` instead. 
 	class Waiter
 		# Create a waiter instance.
 		#
 		# @parameter parent [Interface(:async) | Nil] The parent task to use for asynchronous operations.
 		# @parameter finished [Async::Condition] The condition to signal when a task completes.
 		def initialize(parent: nil, finished: Async::Condition.new)
+			warn("`Async::Waiter` is deprecated, use `Async::Barrier` instead.", uplevel: 1, category: :deprecated) if $VERBOSE
+			
 			@finished = finished
 			@done = []
 			

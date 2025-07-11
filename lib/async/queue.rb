@@ -133,6 +133,12 @@ module Async
 	# A queue which limits the number of items that can be enqueued.
 	# @public Since *Async v1*.
 	class LimitedQueue < Queue
+		def self.new(...)
+			warn("`require 'async/limited_queue'` to use `Async::LimitedQueue`.", uplevel: 1, category: :deprecated) if $VERBOSE
+			
+			super
+		end
+		
 		# Create a new limited queue.
 		#
 		# @parameter limit [Integer] The maximum number of items that can be enqueued.
