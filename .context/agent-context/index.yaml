@@ -1,0 +1,13 @@
+---
+description: Install and manage context files from Ruby gems.
+version: 0.1.3
+metadata:
+  documentation_uri: https://ioquatix.github.io/agent-context/
+  funding_uri: https://github.com/sponsors/ioquatix/
+  source_code_uri: https://github.com/ioquatix/agent-context.git
+files:
+- path: usage.md
+  title: Usage Guide
+  description: "`agent-context` is a tool that helps you discover and install contextual
+    information from Ruby gems for AI agents. Gems can provide additional documentation,
+    examples, and guidance in a `context/` ..."
