@@ -1,8 +1,79 @@
 # Releases
 
+## Unreleased
+
+	- `Async::Notification#signal` now returns `true` if a task was signaled, `false` otherwise, providing better feedback for notification operations.
+
+### Async::Barrier Improvements
+
+`Async::Barrier` now provides more flexible and predictable behavior for waiting on task completion:
+
+- **Completion-order waiting**: `barrier.wait` now processes tasks in the order they complete rather than the order they were created. This provides more predictable behavior when tasks have different execution times.
+- **Block-based waiting**: `barrier.wait` now accepts an optional block that yields each task as it completes, allowing for custom handling of individual tasks:
+
+```ruby
+barrier = Async::Barrier.new
+
+# Start several tasks
+3.times do |i|
+	barrier.async do |task|
+		sleep(rand * 0.1)  # Random completion time
+		"result_#{i}"
+	end
+end
+
+# Wait for all tasks, processing them as they complete
+barrier.wait do |task|
+	result = task.wait
+	puts "Task completed with: #{result}"
+end
+```
+
+- **Partial completion support**: The new block-based interface allows you to wait for only the first N tasks to complete:
+
+```ruby
+# Wait for only the first 3 tasks to complete
+count = 0
+barrier.wait do |task|
+	task.wait
+	count += 1
+	break if count >= 3
+end
+```
+
+This makes `Async::Barrier` a superset of `Async::Waiter` functionality, providing more flexible task coordination patterns.
+
+### Queue Closing Functionality
+
+`Async::Queue` and `Async::LimitedQueue` now support closing, which provides better resource management and error handling:
+
+- **New `close` method**: Both queue types now have a `close` method that prevents further items from being added and signals any waiting tasks.
+- **Consistent error handling**: All queue modification methods (`push`, `enqueue`, `<<`) now raise `Async::Queue::ClosedError` when called on a closed queue.
+- **Waiting task signaling**: When a queue is closed, any tasks waiting on `dequeue` (for regular queues) or `enqueue` (for limited queues) are properly signaled and can complete.
+
+```ruby
+queue = Async::Queue.new
+
+# Start a task waiting for items:
+waiting_task = Async do
+	queue.dequeue
+end
+
+# Close the queue - this signals the waiting task
+queue.close
+
+# These will raise Async::Queue::ClosedError
+queue.push(:item)      # => raises ClosedError
+queue.enqueue(:item)   # => raises ClosedError
+queue << :item         # => raises ClosedError
+
+# Dequeue returns nil when closed and empty
+queue.dequeue          # => nil
+```
+
 ## v2.25.0
 
-  - Added support for `io_select` hook in the fiber scheduler, allowing non-blocking `IO.select` operations. This enables better integration with code that uses `IO.select` for multiplexing IO operations.
+	- Added support for `io_select` hook in the fiber scheduler, allowing non-blocking `IO.select` operations. This enables better integration with code that uses `IO.select` for multiplexing IO operations.
 
 ### Use `IO::Event::WorkerPool` for Blocking Operations
 
@@ -29,9 +100,9 @@ end
 
 ## v2.24.0
 
-  - Ruby v3.1 support is dropped.
-  - `Async::Wrapper` which was previously deprecated, is now removed.
-  - `Async::Barrier` now waits in order of completion rather than order of creation. This means that if you create a barrier with 3 tasks, and one of them completes (or fails) before the others, it will be the first to be yielded to the barrier.
+	- Ruby v3.1 support is dropped.
+	- `Async::Wrapper` which was previously deprecated, is now removed.
+	- `Async::Barrier` now waits in order of completion rather than order of creation. This means that if you create a barrier with 3 tasks, and one of them completes (or fails) before the others, it will be the first to be yielded to the barrier.
 
 ### Flexible Timeouts
 
@@ -63,7 +134,7 @@ end
 
 ## v2.23.0
 
-  - Rename `ASYNC_SCHEDULER_DEFAULT_WORKER_POOL` to `ASYNC_SCHEDULER_WORKER_POOL`.
+	- Rename `ASYNC_SCHEDULER_DEFAULT_WORKER_POOL` to `ASYNC_SCHEDULER_WORKER_POOL`.
 
 ### Fiber Stall Profiler
 
@@ -93,7 +164,7 @@ Ruby 3.4 will feature a new fiber scheduler hook, `blocking_operation_wait` whic
 
 The Async scheduler optionally supports this feature using a worker pool, by using the following environment variable:
 
-    ASYNC_SCHEDULER_WORKER_POOL=true
+		ASYNC_SCHEDULER_WORKER_POOL=true
 
 This will cause the scheduler to use a worker pool for general blocking operations, rather than blocking the event loop.
 
@@ -113,21 +184,21 @@ To take advantage of this feature, you will need to introduce your own `config/t
 
 Occasionally on issues, I encounter people asking for help and I need more information. Pressing Ctrl-C to exit a hung program is common, but it usually doesn't provide enough information to diagnose the problem. Setting the `CONSOLE_LEVEL=debug` environment variable will now print additional information about the scheduler when you interrupt it, including a backtrace of the current tasks.
 
-    > CONSOLE_LEVEL=debug bundle exec ruby ./test.rb
-    ^C  0.0s    debug: Async::Reactor [oid=0x974] [ec=0x988] [pid=9116] [2024-11-08 14:12:03 +1300]
-                   | Scheduler interrupted: Interrupt
-                   | #<Async::Reactor:0x0000000000000974 1 children (running)>
-                   | 	#<Async::Task:0x000000000000099c /Users/samuel/Developer/socketry/async/lib/async/scheduler.rb:185:in `transfer' (running)>
-                   | 	→ /Users/samuel/Developer/socketry/async/lib/async/scheduler.rb:185:in `transfer'
-                   | 	  /Users/samuel/Developer/socketry/async/lib/async/scheduler.rb:185:in `block'
-                   | 	  /Users/samuel/Developer/socketry/async/lib/async/scheduler.rb:207:in `kernel_sleep'
-                   | 	  /Users/samuel/Developer/socketry/async/test.rb:7:in `sleep'
-                   | 	  /Users/samuel/Developer/socketry/async/test.rb:7:in `sleepy'
-                   | 	  /Users/samuel/Developer/socketry/async/test.rb:12:in `block in <top (required)>'
-                   | 	  /Users/samuel/Developer/socketry/async/lib/async/task.rb:197:in `block in run'
-                   | 	  /Users/samuel/Developer/socketry/async/lib/async/task.rb:420:in `block in schedule'
-    /Users/samuel/Developer/socketry/async/lib/async/scheduler.rb:317:in `select': Interrupt
-    ... (backtrace continues) ...
+		> CONSOLE_LEVEL=debug bundle exec ruby ./test.rb
+		^C  0.0s    debug: Async::Reactor [oid=0x974] [ec=0x988] [pid=9116] [2024-11-08 14:12:03 +1300]
+									 | Scheduler interrupted: Interrupt
+									 | #<Async::Reactor:0x0000000000000974 1 children (running)>
+									 | 	#<Async::Task:0x000000000000099c /Users/samuel/Developer/socketry/async/lib/async/scheduler.rb:185:in `transfer' (running)>
+									 | 	→ /Users/samuel/Developer/socketry/async/lib/async/scheduler.rb:185:in `transfer'
+									 | 	  /Users/samuel/Developer/socketry/async/lib/async/scheduler.rb:185:in `block'
+									 | 	  /Users/samuel/Developer/socketry/async/lib/async/scheduler.rb:207:in `kernel_sleep'
+									 | 	  /Users/samuel/Developer/socketry/async/test.rb:7:in `sleep'
+									 | 	  /Users/samuel/Developer/socketry/async/test.rb:7:in `sleepy'
+									 | 	  /Users/samuel/Developer/socketry/async/test.rb:12:in `block in <top (required)>'
+									 | 	  /Users/samuel/Developer/socketry/async/lib/async/task.rb:197:in `block in run'
+									 | 	  /Users/samuel/Developer/socketry/async/lib/async/task.rb:420:in `block in schedule'
+		/Users/samuel/Developer/socketry/async/lib/async/scheduler.rb:317:in `select': Interrupt
+		... (backtrace continues) ...
 
 This gives better visibility into what the scheduler is doing, and should help diagnose issues.
 
@@ -144,19 +215,19 @@ Async{raise "Boom"}
 
 Will now use `Kernel#warn` to print the task failure warning:
 
-    #<Async::Task:0x00000000000012d4 /home/samuel/Developer/socketry/async/lib/async/task.rb:104:in `backtrace' (running)>
-    Task may have ended with unhandled exception.
-    (irb):4:in `block in <top (required)>': Boom (RuntimeError)
-    	from /home/samuel/Developer/socketry/async/lib/async/task.rb:197:in `block in run'
-    	from /home/samuel/Developer/socketry/async/lib/async/task.rb:420:in `block in schedule'
+		#<Async::Task:0x00000000000012d4 /home/samuel/Developer/socketry/async/lib/async/task.rb:104:in `backtrace' (running)>
+		Task may have ended with unhandled exception.
+		(irb):4:in `block in <top (required)>': Boom (RuntimeError)
+			from /home/samuel/Developer/socketry/async/lib/async/task.rb:197:in `block in run'
+			from /home/samuel/Developer/socketry/async/lib/async/task.rb:420:in `block in schedule'
 
 ## v2.18.0
 
-  - Add support for `Sync(annotation:)`, so that you can annotate the block with a description of what it does, even if it doesn't create a new task.
+	- Add support for `Sync(annotation:)`, so that you can annotate the block with a description of what it does, even if it doesn't create a new task.
 
 ## v2.17.0
 
-  - Introduce `Async::Queue#push` and `Async::Queue#pop` for compatibility with `::Queue`.
+	- Introduce `Async::Queue#push` and `Async::Queue#pop` for compatibility with `::Queue`.
 
 ## v2.16.0
 
@@ -173,7 +244,7 @@ reactor = Async::Reactor.new # internally calls Fiber.set_scheduler
 
 # This should run in the above reactor, rather than creating a new one.
 Async do
-  puts "Hello World"
+	puts "Hello World"
 end
 ```
 
