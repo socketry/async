@@ -55,6 +55,10 @@ module Async
 		
 		# Add an item to the queue.
 		def push(item)
+			if @closed
+				raise ClosedError, "Cannot push items to a closed queue."
+			end
+			
 			@items << item
 			
 			@available.signal unless self.empty?
@@ -153,7 +157,7 @@ module Async
 		
 		# @returns [Boolean] Whether trying to enqueue an item would block.
 		def limited?
-			@items.size >= @limit
+			!@closed && @items.size >= @limit
 		end
 		
 		# Add an item to the queue.

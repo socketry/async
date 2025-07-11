@@ -45,7 +45,7 @@ describe Async::LimitedQueue do
 		end
 		
 		10.times do
-			item = queue.dequeue
+			queue.dequeue
 			total_dequeued += 1
 			
 			expect(total_resumed).to be == total_dequeued
@@ -81,6 +81,22 @@ describe Async::LimitedQueue do
 					expect(queue.pop).to be == :item2
 				end
 			end
+		end
+	end
+
+	with "#close" do
+		it "signals tasks waiting to enqueue items when closed" do
+			queue.enqueue(:item1)
+
+			# This task will block as the queue is full:
+			waiting_task = reactor.async do
+				queue.enqueue(:item2)
+			end
+
+			queue.close
+
+			waiting_task.wait
+			expect(waiting_task).to be(:finished?)
 		end
 	end
 end
