@@ -33,6 +33,7 @@ group :test do
 	gem "sus-fixtures-async"
 	gem "sus-fixtures-console"
 	gem "sus-fixtures-time"
+	gem "sus-fixtures-benchmark"
 	
 	gem "bake-test"
 	gem "bake-test-external"
