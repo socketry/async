@@ -75,11 +75,13 @@ describe Async::Task do
 	
 	with "#current?" do
 		it "can check if it is the currently running task" do
+			was_current = nil
+			
 			task = reactor.async do |task|
-				expect(task).to be(:current?)
-				sleep(0.1)
+				was_current = task.current?
 			end
 			
+			expect(was_current).to be == true
 			expect(task).not.to be(:current?)
 		end
 	end
@@ -124,7 +126,8 @@ describe Async::Task do
 			reactor.run do
 				expect do
 					reactor.async do |task|
-						expect(task).to receive(:warn).and_return(nil)
+						# Ensure the wait is executed before raising the exception:
+						task.yield
 						
 						raise "boom"
 					end.wait
@@ -154,19 +157,19 @@ describe Async::Task do
 		it "can consume exceptions" do
 			task = nil
 			
-			expect do
-				task = reactor.async do |task|
-					expect(task).to receive(:warn).and_return(nil)
-					
-					raise "boom"
-				end
-			end.not.to raise_exception
-			
 			reactor.run do
 				expect do
-					task.wait
-				end.to raise_exception(RuntimeError, message: be =~ /boom/)
+					task = reactor.async do |task|
+						expect(task).to receive(:warn).and_return(nil)
+						
+						raise "boom"
+					end
+				end.not.to raise_exception
 			end
+			
+			expect do
+				task.wait
+			end.to raise_exception(RuntimeError, message: be =~ /boom/)
 		end
 		
 		it "won't consume non-StandardError exceptions" do
@@ -508,6 +511,7 @@ describe Async::Task do
 		
 		it "can stop resumed task" do
 			items = [1, 2, 3]
+			value = nil
 			
 			reactor.run do
 				condition = Async::Condition.new
@@ -520,11 +524,11 @@ describe Async::Task do
 				end
 				
 				value = condition.wait # (2) value = Fiber.yield
-				expect(value).to be == 3
 				producer.stop # (5) [producer is resumed already] producer.stop
 			end
 			
 			expect(items).to be == [1, 2]
+			expect(value).to be == 3
 		end
 		
 		it "can stop a child task with transient children" do
@@ -720,7 +724,7 @@ describe Async::Task do
 			end
 			
 			innocent_task = reactor.async do |task|
-				expect{error_task.wait}.to raise_exception(RuntimeError, message: be =~ /boom/)
+				error_task.wait
 			end
 			
 			expect do
@@ -729,6 +733,10 @@ describe Async::Task do
 			
 			expect(error_task).to be(:finished?)
 			expect(innocent_task).to be(:finished?)
+			
+			expect do
+				innocent_task.wait
+			end.to raise_exception(RuntimeError, message: be =~ /boom/)
 		end
 
 		it "will not raise exception values returned by the task" do

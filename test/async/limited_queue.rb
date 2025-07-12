@@ -87,17 +87,16 @@ describe Async::LimitedQueue do
 	with "#close" do
 		it "signals tasks waiting to enqueue items when closed" do
 			queue.enqueue(:item1)
-
+			
 			# This task will block as the queue is full:
 			waiting_task = reactor.async do
-				queue.enqueue(:item2)
+				expect do
+					queue.enqueue(:item2)
+				end.to raise_exception(Async::Queue::ClosedError)
 			end
-
+			
 			queue.close
-
-			expect do
-				waiting_task.wait
-			end.to raise_exception(Async::Queue::ClosedError)
+			waiting_task.wait
 		end
 	end
 end

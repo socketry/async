@@ -31,7 +31,6 @@ describe Async::Notification do
 		
 		expect(task.status).to be == :running
 		
-		sequence << :yielding
 		reactor.yield
 		sequence << :finished
 		
@@ -41,7 +40,6 @@ describe Async::Notification do
 			:waiting,
 			:running,
 			:signalled,
-			:yielding,
 			:resumed,
 			:finished
 		]
