@@ -57,7 +57,7 @@ jobs:
     
     - name: Run tests
       timeout-minutes: 5
-      run: bundle exec bake test
+      run: bundle exec sus --verbose
     
     - uses: actions/upload-artifact@v4
       with:
