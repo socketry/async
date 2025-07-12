@@ -8,8 +8,6 @@ require_relative "queue"
 
 module Async
 	class LimitedQueue < Queue
-		class << self
-			remove_method :new
-		end
+		singleton_class.remove_method(:new)
 	end
 end
