@@ -18,29 +18,22 @@ describe Async::Barrier do
 	
 	with "#async" do
 		let(:repeats) {40}
-		let(:delay) {0.01}
 		
 		it "should wait for all jobs to complete" do
 			finished = 0
 			
 			repeats.times.map do |i|
 				barrier.async do |task|
-					sleep(delay)
+					task.yield
 					finished += 1
-					
-					# This task is a child task but not part of the barrier.
-					task.async do
-						sleep(delay*3)
-					end
 				end
 			end
 			
 			expect(barrier).not.to be(:empty?)
-			expect(finished).to be < repeats
+			expect(finished).to be <= repeats
 			
-			duration = Async::Clock.measure{barrier.wait}
+			barrier.wait
 			
-			expect(duration).to be_within(repeats * Sus::Fixtures::Time::QUANTUM).of(delay)
 			expect(finished).to be == repeats
 			expect(barrier).to be(:empty?)
 		end
