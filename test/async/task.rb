@@ -717,13 +717,11 @@ describe Async::Task do
 		it "will propagate exceptions after async operation" do
 			error_task = innocent_task = nil
 			
-			error_task = reactor.async do |task|
-				task.yield
-				
+			error_task = reactor.async(finished: false) do |task|
 				raise "boom"
 			end
 			
-			innocent_task = reactor.async do |task|
+			innocent_task = reactor.async(finished: false) do |task|
 				error_task.wait
 			end
 			
