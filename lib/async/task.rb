@@ -136,7 +136,7 @@ module Async
 		
 		# @deprecated Prefer {Kernel#sleep} except when compatibility with `stable-v1` is required.
 		def sleep(duration = nil)
-			warn("`Async::Task#sleep` is deprecated, use `Kernel#sleep` instead.", uplevel: 1, category: :deprecated) if $VERBOSE
+			Kernel.warn("`Async::Task#sleep` is deprecated, use `Kernel#sleep` instead.", uplevel: 1, category: :deprecated) if $VERBOSE
 			
 			super
 		end
