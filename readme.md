@@ -35,6 +35,17 @@ Please see the [project documentation](https://socketry.github.io/async/) for mo
 
 Please see the [project releases](https://socketry.github.io/async/releases/index) for all releases.
 
+### v2.26.0
+
+  - `Async::Notification#signal` now returns `true` if a task was signaled, `false` otherwise, providing better feedback for notification operations.
+  - `require "async/limited_queue"` is required to use `Async::LimitedQueue` without a deprecation warning. `Async::LimitedQueue` is not deprecated, but it's usage via `async/queue` is deprecated.
+  - `Async::Task#sleep` is deprecated with no replacement.
+  - `Async::Task.yield` is deprecated with no replacement.
+  - `Async::Scheduler#async` is deprecated, use `Async{}`, `Sync{}` or `Async::Task#async` instead.
+  - Agent context is now available, via the [`agent-context` gem](https://github.com/ioquatix/agent-context).
+  - [`Async::Barrier` Improvements](https://socketry.github.io/async/releases/index#async::barrier-improvements)
+  - [Introduce `Async::Queue#close`](https://socketry.github.io/async/releases/index#introduce-async::queue#close)
+
 ### v2.25.0
 
   - Added support for `io_select` hook in the fiber scheduler, allowing non-blocking `IO.select` operations. This enables better integration with code that uses `IO.select` for multiplexing IO operations.
@@ -62,7 +73,7 @@ Please see the [project releases](https://socketry.github.io/async/releases/inde
 
 ### v2.19.0
 
-  - [Async::Scheduler Debugging](https://socketry.github.io/async/releases/index#async::scheduler-debugging)
+  - [`Async::Scheduler` Debugging](https://socketry.github.io/async/releases/index#async::scheduler-debugging)
   - [Console Shims](https://socketry.github.io/async/releases/index#console-shims)
 
 ### v2.18.0

@@ -1,6 +1,6 @@
 # Releases
 
-## Unreleased
+## v2.26.0
 
   - `Async::Notification#signal` now returns `true` if a task was signaled, `false` otherwise, providing better feedback for notification operations.
   - `require "async/limited_queue"` is required to use `Async::LimitedQueue` without a deprecation warning. `Async::LimitedQueue` is not deprecated, but it's usage via `async/queue` is deprecated.
@@ -13,10 +13,12 @@
 
 `Async::Barrier` now provides more flexible and predictable behavior for waiting on task completion:
 
-- **Completion-order waiting**: `barrier.wait` now processes tasks in the order they complete rather than the order they were created. This provides more predictable behavior when tasks have different execution times.
-- **Block-based waiting**: `barrier.wait` now accepts an optional block that yields each task as it completes, allowing for custom handling of individual tasks:
+  - **Completion-order waiting**: `barrier.wait` now processes tasks in the order they complete rather than the order they were created. This provides more predictable behavior when tasks have different execution times.
+  - **Block-based waiting**: `barrier.wait` now accepts an optional block that yields each task as it completes, allowing for custom handling of individual tasks:
 
-```ruby
+<!-- end list -->
+
+``` ruby
 barrier = Async::Barrier.new
 
 # Start several tasks
@@ -34,9 +36,11 @@ barrier.wait do |task|
 end
 ```
 
-- **Partial completion support**: The new block-based interface allows you to wait for only the first N tasks to complete:
+  - **Partial completion support**: The new block-based interface allows you to wait for only the first N tasks to complete:
 
-```ruby
+<!-- end list -->
+
+``` ruby
 # Wait for only the first 3 tasks to complete
 count = 0
 barrier.wait do |task|
@@ -52,11 +56,13 @@ This makes `Async::Barrier` a superset of `Async::Waiter` functionality, providi
 
 `Async::Queue` and `Async::LimitedQueue` can now be closed, which provides better resource management and error handling:
 
-- **New `close` method**: Both queue types now have a `close` method that prevents further items from being added and signals any waiting tasks.
-- **Consistent error handling**: All queue modification methods (`push`, `enqueue`, `<<`) now raise `Async::Queue::ClosedError` when called on a closed queue.
-- **Waiting task signaling**: When a queue is closed, any tasks waiting on `dequeue` (for regular queues) or `enqueue` (for limited queues) are properly signaled and can complete.
+  - **New `close` method**: Both queue types now have a `close` method that prevents further items from being added and signals any waiting tasks.
+  - **Consistent error handling**: All queue modification methods (`push`, `enqueue`, `<<`) now raise `Async::Queue::ClosedError` when called on a closed queue.
+  - **Waiting task signaling**: When a queue is closed, any tasks waiting on `dequeue` (for regular queues) or `enqueue` (for limited queues) are properly signaled and can complete.
 
-```ruby
+<!-- end list -->
+
+``` ruby
 queue = Async::Queue.new
 
 # Start a task waiting for items:
