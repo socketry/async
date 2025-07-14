@@ -7,7 +7,7 @@
   - `Async::Task#sleep` is deprecated with no replacement.
   - `Async::Task.yield` is deprecated with no replacement.
   - `Async::Scheduler#async` is deprecated, use `Async{}`, `Sync{}` or `Async::Task#async` instead.
-  - Agent context is now available, via the `agent-context` gem.
+  - Agent context is now available, via the [`agent-context` gem](https://github.com/ioquatix/agent-context).
 
 ### `Async::Barrier` Improvements
 
