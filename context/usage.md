@@ -8,7 +8,7 @@ Async uses tasks to represent units of concurrency. Those tasks are backed by fi
 
 ``` ruby
 Async do
-  # Internally non-blocking write:
+	# Internally non-blocking write:
 	puts "Hello World"
 end
 ```
@@ -18,10 +18,10 @@ Conceptually, `Async{...}` means execute the given block of code sequentially, b
 ``` ruby
 Async do |task|
 	# Start two tasks that will run asynchronously:
-  child1 = Async{sleep 1; puts "Hello"}
+	child1 = Async{sleep 1; puts "Hello"}
 	# Using task.async is the same as Async, but is slightly more efficient:
 	child2 = task.async{sleep 2; puts "World"}
-
+	
 	# Wait for both tasks to complete:
 	child1.wait
 	child2.wait
@@ -52,7 +52,7 @@ end
 Sync do
 	# This is a no-op, as it's already in an event loop:
 	Sync{...}
-
+	
 	# It's semantically equivalent to:
 	Async{...}.wait
 	# but it is more efficient.
@@ -111,13 +111,13 @@ Barriers provide a way to manage an unbounded number of tasks.
 ```ruby
 Async do
 	barrier = Async::Barrier.new
-
+	
 	items.each do |item|
 		barrier.async do
 			process(item)
 		end
 	end
-
+	
 	# Process the tasks in order of completion:
 	barrier.wait do |task|
 		result = task.wait
@@ -126,7 +126,7 @@ Async do
 		# If you don't want to wait for any more tasks you can break:
 		break
 	end
-
+	
 	# Or just wait for all tasks to finish:
 	barrier.wait # May raise an exception if a task failed.
 ensure
@@ -143,7 +143,7 @@ Semaphores allow you to limit the level of concurrency to a fixed number of task
 Async do |task|
 	barrier = Async::Barrier.new
 	semaphore = Async::Semaphore.new(4, parent: barrier)
-
+	
 	# Since the semaphore.async may block, we need to run the work scheduling in a child task:
 	task.async do
 		items.each do |item|
@@ -152,7 +152,7 @@ Async do |task|
 			end
 		end
 	end
-
+	
 	# Wait for all the work to complete:
 	barrier.wait
 ensure
@@ -169,7 +169,7 @@ Idlers are like semaphores but with a limit defined by current processor utiliza
 Async do
 	# Create an idler that will aim for a load average of 80%:
 	idler = Async::Idler.new(0.8)
-
+	
 	# Some list of work to be done:
 	work.each do |work|
 		idler.async do
@@ -189,16 +189,16 @@ Queues allow you to share data between disconnected tasks:
 ```ruby
 Async do |task|
 	queue = Async::Queue.new
-
+	
 	reader = task.async do
 		while chunk = socket.gets
 			queue.push(chunk)
 		end
-
+	end
 		# After this point, we won't be able to add items to the queue, and popping items will eventually result in nil once all items are dequeued:
 		queue.close
 	end
-
+	
 	# Process items from the queue:
 	while line = queue.pop
 		process(line)
@@ -211,7 +211,7 @@ The above program may have unbounded memory use, so it can be a good idea to use
 ```ruby
 Async do |task|
 	queue = Async::LimitedQueue.new(8)
-
+	
 	# Everything else is the same from the queue example, except that the pushing onto the queue will block once 8 items are buffered.
 end
 ```
