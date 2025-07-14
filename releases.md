@@ -3,6 +3,11 @@
 ## Unreleased
 
   - `Async::Notification#signal` now returns `true` if a task was signaled, `false` otherwise, providing better feedback for notification operations.
+  - `require "async/limited_queue"` is required to use `Async::LimitedQueue` without a deprecation warning. `Async::LimitedQueue` is not deprecated, but it's usage via `async/queue` is deprecated.
+  - `Async::Task#sleep` is deprecated with no replacement.
+  - `Async::Task.yield` is deprecated with no replacement.
+  - `Async::Scheduler#async` is deprecated, use `Async{}`, `Sync{}` or `Async::Task#async` instead.
+  - Agent context is now available, via the `agent-context` gem.
 
 ### `Async::Barrier` Improvements
 
@@ -41,7 +46,7 @@ barrier.wait do |task|
 end
 ```
 
-This makes `Async::Barrier` a superset of `Async::Waiter` functionality, providing more flexible task coordination patterns.
+This makes `Async::Barrier` a superset of `Async::Waiter` functionality, providing more flexible task coordination patterns, and therrefore, `Async::Waiter` is now deprecated.
 
 ### Introduce `Async::Queue#close`
 
