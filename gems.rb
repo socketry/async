@@ -30,7 +30,9 @@ group :test do
 	gem "sus", "~> 0.31"
 	gem "covered"
 	gem "decode"
+	
 	gem "rubocop"
+	gem "rubocop-socketry"
 	
 	gem "sus-fixtures-async"
 	gem "sus-fixtures-console"

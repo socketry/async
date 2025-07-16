@@ -45,7 +45,7 @@ module Async
 		def self.supported?
 			true
 		end
-
+		
 		# Used to augment the scheduler to add support for blocking operations.
 		module BlockingOperationWait
 			# Wait for the given work to be executed.
@@ -59,7 +59,7 @@ module Async
 				@worker_pool.call(work)
 			end
 		end
-
+		
 		private_constant :BlockingOperationWait
 		
 		if ::IO::Event.const_defined?(:WorkerPool)
@@ -67,7 +67,7 @@ module Async
 		else
 			WorkerPool = nil
 		end
-
+		
 		# Create a new scheduler.
 		#
 		# @public Since *Async v1*.
@@ -93,7 +93,7 @@ module Async
 			else
 				@worker_pool = worker_pool
 			end
-
+			
 			if @worker_pool
 				self.singleton_class.prepend(BlockingOperationWait)
 			end
@@ -120,7 +120,7 @@ module Async
 				return @busy_time / total_time
 			end
 		end
-	
+		
 		# Invoked when the fiber scheduler is being closed.
 		#
 		# Executes the run loop until all tasks are finished, then closes the scheduler.

@@ -7,7 +7,7 @@ require "sus/fixtures/async"
 
 describe Process do
 	include Sus::Fixtures::Async::ReactorContext
-
+	
 	describe ".wait2" do
 		it "can wait on child process" do
 			expect(reactor).to receive(:process_wait)

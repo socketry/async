@@ -222,7 +222,7 @@ describe IO do
 	describe ".select" do
 		it "can select readable IO" do
 			expect(Fiber.scheduler).to receive(:io_select)
-
+			
 			input, output = IO.pipe
 			
 			begin
@@ -244,7 +244,7 @@ describe IO do
 			expect(Fiber.scheduler).to receive(:io_select)
 			
 			input, output = IO.pipe
-				
+			
 			begin
 				readables, writables, errorables = IO.select(nil, [output], nil, 0.1)
 				

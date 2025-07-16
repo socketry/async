@@ -1,5 +1,11 @@
+plugins:
+  - rubocop-socketry
+
 AllCops:
   DisabledByDefault: true
+
+Layout/ConsistentBlankLineIndentation:
+  Enabled: true
 
 Layout/IndentationStyle:
   Enabled: true

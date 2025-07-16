@@ -398,7 +398,7 @@ describe Async::Task do
 				expect(child_task).not.to be(:alive?)
 			end
 		end
-			
+		
 		it "can stop a currently resumed task" do
 			parent_task = nil
 			
@@ -466,7 +466,7 @@ describe Async::Task do
 				task.async do
 					sleep
 				end
-
+				
 				# NOTE: Hangs only if this second task is added
 				task.async do
 					sleep
@@ -612,7 +612,7 @@ describe Async::Task do
 			input.close
 			output.close
 		end
-
+		
 		it "won't timeout if execution completes in time" do
 			state = nil
 			
@@ -736,7 +736,7 @@ describe Async::Task do
 				innocent_task.wait
 			end.to raise_exception(RuntimeError, message: be =~ /boom/)
 		end
-
+		
 		it "will not raise exception values returned by the task" do
 			error = StandardError.new
 			task = reactor.async {error}
@@ -845,7 +845,7 @@ describe Async::Task do
 			end
 		end
 	end
-
+	
 	it "can gets in a task" do
 		IO.pipe do |input, output|
 			Async do

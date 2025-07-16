@@ -2,7 +2,7 @@
 # frozen_string_literal: true
 
 # Released under the MIT License.
-# Copyright, 2019-2024, by Samuel Williams.
+# Copyright, 2019-2025, by Samuel Williams.
 
 require "socket"
 require "fiber"
@@ -33,27 +33,27 @@ class Reactor
 		@readable = {}
 		@writable = {}
 	end
-
+	
 	def run
 		while @readable.any? or @writable.any?
 			readable, writable = IO.select(@readable.keys, @writable.keys, [])
-
+			
 			readable.each do |io|
 				@readable[io].resume
 			end
-
+			
 			writable.each do |io|
 				@writable[io].resume
 			end
 		end
 	end
-
+	
 	def wait_readable(io)
 		@readable[io] = Fiber.current
 		Fiber.yield
 		@readable.delete(io)
 	end
-
+	
 	def wait_writable(io)
 		@writable[io] = Fiber.current
 		Fiber.yield
@@ -79,7 +79,7 @@ class Wrapper
 					return result
 				end
 			end
-
+			
 		end
 		
 		def write_nonblock(buffer)
@@ -173,7 +173,7 @@ NUM_WORKERS.times do |i|
 	r, w = IO.pipe
 	worker_read.push Wrapper.new(r, reactor)
 	master_write.push Wrapper.new(w, reactor)
-
+	
 	r, w = IO.pipe
 	worker_write.push Wrapper.new(w, reactor)
 	master_read.push Wrapper.new(r, reactor)

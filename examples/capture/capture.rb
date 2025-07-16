@@ -109,7 +109,7 @@ pids.each do |pid|
 	if total = summary[:total]
 		process_duration = end_times.utime - start_times.utime
 		wait_duration = summary[:total][:seconds]
-	
+		
 		Console.info("Process Waiting: #{wait_duration.round(4)}s out of #{process_duration.round(4)}s") do |buffer|
 			buffer.puts "Wait percentage: #{(wait_duration / process_duration * 100.0).round(2)}%"
 		end

@@ -14,7 +14,7 @@ describe Tempfile do
 		
 		1_000.times{tempfile.write("Hello World!")}
 		tempfile.flush
-
+		
 		tempfile.seek(0)
 		
 		expect(tempfile.read(12)).to be == "Hello World!"

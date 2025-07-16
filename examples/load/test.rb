@@ -24,7 +24,7 @@ Async do
 	scheduler = Fiber.scheduler
 	while true
 		load = scheduler.load
-
+		
 		$stdout.write "\nLoad: #{load} "
 		sleep 1.0
 	end

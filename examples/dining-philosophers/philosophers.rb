@@ -13,19 +13,19 @@ class Philosopher
 		@left_fork = left_fork
 		@right_fork = right_fork
 	end
-
+	
 	def think
 		puts "#{@name} is thinking."
 		sleep(rand(1..3))
 		puts "#{@name} has finished thinking."
 	end
-
+	
 	def eat
 		puts "#{@name} is eating."
 		sleep(rand(1..3))
 		puts "#{@name} has finished eating."
 	end
-
+	
 	def dine
 		Sync do |task|
 			think

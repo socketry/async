@@ -4,6 +4,7 @@
 # Copyright, 2017-2024, by Samuel Williams.
 # Copyright, 2017, by Kent Gruber.
 # Copyright, 2022, by Shannon Skipper.
+# Copyright, 2025, by Shopify Inc.
 
 require "fiber/annotation"
 

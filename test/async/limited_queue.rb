@@ -2,6 +2,7 @@
 
 # Released under the MIT License.
 # Copyright, 2025, by Samuel Williams.
+# Copyright, 2025, by Shopify Inc.
 
 require "async/limited_queue"
 
@@ -70,7 +71,7 @@ describe Async::LimitedQueue do
 				expect(queue.dequeue).to be == :item1
 				expect(queue.dequeue).to be == :item2
 			end
-
+			
 			with "#pop" do
 				it "waits until a queue is dequeued" do
 					reactor.async do
@@ -83,18 +84,18 @@ describe Async::LimitedQueue do
 			end
 		end
 	end
-
+	
 	with "#close" do
 		it "signals tasks waiting to enqueue items when closed" do
 			queue.enqueue(:item1)
-
+			
 			# This task will block as the queue is full:
 			waiting_task = reactor.async do
 				queue.enqueue(:item2)
 			end
-
+			
 			queue.close
-
+			
 			expect do
 				waiting_task.wait
 			end.to raise_exception(Async::Queue::ClosedError)

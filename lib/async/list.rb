@@ -2,6 +2,7 @@
 
 # Released under the MIT License.
 # Copyright, 2022-2025, by Samuel Williams.
+# Copyright, 2025, by Shopify Inc.
 
 module Async
 	# A general doublely linked list. This is used internally by {Async::Barrier} and {Async::Condition} to manage child tasks.
@@ -144,26 +145,26 @@ module Async
 		# 	previous = self
 		# 	current = @tail
 		# 	found = node.equal?(self)
-			
+		
 		# 	while true
 		# 		break if current.equal?(self)
-				
+		
 		# 		if current.head != previous
 		# 			raise "Invalid previous linked list node!"
 		# 		end
-				
+		
 		# 		if current.is_a?(List) and !current.equal?(self)
 		# 			raise "Invalid list in list node!"
 		# 		end
-				
+		
 		# 		if node
 		# 			found ||= current.equal?(node)
 		# 		end
-				
+		
 		# 		previous = current
 		# 		current = current.tail
 		# 	end
-			
+		
 		# 	if node and !found
 		# 		raise "Node not found in list!"
 		# 	end

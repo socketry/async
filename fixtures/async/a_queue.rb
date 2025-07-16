@@ -77,11 +77,11 @@ module Async
 		
 		it "can enqueue multiple items" do
 			items = Array.new(10) {rand(10)}
-
+			
 			reactor.async do |task|
 				queue.enqueue(*items)
 			end
-
+			
 			items.each do |item|
 				expect(queue.dequeue).to be == item
 			end
@@ -130,15 +130,15 @@ module Async
 				expect(queue.wait).to be == :item
 			end
 		end
-
+		
 		with "#close" do
 			it "signals waiting tasks when closed" do
 				waiting_task = reactor.async do
 					queue.dequeue
 				end
-
+				
 				queue.close
-
+				
 				waiting_task.wait
 				expect(waiting_task).to be(:finished?)
 			end
@@ -188,37 +188,37 @@ module Async
 				expect(count).to be == repeats
 			end
 		end
-
+		
 		with "a closed queue" do
 			before do
 				queue.close
 			end
-
+			
 			it "prevents push after close" do
 				expect{queue.push(:item)}.to raise_exception(Async::Queue::ClosedError)
 			end
-
+			
 			it "prevents enqueue after close" do
 				expect{queue.enqueue(:item)}.to raise_exception(Async::Queue::ClosedError)
 			end
-
+			
 			it "prevents << after close" do
 				expect{queue << :item}.to raise_exception(Async::Queue::ClosedError)
 			end
-
+			
 			it "returns nil from dequeue when closed and empty" do
 				expect(queue.dequeue).to be_nil
 			end
-
+			
 			it "returns nil from pop when closed and empty" do
 				expect(queue.pop).to be_nil
 			end
-
+			
 			it "signals waiting tasks when closed" do
 				waiting_task = reactor.async do
 					queue.dequeue
 				end
-
+				
 				# Already closed, so just check if the task finishes:
 				waiting_task.wait
 				expect(waiting_task).to be(:finished?)
