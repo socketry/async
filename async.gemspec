@@ -27,7 +27,7 @@ Gem::Specification.new do |spec|
 	
 	spec.add_dependency "console", "~> 1.29"
 	spec.add_dependency "fiber-annotation"
-	spec.add_dependency "io-event", "~> 1.12"
+	spec.add_dependency "io-event", "~> 1.11"
 	spec.add_dependency "metrics", "~> 0.12"
 	spec.add_dependency "traces", "~> 0.15"
 end
