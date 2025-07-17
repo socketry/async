@@ -72,7 +72,7 @@ module Async
 		#
 		# @public Since *Async v1*.
 		# @parameter parent [Node | Nil] The parent node to use for task hierarchy.
-		# @parameter selector [IO::Event::Selector] The selector to use for event handling.
+		# @parameter selector [::IO::Event::Selector] The selector to use for event handling.
 		def initialize(parent = nil, selector: nil, profiler: Profiler&.default, worker_pool: WORKER_POOL)
 			super(parent)
 			
@@ -197,7 +197,7 @@ module Async
 		end
 		
 		# Schedule a fiber (or equivalent object) to be resumed on the next loop through the reactor.
-		# @parameter fiber [Fiber | Object] The object to be resumed on the next iteration of the run-loop.
+		# @parameter fiber [Any(Fiber, Object)] The object to be resumed on the next iteration of the run-loop.
 		def push(fiber)
 			@selector.push(fiber)
 		end

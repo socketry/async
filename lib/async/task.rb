@@ -52,6 +52,7 @@ module Async
 	end
 	
 	# @public Since *Async v1*.
+	# @rbs generic ResultType
 	class Task < Node
 		# Raised when a child task is created within a task that has finished execution.
 		class FinishedError < RuntimeError
@@ -224,6 +225,7 @@ module Async
 		# @yields {|task| ...} in the context of the new task.
 		# @raises [FinishedError] If the task has already finished.
 		# @returns [Task] The child task.
+		# @rbs [ResultType] (*untyped, **untyped) { () -> ResultType } -> Task[ResultType]
 		def async(*arguments, **options, &block)
 			raise FinishedError if self.finished?
 			
@@ -247,6 +249,7 @@ module Async
 		#
 		# @raises [RuntimeError] If the task's fiber is the current fiber.
 		# @returns [Object] The final expression/result of the task's block.
+		# @rbs () -> ResultType
 		def wait
 			raise "Cannot wait on own fiber!" if Fiber.current.equal?(@fiber)
 			

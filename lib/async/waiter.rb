@@ -11,7 +11,7 @@ module Async
 		# Create a waiter instance.
 		#
 		# @parameter parent [Interface(:async) | Nil] The parent task to use for asynchronous operations.
-		# @parameter finished [Async::Condition] The condition to signal when a task completes.
+		# @parameter finished [::Async::Condition] The condition to signal when a task completes.
 		def initialize(parent: nil, finished: Async::Condition.new)
 			warn("`Async::Waiter` is deprecated, use `Async::Barrier` instead.", uplevel: 1, category: :deprecated) if $VERBOSE
 			
@@ -34,7 +34,7 @@ module Async
 		
 		# Wait for the first `count` tasks to complete.
 		# @parameter count [Integer | Nil] The number of tasks to wait for.
-		# @returns [Array(Async::Task)] If an integer is given, the tasks which have completed.
+		# @returns [Array(::Async::Task)] If an integer is given, the tasks which have completed.
 		# @returns [Async::Task] Otherwise, the first task to complete.
 		def first(count = nil)
 			minimum = count || 1
