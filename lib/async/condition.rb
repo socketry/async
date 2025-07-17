@@ -53,7 +53,7 @@ module Async
 		end
 		
 		# Signal to a given task that it should resume operations.
-		# @parameter value [Object | Nil] The value to return to the waiting fibers.
+		# @parameter value [::Object | Nil] The value to return to the waiting fibers.
 		def signal(value = nil)
 			return if @waiting.empty?
 			
