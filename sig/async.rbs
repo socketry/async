@@ -1,0 +1,1365 @@
+# Asynchronous programming framework.
+module Async
+  # A general purpose synchronisation primitive, which allows one task to wait for a number of other tasks to complete. It can be used in conjunction with {Semaphore}.
+  class Barrier
+    # Initialize the barrier.
+    public def initialize: (Task | Semaphore | nil parent) -> void
+
+    # Number of tasks being held by the barrier.
+    public def size: () -> untyped
+
+    # Execute a child task and add it to the barrier.
+    public def async: () -> untyped
+
+    # Whether there are any tasks being held by the barrier.
+    public def empty?: () -> bool
+
+    # Wait for all tasks to complete by invoking {Task#wait} on each waiting task, which may raise an error. As long as the task has completed, it will be removed from the barrier.
+    public def wait: () { () -> void } -> untyped
+
+    # Stop all tasks held by the barrier.
+    public def stop: () -> untyped
+  end
+
+  # A convenient wrapper around the internal monotonic clock.
+  class Clock
+    # Get the current elapsed monotonic time.
+    public def self.now: () -> untyped
+
+    # Measure the execution of a block of code.
+    public def self.measure: () { () -> void } -> Numeric
+
+    # Start measuring elapsed time from now.
+    public def self.start: () -> Clock
+
+    # Create a new clock with the initial total time.
+    public def initialize: (Numeric total) -> void
+
+    # Start measuring a duration.
+    public def start!: () -> untyped
+
+    # Stop measuring a duration and append the duration to the current total.
+    public def stop!: () -> untyped
+
+    # The total elapsed time including any current duration.
+    public def total: () -> untyped
+
+    # Reset the total elapsed time. If the clock is currently running, reset the start time to now.
+    public def reset!: () -> untyped
+  end
+
+  # A synchronization primitive, which allows fibers to wait until a particular condition is (edge) triggered.
+  class Condition
+    # Create a new condition.
+    public def initialize: () -> void
+
+    # Queue up the current fiber and wait on yielding the task.
+    public def wait: () -> Object
+
+    public def empty?: () -> bool
+
+    public def waiting?: () -> bool
+
+    # Signal to a given task that it should resume operations.
+    public def signal: (::Object | nil value) -> untyped
+  end
+
+  # Shims for the console gem, redirecting warnings and above to `Kernel#warn`.
+  #
+  # If you require this file, the `async` library will not depend on the `console` gem.
+  #
+  # That includes any gems that sit within the `Async` namespace.
+  #
+  # This is an experimental feature.
+  module Console
+    # Log a message at the debug level. The shim is silent.
+    public def self.debug: () -> untyped
+
+    # Log a message at the info level. The shim is silent.
+    public def self.info: () -> untyped
+
+    # Log a message at the warn level. The shim redirects to `Kernel#warn`.
+    public def self.warn: () -> untyped
+
+    # Log a message at the error level. The shim redirects to `Kernel#warn`.
+    public def self.error: () -> untyped
+
+    # Log a message at the fatal level. The shim redirects to `Kernel#warn`.
+    public def self.fatal: () -> untyped
+  end
+
+  # A load balancing mechanism that can be used process work when the system is idle.
+  class Idler
+    # Create a new idler.
+    public def initialize: (Numeric maximum_load, Numeric backoff, Interface parent) -> void
+
+    # Wait until the system is idle, then execute the given block in a new task.
+    public def async: (Types::Array arguments, Interface parent, Types::Hash options) { () -> void } -> untyped
+
+    # Wait until the system is idle, according to the maximum load specified.
+    #
+    # If the scheduler is overloaded, this method will sleep for an exponentially increasing amount of time.
+    public def wait: () -> untyped
+  end
+
+  class LimitedQueue < ::Queue
+    public def self.new: () -> untyped
+
+    # Create a new limited queue.
+    public def initialize: (Integer limit, Notification full) -> void
+
+    # Close the queue, causing all waiting tasks to return `nil`. Any subsequent calls to {enqueue} will raise an exception.
+    # Also signals all tasks waiting for the queue to be full.
+    public def close: () -> untyped
+
+    public def limited?: () -> bool
+
+    # Add an item to the queue.
+    #
+    # If the queue is full, this method will block until there is space available.
+    public def push: (Object item) -> self
+
+    # Add multiple items to the queue.
+    #
+    # If the queue is full, this method will block until there is space available.
+    public def enqueue: (Types::Array items) -> untyped
+
+    # Remove and return the next item from the queue.
+    #
+    # If the queue is empty, this method will block until an item is available.
+    public def dequeue: () -> Object
+  end
+
+  # A general doublely linked list. This is used internally by {Async::Barrier} and {Async::Condition} to manage child tasks.
+  class List
+    # Initialize a new, empty, list.
+    public def initialize: () -> void
+
+    public def to_s: () -> String
+
+    # Fast, safe, unbounded accumulation of children.
+    public def to_a: () -> untyped
+
+    # A callback that is invoked when an item is added to the list.
+    public def added: () -> self
+
+    # Append a node to the end of the list.
+    public def append: () -> self
+
+    # Prepend a node to the start of the list.
+    public def prepend: () -> self
+
+    # Add the node, yield, and the remove the node.
+    public def stack: () { () -> void } -> Object
+
+    # A callback that is invoked when an item is removed from the list.
+    public def removed: () -> self
+
+    # Remove the node if it is in a list.
+    #
+    # You should be careful to only remove nodes that are part of this list.
+    public def remove?: () -> Node
+
+    # Remove the node. If it was already removed, this will raise an error.
+    #
+    # You should be careful to only remove nodes that are part of this list.
+    public def remove: () -> Node
+
+    public def empty?: () -> bool
+
+    # Iterate over each node in the linked list. It is generally safe to remove the current node, any previous node or any future node during iteration.
+    public def each: () { () -> void } -> List
+
+    # Determine whether the given node is included in the list.
+    public def include?: (Node needle) -> bool
+
+    public def first: () -> Node
+
+    public def last: () -> Node
+
+    # Shift the first node off the list, if it is not empty.
+    public def shift: () -> untyped
+
+    # A linked list Node.
+    class Node
+      public def to_s: () -> String
+    end
+  end
+
+  # A list of children tasks.
+  class Children < ::List
+    # Create an empty list of children tasks.
+    public def initialize: () -> void
+
+    # Some children may be marked as transient. Transient children do not prevent the parent from finishing.
+    public def transients?: () -> bool
+
+    # Whether all children are considered finished. Ignores transient children.
+    public def finished?: () -> bool
+
+    # Whether the children is empty, preserved for compatibility.
+    public def nil?: () -> bool
+
+    # Adjust the number of transient children, assuming it has changed.
+    #
+    # Despite being public, this is not intended to be called directly. It is used internally by {Node#transient=}.
+    public def adjust_transient_count: (bool transient) -> untyped
+  end
+
+  # A node in a tree, used for implementing the task hierarchy.
+  class Node
+    # Create a new node in the tree.
+    public def initialize: (Node | nil parent) -> void
+
+    public def root: () -> Node
+
+    # Whether this node has any children.
+    public def children?: () -> bool
+
+    # Represents whether a node is transient. Transient nodes are not considered
+    # when determining if a node is finished. This is useful for tasks which are
+    # internal to an object rather than explicit user concurrency. For example,
+    # a child task which is pruning a connection pool is transient, because it
+    # is not directly related to the parent task, and should not prevent the
+    # parent task from finishing.
+    public def transient?: () -> bool
+
+    # Change the transient state of the node.
+    #
+    # A transient node is not considered when determining if a node is finished, and propagates up if the parent is consumed.
+    public def transient=: (bool value) -> untyped
+
+    # Annotate the node with a description.
+    public def annotate: (String annotation) -> untyped
+
+    # A description of the node, including the annotation and object name.
+    public def description: () -> String
+
+    # Provides a backtrace for nodes that have an active execution context.
+    public def backtrace: () -> (Array[::Thread::Backtrace::Locations] | nil)
+
+    public def to_s: () -> String
+
+    # Change the parent of this node.
+    public def parent=: (Node | nil parent) -> Node
+
+    # Whether the node can be consumed (deleted) safely. By default, checks if the children set is empty.
+    public def finished?: () -> bool
+
+    # If the node has a parent, and is {finished?}, then remove this node from
+    # the parent.
+    public def consume: () -> untyped
+
+    # Traverse the task tree.
+    public def traverse: () { () -> void } -> Types::Enumerator
+
+    # Immediately terminate all children tasks, including transient tasks. Internally invokes `stop(false)` on all children. This should be considered a last ditch effort and is used when closing the scheduler.
+    public def terminate: () -> untyped
+
+    # Attempt to stop the current node immediately, including all non-transient children. Invokes {#stop_children} to stop all children.
+    public def stop: (bool later) -> untyped
+
+    # Whether the node has been stopped.
+    public def stopped?: () -> bool
+
+    # Print the hierarchy of the task tree from the given node.
+    public def print_hierarchy: (IO out, bool backtrace) -> untyped
+  end
+
+  # A synchronization primitive, which allows fibers to wait until a notification is received. Does not block the task which signals the notification. Waiting tasks are resumed on next iteration of the reactor.
+  class Notification < ::Condition
+    # Signal to a given task that it should resume operations.
+    public def signal: () -> bool
+  end
+
+  # A queue which allows items to be processed in order.
+  #
+  # It has a compatible interface with {Notification} and {Condition}, except that it's multi-value.
+  class Queue
+    # Create a new queue.
+    public def initialize: (Interface parent, Notification available) -> void
+
+    # Close the queue, causing all waiting tasks to return `nil`. Any subsequent calls to {enqueue} will raise an exception.
+    public def close: () -> untyped
+
+    public def size: () -> Integer
+
+    public def empty?: () -> bool
+
+    # Add an item to the queue.
+    public def push: () -> self
+
+    # Compatibility with {::Queue#push}.
+    public def <<: () -> self
+
+    # Add multiple items to the queue.
+    public def enqueue: () -> untyped
+
+    # Remove and return the next item from the queue.
+    public def dequeue: () -> untyped
+
+    # Compatibility with {::Queue#pop}.
+    public def pop: () -> untyped
+
+    # Process each item in the queue.
+    public def async: (Types::Array arguments, Interface parent, Types::Hash options) { () -> void } -> untyped
+
+    # Enumerate each item in the queue.
+    public def each: () -> untyped
+
+    # Signal the queue with a value, the same as {#enqueue}.
+    public def signal: () -> untyped
+
+    # Wait for an item to be available, the same as {#dequeue}.
+    public def wait: () -> untyped
+
+    # An error raised when trying to enqueue items to a closed queue.
+    class ClosedError < ::RuntimeError
+    end
+  end
+
+  # A wrapper around the the scheduler which binds it to the current thread automatically.
+  class Reactor < ::Scheduler
+    public def self.run: () -> untyped
+
+    # Initialize the reactor and assign it to the current Fiber scheduler.
+    public def initialize: () -> void
+
+    # Close the reactor and remove it from the current Fiber scheduler.
+    public def scheduler_close: () -> untyped
+  end
+
+  # Handles scheduling of fibers. Implements the fiber scheduler interface.
+  class Scheduler < ::Node
+    # Whether the fiber scheduler is supported.
+    public def self.supported?: () -> bool
+
+    # Create a new scheduler.
+    public def initialize: (Node | nil parent, ::IO::Event::Selector selector) -> void
+
+    # Compute the scheduler load according to the busy and idle times that are updated by the run loop.
+    public def load: () -> Float
+
+    # Invoked when the fiber scheduler is being closed.
+    #
+    # Executes the run loop until all tasks are finished, then closes the scheduler.
+    public def scheduler_close: () -> untyped
+
+    # Terminate all child tasks.
+    public def terminate: () -> untyped
+
+    # Terminate all child tasks and close the scheduler.
+    public def close: () -> untyped
+
+    public def closed?: () -> bool
+
+    public def to_s: () -> String
+
+    # Interrupt the event loop and cause it to exit.
+    public def interrupt: () -> untyped
+
+    # Transfer from the calling fiber to the event loop.
+    public def transfer: () -> untyped
+
+    # Yield the current fiber and resume it on the next iteration of the event loop.
+    public def yield: () -> untyped
+
+    # Schedule a fiber (or equivalent object) to be resumed on the next loop through the reactor.
+    public def push: (Fiber | Object fiber) -> self
+
+    # Raise an exception on a specified fiber with the given arguments.
+    #
+    # This internally schedules the current fiber to be ready, before raising the exception, so that it will later resume execution.
+    public def raise: (Fiber fiber, Types::Array `*arguments`) -> untyped
+
+    # Resume execution of the specified fiber.
+    public def resume: (Fiber fiber, Types::Array arguments) -> untyped
+
+    # Invoked when a fiber tries to perform a blocking operation which cannot continue. A corresponding call {unblock} must be performed to allow this fiber to continue.
+    public def block: (Object blocker, Float | nil timeout) -> untyped
+
+    # Unblock a fiber that was previously blocked.
+    public def unblock: (Object blocker, Fiber fiber) -> untyped
+
+    # Sleep for the specified duration.
+    public def kernel_sleep: (Numeric | nil duration) -> untyped
+
+    # Resolve the address of the given hostname.
+    public def address_resolve: (String hostname) -> self
+
+    # Wait for the specified IO to become ready for the specified events.
+    public def io_wait: (IO io, Integer events, Float | nil timeout) -> untyped
+
+    # Read from the specified IO into the buffer.
+    public def io_read: (IO io, IO::Buffer buffer, Integer length, Integer offset) -> untyped
+
+    # Write the specified buffer to the IO.
+    public def io_write: (IO io, IO::Buffer buffer, Integer length, Integer offset) -> untyped
+
+    # Raise an exception on the specified fiber, waking up the event loop if necessary.
+    public def fiber_interrupt: () -> untyped
+
+    # Wait for the specified process ID to exit.
+    public def process_wait: (Integer pid, Integer flags) -> Process::Status
+
+    # Wait for the specified IOs to become ready for the specified events.
+    public def io_select: () -> untyped
+
+    # Run one iteration of the event loop.
+    public def run_once: (Float | nil timeout) -> bool
+
+    # Stop all children, including transient children.
+    public def stop: () -> untyped
+
+    # Run the reactor until all tasks are finished. Proxies arguments to {#async} immediately before entering the loop, if a block is provided.
+    #
+    # Forwards all parameters to {#async} if a block is given.
+    public def run: () { () -> void } -> Task
+
+    # Start an asynchronous task within the specified reactor. The task will be executed until the first blocking call, at which point it will yield and and this method will return.
+    public def async: () { () -> void } -> Task
+
+    # Create a new fiber and return it without starting execution.
+    public def fiber: () -> Fiber
+
+    # Invoke the block, but after the specified timeout, raise {TimeoutError} in any currenly blocking operation. If the block runs to completion before the timeout occurs or there are no non-blocking operations after the timeout expires, the code will complete without any exception.
+    public def with_timeout: (Numeric duration, Class exception, String message) { () -> void } -> untyped
+
+    # Invoke the block, but after the specified timeout, raise the specified exception with the given message. If the block runs to completion before the timeout occurs or there are no non-blocking operations after the timeout expires, the code will complete without any exception.
+    public def timeout_after: (Numeric duration, Class exception, String message) { () -> void } -> untyped
+
+    # Raised when an operation is attempted on a closed scheduler.
+    class ClosedError < ::RuntimeError
+      # Create a new error.
+      public def initialize: (String message) -> void
+    end
+
+    # Used to defer stopping the current task until later.
+    class FiberInterrupt
+      # Create a new stop later operation.
+      public def initialize: (Task task) -> void
+
+      public def alive?: () -> bool
+
+      # Transfer control to the operation - this will stop the task.
+      public def transfer: () -> untyped
+    end
+  end
+
+  # A synchronization primitive, which limits access to a given resource.
+  class Semaphore
+    public def initialize: (Integer limit, Task | Semaphore | nil parent) -> void
+
+    # Allow setting the limit. This is useful for cases where the semaphore is used to limit the number of concurrent tasks, but the number of tasks is not known in advance or needs to be modified.
+    #
+    # On increasing the limit, some tasks may be immediately resumed. On decreasing the limit, some tasks may execute until the count is < than the limit.
+    public def limit=: (Integer limit) -> untyped
+
+    # Is the semaphore currently acquired?
+    public def empty?: () -> bool
+
+    # Whether trying to acquire this semaphore would block.
+    public def blocking?: () -> bool
+
+    # Run an async task. Will wait until the semaphore is ready until spawning and running the task.
+    public def async: () -> untyped
+
+    # Acquire the semaphore, block if we are at the limit.
+    # If no block is provided, you must call release manually.
+    public def acquire: () { () -> void } -> untyped
+
+    # Release the semaphore. Must match up with a corresponding call to `acquire`. Will release waiting fibers in FIFO order.
+    public def release: () -> untyped
+  end
+
+  # Raised when a task is explicitly stopped.
+  class Stop < ::Exception
+    # Used to defer stopping the current task until later.
+    class Later
+      # Create a new stop later operation.
+      public def initialize: (Task task) -> void
+
+      public def alive?: () -> bool
+
+      # Transfer control to the operation - this will stop the task.
+      public def transfer: () -> untyped
+    end
+  end
+
+  # Raised if a timeout occurs on a specific Fiber. Handled gracefully by `Task`.
+  class TimeoutError < ::StandardError
+    # Create a new timeout error.
+    public def initialize: (String message) -> void
+  end
+
+  class Task[ResultType] < ::Node
+    public def self.yield: () -> untyped
+
+    # Yield back to the reactor and allow other fibers to execute.
+    public def yield: () -> untyped
+
+    # Run the given block of code in a task, asynchronously, in the given scheduler.
+    public def self.run: () -> untyped
+
+    # Begin the execution of the task.
+    public def run: () -> untyped
+
+    # Create a new task.
+    public def initialize: (Reactor reactor, Task parent) -> void
+
+    public def reactor: () -> Scheduler
+
+    public def backtrace: () -> (Array[Thread::Backtrace::Location] | nil)
+
+    # Annotate the task with a description.
+    #
+    # This will internally try to annotate the fiber if it is running, otherwise it will annotate the task itself.
+    public def annotate: (String annotation) -> untyped
+
+    public def annotation: () -> Object
+
+    public def to_s: () -> String
+
+    public def sleep: () -> untyped
+
+    # Execute the given block of code, raising the specified exception if it exceeds the given duration during a non-blocking operation.
+    public def with_timeout: () -> untyped
+
+    public def alive?: () -> bool
+
+    # Whether we can remove this node from the reactor graph.
+    public def finished?: () -> bool
+
+    public def running?: () -> bool
+
+    public def failed?: () -> bool
+
+    public def stopped?: () -> bool
+
+    public def completed?: () -> bool
+
+    # Alias for {#completed?}.
+    public def complete?: () -> bool
+
+    # Run an asynchronous task as a child of the current task.
+    public def async: [ResultType] (*untyped, **untyped) { () -> ResultType } -> Task[ResultType]
+
+    # Retrieve the current result of the task. Will cause the caller to wait until result is available. If the task resulted in an unhandled error (derived from `StandardError`), this will be raised. If the task was stopped, this will return `nil`.
+    #
+    # Conceptually speaking, waiting on a task should return a result, and if it throws an exception, this is certainly an exceptional case that should represent a failure in your program, not an expected outcome. In other words, you should not design your programs to expect exceptions from `#wait` as a normal flow control, and prefer to catch known exceptions within the task itself and return a result that captures the intention of the failure, e.g. a `TimeoutError` might simply return `nil` or `false` to indicate that the operation did not generate a valid result (as a timeout was an expected outcome of the internal operation in this case).
+    public def wait: () -> ResultType
+
+    # Stop the task and all of its children.
+    #
+    # If `later` is false, it means that `stop` has been invoked directly. When `later` is true, it means that `stop` is invoked by `stop_children` or some other indirect mechanism. In that case, if we encounter the "current" fiber, we can't stop it right away, as it's currently performing `#stop`. Stopping it immediately would interrupt the current stop traversal, so we need to schedule the stop to occur later.
+    public def stop: (bool later) -> untyped
+
+    # Defer the handling of stop. During the execution of the given block, if a stop is requested, it will be deferred until the block exits. This is useful for ensuring graceful shutdown of servers and other long-running tasks. You should wrap the response handling code in a defer_stop block to ensure that the task is stopped when the response is complete but not before.
+    #
+    # You can nest calls to defer_stop, but the stop will only be deferred until the outermost block exits.
+    #
+    # If stop is invoked a second time, it will be immediately executed.
+    public def defer_stop: () { () -> void } -> untyped
+
+    public def stop_deferred?: () -> bool
+
+    # Lookup the {Task} for the current fiber. Raise `RuntimeError` if none is available.
+    public def self.current: () -> Task
+
+    # Check if there is a task defined for the current fiber.
+    public def self.current?: () -> Interface
+
+    public def current?: () -> bool
+
+    # Raised when a child task is created within a task that has finished execution.
+    class FinishedError < ::RuntimeError
+      # Create a new finished error.
+      public def initialize: (String message) -> void
+    end
+  end
+
+  # Represents a flexible timeout that can be rescheduled or extended.
+  class Timeout
+    # Initialize a new timeout.
+    public def initialize: () -> void
+
+    public def duration: () -> Numeric
+
+    # Update the duration of the timeout.
+    #
+    # The duration is relative to the current time, e.g. setting the duration to 5 means the timeout will occur in 5 seconds from now.
+    public def duration=: (Numeric value) -> untyped
+
+    # Adjust the timeout by the specified duration.
+    #
+    # The duration is relative to the timeout time, e.g. adjusting the timeout by 5 increases the current duration by 5 seconds.
+    public def adjust: (Numeric duration) -> Numeric
+
+    public def time: () -> Numeric
+
+    # Assign a new time to the timeout, rescheduling it if necessary.
+    public def time=: (Numeric value) -> Numeric
+
+    public def now: () -> Numeric
+
+    # Cancel the timeout, preventing it from executing.
+    public def cancel!: () -> untyped
+
+    public def cancelled?: () -> bool
+
+    # Raised when attempting to reschedule a cancelled timeout.
+    class CancelledError < ::RuntimeError
+    end
+  end
+
+  # A synchronization primitive that allows one task to wait for another task to resolve a value.
+  class Variable
+    # Create a new variable.
+    public def initialize: (Condition condition) -> void
+
+    # Resolve the value.
+    #
+    # Signals all waiting tasks.
+    public def resolve: (Object value) -> untyped
+
+    # Alias for {#resolve}.
+    public def value=: () -> untyped
+
+    # Whether the value has been resolved.
+    public def resolved?: () -> bool
+
+    # Wait for the value to be resolved.
+    public def wait: () -> Object
+
+    # Alias for {#wait}.
+    public def value: () -> untyped
+  end
+
+  # A composable synchronization primitive, which allows one task to wait for a number of other tasks to complete. It can be used in conjunction with {Semaphore} and/or {Barrier}.
+  class Waiter
+    # Create a waiter instance.
+    public def initialize: (Interface parent, ::Async::Condition finished) -> void
+
+    # Execute a child task and add it to the waiter.
+    public def async: () -> untyped
+
+    # Wait for the first `count` tasks to complete.
+    public def first: (Integer | nil count) -> Array[::Async::Task]
+
+    # Wait for the first `count` tasks to complete.
+    public def wait: (Integer | nil count) -> untyped
+  end
+end
+
+# A general purpose synchronisation primitive, which allows one task to wait for a number of other tasks to complete. It can be used in conjunction with {Semaphore}.
+class Barrier
+  # Initialize the barrier.
+  public def initialize: (Task | Semaphore | nil parent) -> void
+
+  # Number of tasks being held by the barrier.
+  public def size: () -> untyped
+
+  # Execute a child task and add it to the barrier.
+  public def async: () -> untyped
+
+  # Whether there are any tasks being held by the barrier.
+  public def empty?: () -> bool
+
+  # Wait for all tasks to complete by invoking {Task#wait} on each waiting task, which may raise an error. As long as the task has completed, it will be removed from the barrier.
+  public def wait: () { () -> void } -> untyped
+
+  # Stop all tasks held by the barrier.
+  public def stop: () -> untyped
+end
+
+# A convenient wrapper around the internal monotonic clock.
+class Clock
+  # Get the current elapsed monotonic time.
+  public def self.now: () -> untyped
+
+  # Measure the execution of a block of code.
+  public def self.measure: () { () -> void } -> Numeric
+
+  # Start measuring elapsed time from now.
+  public def self.start: () -> Clock
+
+  # Create a new clock with the initial total time.
+  public def initialize: (Numeric total) -> void
+
+  # Start measuring a duration.
+  public def start!: () -> untyped
+
+  # Stop measuring a duration and append the duration to the current total.
+  public def stop!: () -> untyped
+
+  # The total elapsed time including any current duration.
+  public def total: () -> untyped
+
+  # Reset the total elapsed time. If the clock is currently running, reset the start time to now.
+  public def reset!: () -> untyped
+end
+
+# A synchronization primitive, which allows fibers to wait until a particular condition is (edge) triggered.
+class Condition
+  # Create a new condition.
+  public def initialize: () -> void
+
+  # Queue up the current fiber and wait on yielding the task.
+  public def wait: () -> Object
+
+  public def empty?: () -> bool
+
+  public def waiting?: () -> bool
+
+  # Signal to a given task that it should resume operations.
+  public def signal: (::Object | nil value) -> untyped
+end
+
+# Shims for the console gem, redirecting warnings and above to `Kernel#warn`.
+#
+# If you require this file, the `async` library will not depend on the `console` gem.
+#
+# That includes any gems that sit within the `Async` namespace.
+#
+# This is an experimental feature.
+module Console
+  # Log a message at the debug level. The shim is silent.
+  public def self.debug: () -> untyped
+
+  # Log a message at the info level. The shim is silent.
+  public def self.info: () -> untyped
+
+  # Log a message at the warn level. The shim redirects to `Kernel#warn`.
+  public def self.warn: () -> untyped
+
+  # Log a message at the error level. The shim redirects to `Kernel#warn`.
+  public def self.error: () -> untyped
+
+  # Log a message at the fatal level. The shim redirects to `Kernel#warn`.
+  public def self.fatal: () -> untyped
+end
+
+# A load balancing mechanism that can be used process work when the system is idle.
+class Idler
+  # Create a new idler.
+  public def initialize: (Numeric maximum_load, Numeric backoff, Interface parent) -> void
+
+  # Wait until the system is idle, then execute the given block in a new task.
+  public def async: (Types::Array arguments, Interface parent, Types::Hash options) { () -> void } -> untyped
+
+  # Wait until the system is idle, according to the maximum load specified.
+  #
+  # If the scheduler is overloaded, this method will sleep for an exponentially increasing amount of time.
+  public def wait: () -> untyped
+end
+
+class LimitedQueue < ::Queue
+  public def self.new: () -> untyped
+
+  # Create a new limited queue.
+  public def initialize: (Integer limit, Notification full) -> void
+
+  # Close the queue, causing all waiting tasks to return `nil`. Any subsequent calls to {enqueue} will raise an exception.
+  # Also signals all tasks waiting for the queue to be full.
+  public def close: () -> untyped
+
+  public def limited?: () -> bool
+
+  # Add an item to the queue.
+  #
+  # If the queue is full, this method will block until there is space available.
+  public def push: (Object item) -> self
+
+  # Add multiple items to the queue.
+  #
+  # If the queue is full, this method will block until there is space available.
+  public def enqueue: (Types::Array items) -> untyped
+
+  # Remove and return the next item from the queue.
+  #
+  # If the queue is empty, this method will block until an item is available.
+  public def dequeue: () -> Object
+end
+
+# A general doublely linked list. This is used internally by {Async::Barrier} and {Async::Condition} to manage child tasks.
+class List
+  # Initialize a new, empty, list.
+  public def initialize: () -> void
+
+  public def to_s: () -> String
+
+  # Fast, safe, unbounded accumulation of children.
+  public def to_a: () -> untyped
+
+  # A callback that is invoked when an item is added to the list.
+  public def added: () -> self
+
+  # Append a node to the end of the list.
+  public def append: () -> self
+
+  # Prepend a node to the start of the list.
+  public def prepend: () -> self
+
+  # Add the node, yield, and the remove the node.
+  public def stack: () { () -> void } -> Object
+
+  # A callback that is invoked when an item is removed from the list.
+  public def removed: () -> self
+
+  # Remove the node if it is in a list.
+  #
+  # You should be careful to only remove nodes that are part of this list.
+  public def remove?: () -> Node
+
+  # Remove the node. If it was already removed, this will raise an error.
+  #
+  # You should be careful to only remove nodes that are part of this list.
+  public def remove: () -> Node
+
+  public def empty?: () -> bool
+
+  # Iterate over each node in the linked list. It is generally safe to remove the current node, any previous node or any future node during iteration.
+  public def each: () { () -> void } -> List
+
+  # Determine whether the given node is included in the list.
+  public def include?: (Node needle) -> bool
+
+  public def first: () -> Node
+
+  public def last: () -> Node
+
+  # Shift the first node off the list, if it is not empty.
+  public def shift: () -> untyped
+
+  # A linked list Node.
+  class Node
+    public def to_s: () -> String
+  end
+end
+
+# A linked list Node.
+class Node
+  public def to_s: () -> String
+end
+
+# A list of children tasks.
+class Children < ::List
+  # Create an empty list of children tasks.
+  public def initialize: () -> void
+
+  # Some children may be marked as transient. Transient children do not prevent the parent from finishing.
+  public def transients?: () -> bool
+
+  # Whether all children are considered finished. Ignores transient children.
+  public def finished?: () -> bool
+
+  # Whether the children is empty, preserved for compatibility.
+  public def nil?: () -> bool
+
+  # Adjust the number of transient children, assuming it has changed.
+  #
+  # Despite being public, this is not intended to be called directly. It is used internally by {Node#transient=}.
+  public def adjust_transient_count: (bool transient) -> untyped
+end
+
+# A node in a tree, used for implementing the task hierarchy.
+class Node
+  # Create a new node in the tree.
+  public def initialize: (Node | nil parent) -> void
+
+  public def root: () -> Node
+
+  # Whether this node has any children.
+  public def children?: () -> bool
+
+  # Represents whether a node is transient. Transient nodes are not considered
+  # when determining if a node is finished. This is useful for tasks which are
+  # internal to an object rather than explicit user concurrency. For example,
+  # a child task which is pruning a connection pool is transient, because it
+  # is not directly related to the parent task, and should not prevent the
+  # parent task from finishing.
+  public def transient?: () -> bool
+
+  # Change the transient state of the node.
+  #
+  # A transient node is not considered when determining if a node is finished, and propagates up if the parent is consumed.
+  public def transient=: (bool value) -> untyped
+
+  # Annotate the node with a description.
+  public def annotate: (String annotation) -> untyped
+
+  # A description of the node, including the annotation and object name.
+  public def description: () -> String
+
+  # Provides a backtrace for nodes that have an active execution context.
+  public def backtrace: () -> (Array[::Thread::Backtrace::Locations] | nil)
+
+  public def to_s: () -> String
+
+  # Change the parent of this node.
+  public def parent=: (Node | nil parent) -> Node
+
+  # Whether the node can be consumed (deleted) safely. By default, checks if the children set is empty.
+  public def finished?: () -> bool
+
+  # If the node has a parent, and is {finished?}, then remove this node from
+  # the parent.
+  public def consume: () -> untyped
+
+  # Traverse the task tree.
+  public def traverse: () { () -> void } -> Types::Enumerator
+
+  # Immediately terminate all children tasks, including transient tasks. Internally invokes `stop(false)` on all children. This should be considered a last ditch effort and is used when closing the scheduler.
+  public def terminate: () -> untyped
+
+  # Attempt to stop the current node immediately, including all non-transient children. Invokes {#stop_children} to stop all children.
+  public def stop: (bool later) -> untyped
+
+  # Whether the node has been stopped.
+  public def stopped?: () -> bool
+
+  # Print the hierarchy of the task tree from the given node.
+  public def print_hierarchy: (IO out, bool backtrace) -> untyped
+end
+
+# A synchronization primitive, which allows fibers to wait until a notification is received. Does not block the task which signals the notification. Waiting tasks are resumed on next iteration of the reactor.
+class Notification < ::Condition
+  # Signal to a given task that it should resume operations.
+  public def signal: () -> bool
+end
+
+# A queue which allows items to be processed in order.
+#
+# It has a compatible interface with {Notification} and {Condition}, except that it's multi-value.
+class Queue
+  # Create a new queue.
+  public def initialize: (Interface parent, Notification available) -> void
+
+  # Close the queue, causing all waiting tasks to return `nil`. Any subsequent calls to {enqueue} will raise an exception.
+  public def close: () -> untyped
+
+  public def size: () -> Integer
+
+  public def empty?: () -> bool
+
+  # Add an item to the queue.
+  public def push: () -> self
+
+  # Compatibility with {::Queue#push}.
+  public def <<: () -> self
+
+  # Add multiple items to the queue.
+  public def enqueue: () -> untyped
+
+  # Remove and return the next item from the queue.
+  public def dequeue: () -> untyped
+
+  # Compatibility with {::Queue#pop}.
+  public def pop: () -> untyped
+
+  # Process each item in the queue.
+  public def async: (Types::Array arguments, Interface parent, Types::Hash options) { () -> void } -> untyped
+
+  # Enumerate each item in the queue.
+  public def each: () -> untyped
+
+  # Signal the queue with a value, the same as {#enqueue}.
+  public def signal: () -> untyped
+
+  # Wait for an item to be available, the same as {#dequeue}.
+  public def wait: () -> untyped
+
+  # An error raised when trying to enqueue items to a closed queue.
+  class ClosedError < ::RuntimeError
+  end
+end
+
+# An error raised when trying to enqueue items to a closed queue.
+class ClosedError < ::RuntimeError
+end
+
+# A wrapper around the the scheduler which binds it to the current thread automatically.
+class Reactor < ::Scheduler
+  public def self.run: () -> untyped
+
+  # Initialize the reactor and assign it to the current Fiber scheduler.
+  public def initialize: () -> void
+
+  # Close the reactor and remove it from the current Fiber scheduler.
+  public def scheduler_close: () -> untyped
+end
+
+# Handles scheduling of fibers. Implements the fiber scheduler interface.
+class Scheduler < ::Node
+  # Whether the fiber scheduler is supported.
+  public def self.supported?: () -> bool
+
+  # Create a new scheduler.
+  public def initialize: (Node | nil parent, ::IO::Event::Selector selector) -> void
+
+  # Compute the scheduler load according to the busy and idle times that are updated by the run loop.
+  public def load: () -> Float
+
+  # Invoked when the fiber scheduler is being closed.
+  #
+  # Executes the run loop until all tasks are finished, then closes the scheduler.
+  public def scheduler_close: () -> untyped
+
+  # Terminate all child tasks.
+  public def terminate: () -> untyped
+
+  # Terminate all child tasks and close the scheduler.
+  public def close: () -> untyped
+
+  public def closed?: () -> bool
+
+  public def to_s: () -> String
+
+  # Interrupt the event loop and cause it to exit.
+  public def interrupt: () -> untyped
+
+  # Transfer from the calling fiber to the event loop.
+  public def transfer: () -> untyped
+
+  # Yield the current fiber and resume it on the next iteration of the event loop.
+  public def yield: () -> untyped
+
+  # Schedule a fiber (or equivalent object) to be resumed on the next loop through the reactor.
+  public def push: (Fiber | Object fiber) -> self
+
+  # Raise an exception on a specified fiber with the given arguments.
+  #
+  # This internally schedules the current fiber to be ready, before raising the exception, so that it will later resume execution.
+  public def raise: (Fiber fiber, Types::Array `*arguments`) -> untyped
+
+  # Resume execution of the specified fiber.
+  public def resume: (Fiber fiber, Types::Array arguments) -> untyped
+
+  # Invoked when a fiber tries to perform a blocking operation which cannot continue. A corresponding call {unblock} must be performed to allow this fiber to continue.
+  public def block: (Object blocker, Float | nil timeout) -> untyped
+
+  # Unblock a fiber that was previously blocked.
+  public def unblock: (Object blocker, Fiber fiber) -> untyped
+
+  # Sleep for the specified duration.
+  public def kernel_sleep: (Numeric | nil duration) -> untyped
+
+  # Resolve the address of the given hostname.
+  public def address_resolve: (String hostname) -> self
+
+  # Wait for the specified IO to become ready for the specified events.
+  public def io_wait: (IO io, Integer events, Float | nil timeout) -> untyped
+
+  # Read from the specified IO into the buffer.
+  public def io_read: (IO io, IO::Buffer buffer, Integer length, Integer offset) -> untyped
+
+  # Write the specified buffer to the IO.
+  public def io_write: (IO io, IO::Buffer buffer, Integer length, Integer offset) -> untyped
+
+  # Raise an exception on the specified fiber, waking up the event loop if necessary.
+  public def fiber_interrupt: () -> untyped
+
+  # Wait for the specified process ID to exit.
+  public def process_wait: (Integer pid, Integer flags) -> Process::Status
+
+  # Wait for the specified IOs to become ready for the specified events.
+  public def io_select: () -> untyped
+
+  # Run one iteration of the event loop.
+  public def run_once: (Float | nil timeout) -> bool
+
+  # Stop all children, including transient children.
+  public def stop: () -> untyped
+
+  # Run the reactor until all tasks are finished. Proxies arguments to {#async} immediately before entering the loop, if a block is provided.
+  #
+  # Forwards all parameters to {#async} if a block is given.
+  public def run: () { () -> void } -> Task
+
+  # Start an asynchronous task within the specified reactor. The task will be executed until the first blocking call, at which point it will yield and and this method will return.
+  public def async: () { () -> void } -> Task
+
+  # Create a new fiber and return it without starting execution.
+  public def fiber: () -> Fiber
+
+  # Invoke the block, but after the specified timeout, raise {TimeoutError} in any currenly blocking operation. If the block runs to completion before the timeout occurs or there are no non-blocking operations after the timeout expires, the code will complete without any exception.
+  public def with_timeout: (Numeric duration, Class exception, String message) { () -> void } -> untyped
+
+  # Invoke the block, but after the specified timeout, raise the specified exception with the given message. If the block runs to completion before the timeout occurs or there are no non-blocking operations after the timeout expires, the code will complete without any exception.
+  public def timeout_after: (Numeric duration, Class exception, String message) { () -> void } -> untyped
+
+  # Raised when an operation is attempted on a closed scheduler.
+  class ClosedError < ::RuntimeError
+    # Create a new error.
+    public def initialize: (String message) -> void
+  end
+
+  # Used to defer stopping the current task until later.
+  class FiberInterrupt
+    # Create a new stop later operation.
+    public def initialize: (Task task) -> void
+
+    public def alive?: () -> bool
+
+    # Transfer control to the operation - this will stop the task.
+    public def transfer: () -> untyped
+  end
+end
+
+# Raised when an operation is attempted on a closed scheduler.
+class ClosedError < ::RuntimeError
+  # Create a new error.
+  public def initialize: (String message) -> void
+end
+
+# Used to defer stopping the current task until later.
+class FiberInterrupt
+  # Create a new stop later operation.
+  public def initialize: (Task task) -> void
+
+  public def alive?: () -> bool
+
+  # Transfer control to the operation - this will stop the task.
+  public def transfer: () -> untyped
+end
+
+# A synchronization primitive, which limits access to a given resource.
+class Semaphore
+  public def initialize: (Integer limit, Task | Semaphore | nil parent) -> void
+
+  # Allow setting the limit. This is useful for cases where the semaphore is used to limit the number of concurrent tasks, but the number of tasks is not known in advance or needs to be modified.
+  #
+  # On increasing the limit, some tasks may be immediately resumed. On decreasing the limit, some tasks may execute until the count is < than the limit.
+  public def limit=: (Integer limit) -> untyped
+
+  # Is the semaphore currently acquired?
+  public def empty?: () -> bool
+
+  # Whether trying to acquire this semaphore would block.
+  public def blocking?: () -> bool
+
+  # Run an async task. Will wait until the semaphore is ready until spawning and running the task.
+  public def async: () -> untyped
+
+  # Acquire the semaphore, block if we are at the limit.
+  # If no block is provided, you must call release manually.
+  public def acquire: () { () -> void } -> untyped
+
+  # Release the semaphore. Must match up with a corresponding call to `acquire`. Will release waiting fibers in FIFO order.
+  public def release: () -> untyped
+end
+
+# Raised when a task is explicitly stopped.
+class Stop < ::Exception
+  # Used to defer stopping the current task until later.
+  class Later
+    # Create a new stop later operation.
+    public def initialize: (Task task) -> void
+
+    public def alive?: () -> bool
+
+    # Transfer control to the operation - this will stop the task.
+    public def transfer: () -> untyped
+  end
+end
+
+# Used to defer stopping the current task until later.
+class Later
+  # Create a new stop later operation.
+  public def initialize: (Task task) -> void
+
+  public def alive?: () -> bool
+
+  # Transfer control to the operation - this will stop the task.
+  public def transfer: () -> untyped
+end
+
+# Raised if a timeout occurs on a specific Fiber. Handled gracefully by `Task`.
+class TimeoutError < ::StandardError
+  # Create a new timeout error.
+  public def initialize: (String message) -> void
+end
+
+class Task[ResultType] < ::Node
+  public def self.yield: () -> untyped
+
+  # Yield back to the reactor and allow other fibers to execute.
+  public def yield: () -> untyped
+
+  # Run the given block of code in a task, asynchronously, in the given scheduler.
+  public def self.run: () -> untyped
+
+  # Begin the execution of the task.
+  public def run: () -> untyped
+
+  # Create a new task.
+  public def initialize: (Reactor reactor, Task parent) -> void
+
+  public def reactor: () -> Scheduler
+
+  public def backtrace: () -> (Array[Thread::Backtrace::Location] | nil)
+
+  # Annotate the task with a description.
+  #
+  # This will internally try to annotate the fiber if it is running, otherwise it will annotate the task itself.
+  public def annotate: (String annotation) -> untyped
+
+  public def annotation: () -> Object
+
+  public def to_s: () -> String
+
+  public def sleep: () -> untyped
+
+  # Execute the given block of code, raising the specified exception if it exceeds the given duration during a non-blocking operation.
+  public def with_timeout: () -> untyped
+
+  public def alive?: () -> bool
+
+  # Whether we can remove this node from the reactor graph.
+  public def finished?: () -> bool
+
+  public def running?: () -> bool
+
+  public def failed?: () -> bool
+
+  public def stopped?: () -> bool
+
+  public def completed?: () -> bool
+
+  # Alias for {#completed?}.
+  public def complete?: () -> bool
+
+  # Run an asynchronous task as a child of the current task.
+  public def async: [ResultType] (*untyped, **untyped) { () -> ResultType } -> Task[ResultType]
+
+  # Retrieve the current result of the task. Will cause the caller to wait until result is available. If the task resulted in an unhandled error (derived from `StandardError`), this will be raised. If the task was stopped, this will return `nil`.
+  #
+  # Conceptually speaking, waiting on a task should return a result, and if it throws an exception, this is certainly an exceptional case that should represent a failure in your program, not an expected outcome. In other words, you should not design your programs to expect exceptions from `#wait` as a normal flow control, and prefer to catch known exceptions within the task itself and return a result that captures the intention of the failure, e.g. a `TimeoutError` might simply return `nil` or `false` to indicate that the operation did not generate a valid result (as a timeout was an expected outcome of the internal operation in this case).
+  public def wait: () -> ResultType
+
+  # Stop the task and all of its children.
+  #
+  # If `later` is false, it means that `stop` has been invoked directly. When `later` is true, it means that `stop` is invoked by `stop_children` or some other indirect mechanism. In that case, if we encounter the "current" fiber, we can't stop it right away, as it's currently performing `#stop`. Stopping it immediately would interrupt the current stop traversal, so we need to schedule the stop to occur later.
+  public def stop: (bool later) -> untyped
+
+  # Defer the handling of stop. During the execution of the given block, if a stop is requested, it will be deferred until the block exits. This is useful for ensuring graceful shutdown of servers and other long-running tasks. You should wrap the response handling code in a defer_stop block to ensure that the task is stopped when the response is complete but not before.
+  #
+  # You can nest calls to defer_stop, but the stop will only be deferred until the outermost block exits.
+  #
+  # If stop is invoked a second time, it will be immediately executed.
+  public def defer_stop: () { () -> void } -> untyped
+
+  public def stop_deferred?: () -> bool
+
+  # Lookup the {Task} for the current fiber. Raise `RuntimeError` if none is available.
+  public def self.current: () -> Task
+
+  # Check if there is a task defined for the current fiber.
+  public def self.current?: () -> Interface
+
+  public def current?: () -> bool
+
+  # Raised when a child task is created within a task that has finished execution.
+  class FinishedError < ::RuntimeError
+    # Create a new finished error.
+    public def initialize: (String message) -> void
+  end
+end
+
+# Raised when a child task is created within a task that has finished execution.
+class FinishedError < ::RuntimeError
+  # Create a new finished error.
+  public def initialize: (String message) -> void
+end
+
+# Represents a flexible timeout that can be rescheduled or extended.
+class Timeout
+  # Initialize a new timeout.
+  public def initialize: () -> void
+
+  public def duration: () -> Numeric
+
+  # Update the duration of the timeout.
+  #
+  # The duration is relative to the current time, e.g. setting the duration to 5 means the timeout will occur in 5 seconds from now.
+  public def duration=: (Numeric value) -> untyped
+
+  # Adjust the timeout by the specified duration.
+  #
+  # The duration is relative to the timeout time, e.g. adjusting the timeout by 5 increases the current duration by 5 seconds.
+  public def adjust: (Numeric duration) -> Numeric
+
+  public def time: () -> Numeric
+
+  # Assign a new time to the timeout, rescheduling it if necessary.
+  public def time=: (Numeric value) -> Numeric
+
+  public def now: () -> Numeric
+
+  # Cancel the timeout, preventing it from executing.
+  public def cancel!: () -> untyped
+
+  public def cancelled?: () -> bool
+
+  # Raised when attempting to reschedule a cancelled timeout.
+  class CancelledError < ::RuntimeError
+  end
+end
+
+# Raised when attempting to reschedule a cancelled timeout.
+class CancelledError < ::RuntimeError
+end
+
+# A synchronization primitive that allows one task to wait for another task to resolve a value.
+class Variable
+  # Create a new variable.
+  public def initialize: (Condition condition) -> void
+
+  # Resolve the value.
+  #
+  # Signals all waiting tasks.
+  public def resolve: (Object value) -> untyped
+
+  # Alias for {#resolve}.
+  public def value=: () -> untyped
+
+  # Whether the value has been resolved.
+  public def resolved?: () -> bool
+
+  # Wait for the value to be resolved.
+  public def wait: () -> Object
+
+  # Alias for {#wait}.
+  public def value: () -> untyped
+end
+
+# A composable synchronization primitive, which allows one task to wait for a number of other tasks to complete. It can be used in conjunction with {Semaphore} and/or {Barrier}.
+class Waiter
+  # Create a waiter instance.
+  public def initialize: (Interface parent, ::Async::Condition finished) -> void
+
+  # Execute a child task and add it to the waiter.
+  public def async: () -> untyped
+
+  # Wait for the first `count` tasks to complete.
+  public def first: (Integer | nil count) -> Array[::Async::Task]
+
+  # Wait for the first `count` tasks to complete.
+  public def wait: (Integer | nil count) -> untyped
+end
+
+module Kernel
+  # Run the given block of code in a task, asynchronously, creating a reactor if necessary.
+  #
+  # The preferred method to invoke asynchronous behavior at the top level.
+  #
+  # - When invoked within an existing reactor task, it will run the given block
+  # asynchronously. Will return the task once it has been scheduled.
+  # - When invoked at the top level, will create and run a reactor, and invoke
+  # the block as an asynchronous task. Will block until the reactor finishes
+  # running.
+  public def Async: [ResultType] (*untyped, **untyped) { (Task) -> ResultType } -> Task[ResultType]
+
+  # Run the given block of code synchronously, but within a reactor if not already in one.
+  public def Sync: [ResultType] (**untyped) { (Task) -> ResultType } -> ResultType
+end
