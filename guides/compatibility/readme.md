@@ -34,5 +34,5 @@ Because it was designed with the interfaces available in Ruby 3.x, it supports t
 Rails itself is generally compatible with Async and the fiber scheduler, but certain parts of Rails are not compatible with Async and have ossified ("accidental standardization") around thread-per-request as a general model. These issues are fully addressed in Rails v7.1+, which supports Rack 3 and fiber-per-request.
 
 - ActiveRecord with the latest version of the `pg` gem supports concurrent database queries.
-- ActiveRecord with `mysql2` gem does not support asynchronous queries. Potentially fixed by <https://github.com/trilogy-libraries/trilogy>.
+- ActiveRecord with either the `mysql2` gem or `trilogy` gem does not support asynchronous queries.
 - `ActiveSupport::CurrentAttributes` is per-isolated execution context. This means that child threads or fibers won't share the state. If you desire this, use `Fiber.storage` instead.
