@@ -1,7 +1,5 @@
 # Thread safety
 
-Thread and Fiber safety are important in any application using Fibers or Threads.
-
 ## Critical Context
 
 ### Key Principles
@@ -13,28 +11,6 @@ Thread and Fiber safety are important in any application using Fibers or Threads
   - They do however share safety requirements
 - **Shared mutable state should be avoided**
 - **C extensions e.g. C/Rust etc. can block the fiber scheduler entirely**
-
-## Focus areas
-
-1. **Memoization patterns** (`||=`)
-   - This is NOT atomic and is especially problematic with class variables etc.
-2. **Class and module variables** (`@@variable`, `class_attribute`)
-   - Should never be mutated if used
-   - Should be treated as generally problematic
-3. **Shared mutable state** (class instance variables accessed by multiple threads/fibers)
-   - AVOID
-4. **Lazy initialization**
-   - Especially on shared mutable sate
-5. **Hash and array mutations on shared objects**
-6. **C extensions that don't respect the fiber scheduler**
-7. **Thread-local storage**
-   - When using a fiber scheduler
-8. **Synchronization mechanisms** (Mutex, ReadWriteLock)
-   - Beware of deadlocks
-9. **Concurrent data structures**
-   - e.g. `Concurrent::Set` if available can reduce risk of thread safety issues
-   - This approach, like all approaches has trade offs
-   - Can only be used if the concurrent gem is available
 
 ## Understanding Fibers vs Threads in Ruby
 
@@ -58,9 +34,31 @@ Thread and Fiber safety are important in any application using Fibers or Threads
   - True parallelism only during I/O operations (GIL released)
   - True parallelism for C extensions that release the GIL
 
+## Common patterns with potential issues
+
+1. **Memoization patterns** (`||=`)
+   - This is NOT atomic and is problematic with class variables and shared mutable data
+2. **Class and module variables** (`@@variable`, `class_attribute`)
+   - Should never be mutated if used
+   - Should be treated as generally problematic
+3. **Shared mutable state** (class instance variables accessed by multiple threads/fibers)
+   - AVOID
+4. **Lazy initialization**
+   - Especially on shared mutable sate
+5. **Hash and array mutations on shared objects**
+6. **C extensions that don't respect the fiber scheduler**
+7. **Thread-local storage**
+   - When using a fiber scheduler
+8. **Synchronization mechanisms** (Mutex, ReadWriteLock)
+   - Beware of deadlocks
+9. **Concurrent data structures**
+   - e.g. `Concurrent::Set` if available can reduce risk of thread safety issues
+   - This approach, like all approaches has trade offs
+   - Can only be used if the concurrent gem is available
+
 ## Common unsafe patterns
 
-### 1. Memoization with `||=`
+### 1. Memoization with `||=` on shared data
 
 ```ruby
 class Foo
@@ -72,7 +70,7 @@ class Foo
 end
 ```
 
-**Why is this problematic?**: Multiple threads can pass `nil?` checks simultaneously. Best case this wastes resources, worst case the wrong data is used.
+**Why is this problematic?**: Multiple threads can pass `nil?` checks simultaneously on shared mutable data. Best case this wastes resources, worst case the wrong data is used or data corruption occurs.
 
 **Potential fix with mutex** (WARNING: locks like mutex could cause deadlocks)
 
@@ -112,6 +110,7 @@ class Foo
   end
 end
 ```
+
 
 ### 2. Class Variables with shared state
 
@@ -212,6 +211,51 @@ def some_controller_method
 end
 ```
 
+## When `||=` can be safe
+
+### 1. Instance variables on unshared objects
+
+When each instance is only accessed by a single thread/fiber:
+
+```ruby
+class RequestHandler
+  def process_request
+    @parser ||= create_parser # Safe: each request has its own handler instance
+  end
+end
+```
+
+### 2. Synchronization primitives
+
+Synchronization objects are designed for concurrent access, so duplicate creation is wasteful but not harmful:
+
+```ruby
+class Task
+  def wait
+    @condition ||= Condition.new # Safe: condition variables handle concurrent access
+    @condition.wait
+  end
+end
+```
+
+**Why this is acceptable**:
+- Condition variables, mutexes, and semaphores intended for protecting critical sections
+- Synchronization still works correctly
+
+### 3. Immutable or effectively immutable objects
+
+```ruby
+class Calculator
+  def pi
+    @pi ||= Math::PI # Safe: immutable value
+  end
+
+  def default_config
+    @config ||= Config.new.freeze # Safe: frozen object
+  end
+end
+```
+
 ## Performance Considerations
 
 ### Synchronization Overhead
@@ -227,7 +271,6 @@ end
 
 1. **No shared state** > **Immutable shared state** > **Synchronized mutable state**
 2. **Lock-free (Concurrent::*)** > **Fine-grained locks** > **Coarse-grained locks**
-3. Consider memory vs CPU trade-offs when choosing concurrent data structures
 
 ## Quick reference
 
