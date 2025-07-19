@@ -23,7 +23,7 @@ module Async
 		
 		# Create a new queue.
 		#
-		# @parameter parent [Interface(:async) | Nil] The parent task to use for async operations.
+		# @parameter parent [Interface(Asyncable) | Nil] The parent task to use for async operations.
 		# @parameter available [Notification] The notification to use for signaling when items are available.
 		def initialize(parent: nil, available: Notification.new)
 			@items = []
@@ -104,7 +104,7 @@ module Async
 		# @asynchronous Executes the given block concurrently for each item.
 		#
 		# @parameter arguments [Array] The arguments to pass to the block.
-		# @parameter parent [Interface(:async) | Nil] The parent task to use for async operations.
+		# @parameter parent [Interface(Asyncable) | Nil] The parent task to use for async operations.
 		# @parameter options [Hash] The options to pass to the task.
 		# @yields {|task| ...} When the system is idle, the block will be executed in a new task.
 		def async(parent: (@parent or Task.current), **options, &block)

@@ -3,22 +3,20 @@ module Async
   # A general purpose synchronisation primitive, which allows one task to wait for a number of other tasks to complete. It can be used in conjunction with {Semaphore}.
   class Barrier
     # Initialize the barrier.
-    public def initialize: (Task | Semaphore | nil parent) -> void
+    public def initialize: (_Asyncable? parent) -> void
 
-    # Number of tasks being held by the barrier.
-    public def size: () -> untyped
+    public def size: () -> Integer
 
     # Execute a child task and add it to the barrier.
-    public def async: () -> untyped
+    public def async: [T] (*untyped, parent: _Asyncable, **untyped) { (Task, *untyped) -> T } -> Task[T]
 
-    # Whether there are any tasks being held by the barrier.
     public def empty?: () -> bool
 
     # Wait for all tasks to complete by invoking {Task#wait} on each waiting task, which may raise an error. As long as the task has completed, it will be removed from the barrier.
-    public def wait: () { () -> void } -> untyped
+    public def wait: () ?{ (Task) -> untyped } -> void
 
     # Stop all tasks held by the barrier.
-    public def stop: () -> untyped
+    public def stop: () -> void
   end
 
   # A convenient wrapper around the internal monotonic clock.
@@ -91,10 +89,10 @@ module Async
   # A load balancing mechanism that can be used process work when the system is idle.
   class Idler
     # Create a new idler.
-    public def initialize: (Numeric maximum_load, Numeric backoff, Interface parent) -> void
+    public def initialize: (Numeric maximum_load, Numeric backoff, Interface[Asyncable] | nil parent) -> void
 
     # Wait until the system is idle, then execute the given block in a new task.
-    public def async: (Types::Array arguments, Interface parent, Types::Hash options) { () -> void } -> untyped
+    public def async: (Array arguments, Interface[Asyncable] | nil parent, Hash options) { () -> void } -> untyped
 
     # Wait until the system is idle, according to the maximum load specified.
     #
@@ -122,7 +120,7 @@ module Async
     # Add multiple items to the queue.
     #
     # If the queue is full, this method will block until there is space available.
-    public def enqueue: (Types::Array items) -> untyped
+    public def enqueue: (Array items) -> untyped
 
     # Remove and return the next item from the queue.
     #
@@ -251,7 +249,7 @@ module Async
     public def consume: () -> untyped
 
     # Traverse the task tree.
-    public def traverse: () { () -> void } -> Types::Enumerator
+    public def traverse: () { () -> void } -> Enumerator
 
     # Immediately terminate all children tasks, including transient tasks. Internally invokes `stop(false)` on all children. This should be considered a last ditch effort and is used when closing the scheduler.
     public def terminate: () -> untyped
@@ -277,7 +275,7 @@ module Async
   # It has a compatible interface with {Notification} and {Condition}, except that it's multi-value.
   class Queue
     # Create a new queue.
-    public def initialize: (Interface parent, Notification available) -> void
+    public def initialize: (Interface[Asyncable] | nil parent, Notification available) -> void
 
     # Close the queue, causing all waiting tasks to return `nil`. Any subsequent calls to {enqueue} will raise an exception.
     public def close: () -> untyped
@@ -302,7 +300,7 @@ module Async
     public def pop: () -> untyped
 
     # Process each item in the queue.
-    public def async: (Types::Array arguments, Interface parent, Types::Hash options) { () -> void } -> untyped
+    public def async: (Array arguments, Interface[Asyncable] | nil parent, Hash options) { () -> void } -> untyped
 
     # Enumerate each item in the queue.
     public def each: () -> untyped
@@ -365,15 +363,15 @@ module Async
     public def yield: () -> untyped
 
     # Schedule a fiber (or equivalent object) to be resumed on the next loop through the reactor.
-    public def push: (Fiber | Object fiber) -> self
+    public def push: (Any[Fiber, Object] fiber) -> self
 
     # Raise an exception on a specified fiber with the given arguments.
     #
     # This internally schedules the current fiber to be ready, before raising the exception, so that it will later resume execution.
-    public def raise: (Fiber fiber, Types::Array `*arguments`) -> untyped
+    public def raise: (Fiber fiber, Array `*arguments`) -> untyped
 
     # Resume execution of the specified fiber.
-    public def resume: (Fiber fiber, Types::Array arguments) -> untyped
+    public def resume: (Fiber fiber, Array arguments) -> untyped
 
     # Invoked when a fiber tries to perform a blocking operation which cannot continue. A corresponding call {unblock} must be performed to allow this fiber to continue.
     public def block: (Object blocker, Float | nil timeout) -> untyped
@@ -567,7 +565,7 @@ module Async
     public def self.current: () -> Task
 
     # Check if there is a task defined for the current fiber.
-    public def self.current?: () -> Interface
+    public def self.current?: () -> (Interface[Asyncable] | nil)
 
     public def current?: () -> bool
 
@@ -638,7 +636,7 @@ module Async
   # A composable synchronization primitive, which allows one task to wait for a number of other tasks to complete. It can be used in conjunction with {Semaphore} and/or {Barrier}.
   class Waiter
     # Create a waiter instance.
-    public def initialize: (Interface parent, ::Async::Condition finished) -> void
+    public def initialize: (Interface[Asyncable] | nil parent, ::Async::Condition finished) -> void
 
     # Execute a child task and add it to the waiter.
     public def async: () -> untyped

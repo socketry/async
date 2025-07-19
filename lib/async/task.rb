@@ -370,7 +370,7 @@ module Async
 		end
 		
 		# Check if there is a task defined for the current fiber.
-		# @returns [Interface(:async) | Nil]
+		# @returns [Interface(Asyncable) | Nil]
 		def self.current?
 			Fiber.current.async_task
 		end
