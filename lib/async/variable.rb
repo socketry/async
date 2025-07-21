@@ -7,6 +7,7 @@ require_relative "condition"
 
 module Async
 	# A synchronization primitive that allows one task to wait for another task to resolve a value.
+	# @rbs generic T
 	class Variable
 		# Create a new variable.
 		#
@@ -22,13 +23,14 @@ module Async
 		#
 		# @parameter value [Object] The value to resolve.
 		def resolve(value = true)
-			@value = value
-			condition = @condition
-			@condition = nil
-			
-			self.freeze
-			
-			condition.signal(value)
+			if condition = @condition
+				@value = value
+				@condition = nil
+				
+				self.freeze
+				
+				condition.signal(value)
+			end
 		end
 		
 		# Alias for {#resolve}.
@@ -45,7 +47,7 @@ module Async
 		
 		# Wait for the value to be resolved.
 		#
-		# @returns [Object] The resolved value.
+		# @returns [T?] The resolved value.
 		def wait
 			@condition&.wait
 			return @value

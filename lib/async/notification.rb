@@ -11,7 +11,7 @@ module Async
 	class Notification < Condition
 		# Signal to a given task that it should resume operations.
 		#
-		# @returns [Boolean] if a task was signalled.
+		# @returns [bool] If a task was signalled.
 		def signal(value = nil, task: Task.current)
 			return false if @waiting.empty?
 			
@@ -21,14 +21,19 @@ module Async
 		end
 		
 		Signal = Struct.new(:waiting, :value) do
+			# @returns [bool] Returns true if the signal is still alive.
 			def alive?
 				true
 			end
 			
+			# Transfer the value to all waiting fibers.
+			# @returns [self]
 			def transfer
 				waiting.each do |fiber|
 					fiber.transfer(value) if fiber.alive?
 				end
+				
+				return self
 			end
 		end
 		

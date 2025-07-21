@@ -63,9 +63,9 @@ module Async
 		# Wait for all tasks to complete by invoking {Task#wait} on each waiting task, which may raise an error. As long as the task has completed, it will be removed from the barrier.
 		#
 		# @yields {|task| ...} If a block is given, the unwaited task is yielded. You must invoke {Task#wait} yourself. In addition, you may `break` if you have captured enough results.
+		# 	@parameter task [Task] The task which has completed.
 		#
 		# @asynchronous Will wait for tasks to finish executing.
-		# @rbs () ?{(Task) -> untyped} -> void
 		def wait
 			while !@tasks.empty?
 				# Wait for a task to finish (we get the task node):

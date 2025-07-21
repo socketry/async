@@ -1,0 +1,6 @@
+module Async
+	class Variable[T]
+		@value: T?
+		@condition: Condition?
+	end
+end
