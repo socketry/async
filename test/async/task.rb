@@ -553,7 +553,7 @@ describe Async::Task do
 			end.wait
 		end
 		
-		it "can stop a task and provide a cause" do
+		it "can stop a task from within with a cause" do
 			error = nil
 			
 			cause = Async::Stop::Cause.for("boom")
@@ -565,6 +565,30 @@ describe Async::Task do
 					raise
 				end
 			end
+			
+			reactor.run
+			
+			expect(task).to be(:stopped?)
+			expect(error).to be_a(Async::Stop)
+			expect(error.cause).to be == cause
+		end
+		
+		it "can stop a task from outside with a cause" do
+			skip_unless_minimum_ruby_version("3.5")
+			
+			error = nil
+			
+			cause = RuntimeError.new("boom")
+			
+			task = reactor.async do |task|
+				begin
+					task.yield
+				rescue Async::Stop => error
+					raise
+				end
+			end
+			
+			task.stop(cause: cause)
 			
 			reactor.run
 			
