@@ -574,8 +574,6 @@ describe Async::Task do
 		end
 		
 		it "can stop a task from outside with a cause" do
-			skip_unless_minimum_ruby_version("3.5")
-			
 			error = nil
 			
 			cause = RuntimeError.new("boom")

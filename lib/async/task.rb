@@ -13,65 +13,11 @@ require "console"
 
 require_relative "node"
 require_relative "condition"
+require_relative "stop"
 
 Fiber.attr_accessor :async_task
 
 module Async
-	# Raised when a task is explicitly stopped.
-	class Stop < Exception
-		# Represents the source of the stop operation.
-		class Cause < Exception
-			if RUBY_VERSION >= "3.4"
-				# @returns [Array(Thread::Backtrace::Location)] The backtrace of the caller.
-				def self.backtrace
-					caller_locations(2..-1)
-				end
-			else
-				# @returns [Array(String)] The backtrace of the caller.
-				def self.backtrace
-					caller(2..-1)
-				end
-			end
-			
-			# Create a new cause of the stop operation, with the given message.
-			#
-			# @parameter message [String] The error message.
-			# @returns [Cause] The cause of the stop operation.
-			def self.for(message = "Task was stopped")
-				instance = self.new(message)
-				instance.set_backtrace(self.backtrace)
-				return instance
-			end
-		end
-		
-		# Create a new stop operation.
-		def initialize(message = "Task was stopped")
-			super(message)
-		end
-		
-		# Used to defer stopping the current task until later.
-		class Later
-			# Create a new stop later operation.
-			#
-			# @parameter task [Task] The task to stop later.
-			# @parameter cause [Exception] The cause of the stop operation.
-			def initialize(task, cause = nil)
-				@task = task
-				@cause = cause
-			end
-			
-			# @returns [Boolean] Whether the task is alive.
-			def alive?
-				true
-			end
-			
-			# Transfer control to the operation - this will stop the task.
-			def transfer
-				@task.stop(false, cause: @cause)
-			end
-		end
-	end
-	
 	# Raised if a timeout occurs on a specific Fiber. Handled gracefully by `Task`.
 	# @public Since *Async v1*.
 	class TimeoutError < StandardError
