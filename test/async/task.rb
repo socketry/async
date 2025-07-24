@@ -552,6 +552,48 @@ describe Async::Task do
 				expect(transient).to be(:running?)
 			end.wait
 		end
+		
+		it "can stop a task from within with a cause" do
+			error = nil
+			
+			cause = Async::Stop::Cause.for("boom")
+			
+			task = reactor.async do |task|
+				begin
+					task.stop(cause: cause)
+				rescue Async::Stop => error
+					raise
+				end
+			end
+			
+			reactor.run
+			
+			expect(task).to be(:stopped?)
+			expect(error).to be_a(Async::Stop)
+			expect(error.cause).to be == cause
+		end
+		
+		it "can stop a task from outside with a cause" do
+			error = nil
+			
+			cause = RuntimeError.new("boom")
+			
+			task = reactor.async do |task|
+				begin
+					task.yield
+				rescue Async::Stop => error
+					raise
+				end
+			end
+			
+			task.stop(cause: cause)
+			
+			reactor.run
+			
+			expect(task).to be(:stopped?)
+			expect(error).to be_a(Async::Stop)
+			expect(error.cause).to be == cause
+		end
 	end
 	
 	with "#sleep" do
@@ -923,7 +965,7 @@ describe Async::Task do
 			
 			reactor.run_once(0)
 			
-			expect(child_task.stop_deferred?).to be == nil
+			expect(child_task.stop_deferred?).to be == false
 		end
 	end
 	

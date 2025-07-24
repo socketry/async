@@ -13,33 +13,11 @@ require "console"
 
 require_relative "node"
 require_relative "condition"
+require_relative "stop"
 
 Fiber.attr_accessor :async_task
 
 module Async
-	# Raised when a task is explicitly stopped.
-	class Stop < Exception
-		# Used to defer stopping the current task until later.
-		class Later
-			# Create a new stop later operation.
-			#
-			# @parameter task [Task] The task to stop later.
-			def initialize(task)
-				@task = task
-			end
-			
-			# @returns [Boolean] Whether the task is alive.
-			def alive?
-				true
-			end
-			
-			# Transfer control to the operation - this will stop the task.
-			def transfer
-				@task.stop
-			end
-		end
-	end
-	
 	# Raised if a timeout occurs on a specific Fiber. Handled gracefully by `Task`.
 	# @public Since *Async v1*.
 	class TimeoutError < StandardError
@@ -271,7 +249,13 @@ module Async
 		# If `later` is false, it means that `stop` has been invoked directly. When `later` is true, it means that `stop` is invoked by `stop_children` or some other indirect mechanism. In that case, if we encounter the "current" fiber, we can't stop it right away, as it's currently performing `#stop`. Stopping it immediately would interrupt the current stop traversal, so we need to schedule the stop to occur later.
 		#
 		# @parameter later [Boolean] Whether to stop the task later, or immediately.
-		def stop(later = false)
+		# @parameter cause [Exception] The cause of the stop operation.
+		def stop(later = false, cause: $!)
+			# If no cause is given, we generate one from the current call stack:
+			unless cause
+				cause = Stop::Cause.for("Stopping task!")
+			end
+			
 			if self.stopped?
 				# If the task is already stopped, a `stop` state transition re-enters the same state which is a no-op. However, we will also attempt to stop any running children too. This can happen if the children did not stop correctly the first time around. Doing this should probably be considered a bug, but it's better to be safe than sorry.
 				return stopped!
@@ -285,7 +269,7 @@ module Async
 				# If we are deferring stop...
 				if @defer_stop == false
 					# Don't stop now... but update the state so we know we need to stop later.
-					@defer_stop = true
+					@defer_stop = cause
 					return false
 				end
 				
@@ -293,19 +277,19 @@ module Async
 					# If the fiber is current, and later is `true`, we need to schedule the fiber to be stopped later, as it's currently invoking `stop`:
 					if later
 						# If the fiber is the current fiber and we want to stop it later, schedule it:
-						Fiber.scheduler.push(Stop::Later.new(self))
+						Fiber.scheduler.push(Stop::Later.new(self, cause))
 					else
 						# Otherwise, raise the exception directly:
-						raise Stop, "Stopping current task!"
+						raise Stop, "Stopping current task!", cause: cause
 					end
 				else
 					# If the fiber is not curent, we can raise the exception directly:
 					begin
 						# There is a chance that this will stop the fiber that originally called stop. If that happens, the exception handling in `#stopped` will rescue the exception and re-raise it later.
-						Fiber.scheduler.raise(@fiber, Stop)
+						Fiber.scheduler.raise(@fiber, Stop, cause: cause)
 					rescue FiberError
 						# In some cases, this can cause a FiberError (it might be resumed already), so we schedule it to be stopped later:
-						Fiber.scheduler.push(Stop::Later.new(self))
+						Fiber.scheduler.push(Stop::Later.new(self, cause))
 					end
 				end
 			else
@@ -345,7 +329,7 @@ module Async
 					
 					# If we were asked to stop, we should do so now:
 					if defer_stop
-						raise Stop, "Stopping current task (was deferred)!"
+						raise Stop, "Stopping current task (was deferred)!", cause: defer_stop
 					end
 				end
 			else
@@ -356,7 +340,7 @@ module Async
 		
 		# @returns [Boolean] Whether stop has been deferred.
 		def stop_deferred?
-			@defer_stop
+			!!@defer_stop
 		end
 		
 		# Lookup the {Task} for the current fiber. Raise `RuntimeError` if none is available.
