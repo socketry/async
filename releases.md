@@ -1,5 +1,10 @@
 # Releases
 
+## Unreleased
+
+  - `Async::Task#stop` supports an optional `cause:` argument (that defaults to `$!`), which allows you to specify the cause (exception) for stopping the task.
+  - Add thread-safety agent context.
+
 ## v2.26.0
 
   - `Async::Notification#signal` now returns `true` if a task was signaled, `false` otherwise, providing better feedback for notification operations.
