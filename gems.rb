@@ -34,6 +34,8 @@ group :test do
 	gem "rubocop"
 	gem "rubocop-socketry"
 	
+	gem "steep", git: "https://github.com/soutaro/steep"
+	
 	gem "sus-fixtures-async"
 	gem "sus-fixtures-console"
 	gem "sus-fixtures-time"

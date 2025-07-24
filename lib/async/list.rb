@@ -83,6 +83,7 @@ module Async
 		
 		# Add the node, yield, and the remove the node.
 		# @yields {|node| ...} Yields the node.
+		# 	@parameter node [Node] The node to add to the list.
 		# @returns [Object] Returns the result of the block.
 		def stack(node, &block)
 			append(node)
