@@ -35,6 +35,11 @@ Please see the [project documentation](https://socketry.github.io/async/) for mo
 
 Please see the [project releases](https://socketry.github.io/async/releases/index) for all releases.
 
+### v2.27.0
+
+  - `Async::Task#stop` supports an optional `cause:` argument (that defaults to `$!`), which allows you to specify the cause (exception) for stopping the task.
+  - Add thread-safety agent context.
+
 ### v2.26.0
 
   - `Async::Notification#signal` now returns `true` if a task was signaled, `false` otherwise, providing better feedback for notification operations.
@@ -83,10 +88,6 @@ Please see the [project releases](https://socketry.github.io/async/releases/inde
 ### v2.17.0
 
   - Introduce `Async::Queue#push` and `Async::Queue#pop` for compatibility with `::Queue`.
-
-### v2.16.0
-
-  - [Better Handling of Async and Sync in Nested Fibers](https://socketry.github.io/async/releases/index#better-handling-of-async-and-sync-in-nested-fibers)
 
 ## See Also
 
