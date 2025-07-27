@@ -347,7 +347,7 @@ module Async
 				timer&.cancel!
 			end
 			
-			if RUBY_ENGINE != "ruby" || RUBY_VERSION >= "3.3.1"
+			if RUBY_VERSION >= "3.3.1"
 				# Write the specified buffer to the IO.
 				#
 				# @public Since *Async v2* and *Ruby v3.3.1* with `IO::Buffer` support.
