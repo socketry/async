@@ -174,7 +174,7 @@ In addition, it should be noted that lazy initialization of a `Mutex` (and other
 ```ruby
 class Loader
   def self.data
-    @mutex ||= Mutex.new
+    @mutex ||= Mutex.new # Issue: Not thread-safe
 
     @mutex.synchronize do
       # Double-checked locking pattern:
