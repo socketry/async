@@ -1,6 +1,14 @@
 name: Test Agent Context
 
-on: [push, pull_request]
+on:
+  push:
+    paths:
+      - 'context/**'
+      - 'test/.agent/**'
+  pull_request:
+    paths:
+      - 'context/**'
+      - 'test/.agent/**'
 
 permissions:
   contents: read

@@ -274,39 +274,29 @@ threads = []
 	end
 end
 
+# Risk: The threads may not be finished, so `done` is likely incomplete!
 puts "Done: #{done.inspect}"
 ```
 
 **Why is this problematic?**: Trying to wait for the first item (or any subset) to be added to `done` can lead to faulty behaviour as there is no actual coordination between the threads and there is no real error handling. The threads are waited on in creation order, but the items in `done` may not be in the same order, or may not even be present at all if a thread is still running.
 
-#### Potential fix with `Queue`
+#### Potential fix with `Thread#join`
 
-Using a `Thread::Queue` can help coordinate completion of multiple threads or fibers safely:
+Using `Thread#join` ensures that all threads have completed before accessing the results:
 
 ```ruby
-require 'thread'
-
 done = []
-threads = []
-queue = Thread::Queue.new
 
-5.times do |i|
-	threads << Thread.new do
+threads = 5.times.map do |i|
+	Thread.new do
 		# Simulate some work
 		sleep(rand(0.1..0.5))
-		queue << i
+		done << i
 	end
 end
 
-# Collect results from the queue
-until queue.empty?
-	done << queue.pop
-end
-
+threads.each(&:join) # Wait for all threads to complete
 puts "Done: #{done.inspect}" # Output: Done: [0, 1, 2, 3, 4]
-
-# Ensure all threads have completed
-threads.each(&:join)
 ```
 
 ### Shared connections
