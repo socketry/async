@@ -18,7 +18,7 @@ As an agent, you can use this guide as a reference to analyze existing Ruby code
 - **Assume that code may context switch at any time**, but especially during I/O operations.
     - I/O operations include network calls, file I/O, database queries, etc.
     - Other context switch points include `Fiber.yield`, `sleep`, waiting on child processes, DNS queries, and interrupts (signal handling).
-- **Fibers and threads are NOT the same thing**, however they do however share safety requirements.
+- **Fibers and threads are NOT the same thing**, however they do share safety requirements.
 - **Shared mutable state should be avoided**. Prefer pure functions, immutable objects, and dependency injection.
 - **C extensions e.g. C/Rust etc. can block the fiber scheduler entirely**.
     - Native code, when implemented correctly, is usually okay, but bugs can exist anywhere, even in mature code.
