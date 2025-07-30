@@ -29,7 +29,7 @@ As an agent, you can use this guide as a reference to analyze existing Ruby code
 | :--------------------------------------------- | :----------------------------------------------------- | :------------------------------------------------- |
 | `@data \|\|= load_data`                        | `@mutex.synchronize { @data \|\|= load_data }`         | `\|\|=` is not atomic; use double-checked locking. |
 | `@shared_array << item`                        | `Thread::Mutex` or `Thread::Queue`                     | Use a mutex, or better, `Queue` for coordination.  |
-| `@shared_hash[key] = value`                    | `Thread::Mutex`, `Concurrent::Hash`, `Concurrent::Map` | Use a mutex or a concurrent data structure.        |
+| `@shared_hash[key] = value`                    | `Thread::Mutex` or `Concurrent::Map`                   | Use a mutex or a concurrent data structure.        |
 | `@@class_var`                                  | Dependency injection / Instance state                  | Class vars create spooky shared state.             |
 | Class attribute / `class_attribute`            | Constructor arg or method param                        | Pass state explicitly to avoid coupling.           |
 | Shared mutable state                           | Immutability / Isolation / Pure functions              | Avoid sharing mutable state if possible.           |
@@ -242,8 +242,6 @@ end
 
 #### Potential fix with `Concurrent::Map`
 
-Only consider this if the gem is available:
-
 ```ruby
 class ExpensiveComputation
   @cache = Concurrent::Map.new
@@ -256,7 +254,7 @@ class ExpensiveComputation
 end
 ```
 
-Alternatively, `Concurrent::Hash` if you need a `Hash`-like interface.
+You should avoid `Concurrent::Hash` as it's just an alias for `Hash` and does not provide any thread-safety guarantees.
 
 ### Aggregating results with `Array`
 
