@@ -1,7 +1,5 @@
 getting-started:
   order: 1
-compatibility:
-  order: 4
 scheduler:
   order: 3
 asynchronous-tasks:
