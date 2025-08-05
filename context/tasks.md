@@ -27,7 +27,7 @@ A task provides extra functionality on top of fibers. A task behaves like a prom
 
 ### Why does Async manipulate tasks and not fibers?
 
-The {ruby Async::Scheduler} actually works directly with fibers for most operations and isn't aware of tasks. However, the reactor does maintain a tree of tasks for the purpose of managing task and reactor life-cycle.
+The {ruby Async::Scheduler} actually works directly with fibers for most operations and isn't aware of tasks. However, the reactor does maintain a tree of tasks for the purpose of managing task and reactor life-cycle. For example, stopping a parent task will stop all its children tasks, and the reactor will exit when all tasks are finished.
 
 ## Task Lifecycle
 
@@ -156,20 +156,28 @@ end
 Occasionally, you may need to just wait for the first task (or first several tasks) to complete. You can use a combination of {ruby Async::Waiter} and {ruby Async::Barrier} for controlling this:
 
 ```ruby
-waiter = Async::Waiter.new(parent: barrier)
-
 Async do
-	jobs.each do |job|
-		waiter.async do
-			# ... process job ...
+	barrier = Async::Barrier.new
+	
+	begin
+		jobs.each do |job|
+			barrier.async do
+				# ... process job ...
+			end
 		end
+		
+		# Wait for the first two jobs to complete:
+		done = []
+		barrier.wait do |task|
+			done << task.wait
+			
+			# If you don't want to wait for any more tasks you can break:
+			break if done.size >= 2
+		end
+	ensure
+		# The remainder of the tasks will be stopped:
+		barrier.stop
 	end
-	
-	# Wait for the first two jobs to complete:
-	done = waiter.wait(2)
-	
-	# You may use the barrier to stop the remaining jobs
-	barrier.stop
 end
 ```
 

@@ -1,10 +1,12 @@
 getting-started:
   order: 1
 scheduler:
-  order: 3
-asynchronous-tasks:
   order: 2
+tasks:
+  order: 3
 best-practices:
   order: 5
 debugging:
   order: 6
+thread-safety:
+  order: 10
