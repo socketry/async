@@ -1,6 +1,6 @@
 # Releases
 
-## Unreleased
+## v2.27.2
 
   - Fix `context/index.yaml` schema.
 

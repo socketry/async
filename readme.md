@@ -23,7 +23,7 @@ Please see the [project documentation](https://socketry.github.io/async/) for mo
 
   - [Scheduler](https://socketry.github.io/async/guides/scheduler/index) - This guide gives an overview of how the scheduler is implemented.
 
-  - [Asynchronous Tasks](https://socketry.github.io/async/guides/tasks/index) - This guide explains how asynchronous tasks work and how to use them.
+  - [Tasks](https://socketry.github.io/async/guides/tasks/index) - This guide explains how asynchronous tasks work and how to use them.
 
   - [Best Practices](https://socketry.github.io/async/guides/best-practices/index) - This guide gives an overview of best practices for using Async.
 
@@ -34,6 +34,10 @@ Please see the [project documentation](https://socketry.github.io/async/) for mo
 ## Releases
 
 Please see the [project releases](https://socketry.github.io/async/releases/index) for all releases.
+
+### v2.27.2
+
+  - Fix `context/index.yaml` schema.
 
 ### v2.27.1
 
@@ -84,10 +88,6 @@ Please see the [project releases](https://socketry.github.io/async/releases/inde
 
   - [`Async::Scheduler` Debugging](https://socketry.github.io/async/releases/index#async::scheduler-debugging)
   - [Console Shims](https://socketry.github.io/async/releases/index#console-shims)
-
-### v2.18.0
-
-  - Add support for `Sync(annotation:)`, so that you can annotate the block with a description of what it does, even if it doesn't create a new task.
 
 ## See Also
 
