@@ -21,15 +21,15 @@ Please see the [project documentation](https://socketry.github.io/async/) for mo
 
   - [Getting Started](https://socketry.github.io/async/guides/getting-started/index) - This guide shows how to add async to your project and run code asynchronously.
 
-  - [Asynchronous Tasks](https://socketry.github.io/async/guides/asynchronous-tasks/index) - This guide explains how asynchronous tasks work and how to use them.
-
   - [Scheduler](https://socketry.github.io/async/guides/scheduler/index) - This guide gives an overview of how the scheduler is implemented.
 
-  - [Compatibility](https://socketry.github.io/async/guides/compatibility/index) - This guide gives an overview of the compatibility of Async with Ruby and other frameworks.
+  - [Asynchronous Tasks](https://socketry.github.io/async/guides/tasks/index) - This guide explains how asynchronous tasks work and how to use them.
 
   - [Best Practices](https://socketry.github.io/async/guides/best-practices/index) - This guide gives an overview of best practices for using Async.
 
   - [Debugging](https://socketry.github.io/async/guides/debugging/index) - This guide explains how to debug issues with programs that use Async.
+
+  - [Thread safety](https://socketry.github.io/async/guides/thread-safety/index) - This guide explains thread safety in Ruby, focusing on fibers and threads, common pitfalls, and best practices to avoid problems like data corruption, race conditions, and deadlocks.
 
 ## Releases
 
