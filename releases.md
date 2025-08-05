@@ -1,5 +1,9 @@
 # Releases
 
+## v2.27.1
+
+  - Updated documentation and agent context.
+
 ## v2.27.0
 
   - `Async::Task#stop` supports an optional `cause:` argument (that defaults to `$!`), which allows you to specify the cause (exception) for stopping the task.
