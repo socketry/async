@@ -35,6 +35,10 @@ Please see the [project documentation](https://socketry.github.io/async/) for mo
 
 Please see the [project releases](https://socketry.github.io/async/releases/index) for all releases.
 
+### v2.27.1
+
+  - Updated documentation and agent context.
+
 ### v2.27.0
 
   - `Async::Task#stop` supports an optional `cause:` argument (that defaults to `$!`), which allows you to specify the cause (exception) for stopping the task.
@@ -84,10 +88,6 @@ Please see the [project releases](https://socketry.github.io/async/releases/inde
 ### v2.18.0
 
   - Add support for `Sync(annotation:)`, so that you can annotate the block with a description of what it does, even if it doesn't create a new task.
-
-### v2.17.0
-
-  - Introduce `Async::Queue#push` and `Async::Queue#pop` for compatibility with `::Queue`.
 
 ## See Also
 

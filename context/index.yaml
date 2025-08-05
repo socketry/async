@@ -10,7 +10,7 @@ scheduler:
   order: 2
   description: This guide gives an overview of how the scheduler is implemented.
 tasks:
-  title: Asynchronous Tasks
+  title: Tasks
   order: 3
   description: This guide explains how asynchronous tasks work and how to use them.
 best-practices:

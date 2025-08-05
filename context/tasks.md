@@ -1,4 +1,4 @@
-# Asynchronous Tasks
+# Tasks
 
 This guide explains how asynchronous tasks work and how to use them.
 
