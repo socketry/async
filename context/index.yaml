@@ -1,29 +1,29 @@
 # Automatically generated context index for Utopia::Project guides.
 # Do not edit then files in this directory directly, instead edit the guides and then run `bake utopia:project:agent:context:update`.
 ---
-getting-started:
+description: A concurrency framework for Ruby.
+metadata:
+  documentation_uri: https://socketry.github.io/async/
+  funding_uri: https://github.com/sponsors/ioquatix/
+  source_code_uri: https://github.com/socketry/async.git
+files:
+- path: getting-started.md
   title: Getting Started
-  order: 1
   description: This guide shows how to add async to your project and run code asynchronously.
-scheduler:
+- path: scheduler.md
   title: Scheduler
-  order: 2
   description: This guide gives an overview of how the scheduler is implemented.
-tasks:
+- path: tasks.md
   title: Tasks
-  order: 3
   description: This guide explains how asynchronous tasks work and how to use them.
-best-practices:
+- path: best-practices.md
   title: Best Practices
-  order: 5
   description: This guide gives an overview of best practices for using Async.
-debugging:
+- path: debugging.md
   title: Debugging
-  order: 6
   description: This guide explains how to debug issues with programs that use Async.
-thread-safety:
+- path: thread-safety.md
   title: Thread safety
-  order: 10
   description: This guide explains thread safety in Ruby, focusing on fibers and threads,
     common pitfalls, and best practices to avoid problems like data corruption, race
     conditions, and deadlocks.

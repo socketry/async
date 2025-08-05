@@ -1,5 +1,9 @@
 # Releases
 
+## Unreleased
+
+  - Fix `context/index.yaml` schema.
+
 ## v2.27.1
 
   - Updated documentation and agent context.
