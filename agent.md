@@ -30,6 +30,10 @@ This guide explains how to test and monitor documentation coverage in your Ruby 
 
 This guide covers documentation practices and pragmas supported by the Decode gem for documenting Ruby code. These pragmas provide structured documentation that can be parsed and used to generate A...
 
+#### [Setting Up RBS Types and Steep Type Checking for Ruby Gems](.context/decode/types.md)
+
+This guide covers the process for establishing robust type checking in Ruby gems using RBS and Steep, focusing on automated generation from source documentation and proper validation.
+
 ### sus
 
 A fast and scalable test runner.
@@ -45,3 +49,15 @@ There are two types of mocking in sus: `receive` and `mock`. The `receive` match
 #### [Shared Test Behaviors and Fixtures](.context/sus/shared.md)
 
 Sus provides shared test contexts which can be used to define common behaviours or tests that can be reused across one or more test files.
+
+### sus-fixtures-agent-context
+
+Test fixtures for running in Async.
+
+#### [Getting Started](.context/sus-fixtures-agent-context/getting-started.md)
+
+This guide explains how to use the `sus-fixtures-agent-context` gem to test agent contexts.
+
+#### [GitHub Actions](.context/sus-fixtures-agent-context/github-actions.md)
+
+This guide explains how to integrate the `sus-fixtures-agent-context` gem with GitHub Actions for testing agent contexts.

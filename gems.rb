@@ -38,6 +38,7 @@ group :test do
 	gem "sus-fixtures-console"
 	gem "sus-fixtures-time"
 	gem "sus-fixtures-benchmark"
+	gem "sus-fixtures-agent-context"
 	
 	gem "bake-test"
 	gem "bake-test-external"
