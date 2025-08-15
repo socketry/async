@@ -19,7 +19,7 @@ Traces::Provider(Async::Task) do
 		
 		attributes = {
 			# We use the instance variable as it corresponds to the user-provided block.
-			"block" => @block,
+			"block" => @block.to_s,
 			"transient" => self.transient?,
 		}
 		
