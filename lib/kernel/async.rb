@@ -21,6 +21,7 @@ module Kernel
 	#
 	# @public Since *Async v1*.
 	# @asynchronous May block until given block completes executing.
+	# @rbs [ResultType] (*untyped, **untyped) { (Task) -> ResultType } -> Task[ResultType]
 	def Async(...)
 		if current = ::Async::Task.current?
 			return current.async(...)

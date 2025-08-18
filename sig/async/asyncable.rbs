@@ -1,0 +1,5 @@
+module Async
+	interface _Asyncable
+		def async: [T] (*untyped, **untyped) { (Task, *untyped, **untyped) -> T } -> Task[T]
+	end
+end

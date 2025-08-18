@@ -13,7 +13,7 @@ module Async
 	# @public Since *Async v1*.
 	class Barrier
 		# Initialize the barrier.
-		# @parameter parent [Task | Semaphore | Nil] The parent for holding any children tasks.
+		# @parameter parent [_Asyncable?] The parent for holding any children tasks.
 		# @public Since *Async v1*.
 		def initialize(parent: nil)
 			@tasks = List.new
@@ -32,16 +32,17 @@ module Async
 		
 		private_constant :TaskNode
 		
-		# Number of tasks being held by the barrier.
+		# @returns [Integer] Number of tasks being held by the barrier.
 		def size
 			@tasks.size
 		end
 		
-		# All tasks which have been invoked into the barrier.
+		# @attribute [Array(Task)] All tasks which have been invoked into the barrier.
 		attr :tasks
 		
 		# Execute a child task and add it to the barrier.
 		# @asynchronous Executes the given block concurrently.
+		# @rbs [T] (*untyped, parent: _Asyncable, **untyped) {(Task, *untyped) -> T} -> Task[T]
 		def async(*arguments, parent: (@parent or Task.current), **options, &block)
 			waiting = nil
 			
@@ -54,8 +55,7 @@ module Async
 			end
 		end
 		
-		# Whether there are any tasks being held by the barrier.
-		# @returns [Boolean]
+		# @returns [Boolean] Whether there are any tasks being held by the barrier.
 		def empty?
 			@tasks.empty?
 		end
@@ -63,6 +63,7 @@ module Async
 		# Wait for all tasks to complete by invoking {Task#wait} on each waiting task, which may raise an error. As long as the task has completed, it will be removed from the barrier.
 		#
 		# @yields {|task| ...} If a block is given, the unwaited task is yielded. You must invoke {Task#wait} yourself. In addition, you may `break` if you have captured enough results.
+		# 	@parameter task [Task] The task which has completed.
 		#
 		# @asynchronous Will wait for tasks to finish executing.
 		def wait
@@ -88,6 +89,7 @@ module Async
 		
 		# Stop all tasks held by the barrier.
 		# @asynchronous May wait for tasks to finish executing.
+		# @rbs () -> void
 		def stop
 			@tasks.each do |waiting|
 				waiting.task.stop

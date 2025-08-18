@@ -171,7 +171,7 @@ module Async
 		
 		# Provides a backtrace for nodes that have an active execution context.
 		#
-		# @returns [Array(Thread::Backtrace::Locations) | Nil] The backtrace of the node, if available.
+		# @returns [Array(::Thread::Backtrace::Locations) | Nil] The backtrace of the node, if available.
 		def backtrace(*arguments)
 			nil
 		end
