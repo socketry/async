@@ -1,6 +1,6 @@
 # Releases
 
-## Unreleased
+## v2.27.4
 
   - Suppress excessive warning in `Async::Scheduler#async`.
 
