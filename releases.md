@@ -1,5 +1,9 @@
 # Releases
 
+## Unreleased
+
+  - Suppress excessive warning in `Async::Scheduler#async`.
+
 ## v2.27.3
 
   - Ensure trace attributes are strings, fixes integration with OpenTelemetry.
