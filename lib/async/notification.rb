@@ -12,23 +12,25 @@ module Async
 		# Signal to a given task that it should resume operations.
 		#
 		# @returns [Boolean] if a task was signalled.
-		def signal(value = nil, task: Task.current)
-			return false if @waiting.empty?
+		def signal(value = nil)
+			return false if empty?
 			
 			Fiber.scheduler.push Signal.new(self.exchange, value)
 			
 			return true
 		end
 		
-		Signal = Struct.new(:waiting, :value) do
+		Signal = Struct.new(:ready, :value) do
 			def alive?
 				true
 			end
 			
 			def transfer
-				waiting.each do |fiber|
-					fiber.transfer(value) if fiber.alive?
+				ready.num_waiting.times do
+					ready.push(value)
 				end
+				
+				ready.close
 			end
 		end
 		
