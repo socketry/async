@@ -45,3 +45,10 @@ group :test do
 	
 	gem "benchmark-ips"
 end
+
+group :benchmark do
+	gem "benchmark-ips"
+	gem "benchmark-memory"
+	gem "memory"
+	gem "process-metrics"
+end
