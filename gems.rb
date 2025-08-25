@@ -9,8 +9,6 @@ source "https://rubygems.org"
 
 gemspec
 
-gem "agent-context"
-
 # gem "io-event", git: "https://github.com/socketry/io-event.git"
 
 # In order to capture both code paths in coverage, we need to optionally load this gem:
@@ -21,9 +19,11 @@ end
 group :maintenance, optional: true do
 	gem "bake-gem"
 	gem "bake-modernize"
+	gem "bake-releases"
+	
+	gem "agent-context"
 	
 	gem "utopia-project"
-	gem "bake-releases"
 end
 
 group :test do

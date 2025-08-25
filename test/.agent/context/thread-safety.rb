@@ -1,3 +1,5 @@
+# Released under the MIT License.
+# Copyright, 2025, by Samuel Williams.
 
 require "sus/fixtures/async"
 require "sus/fixtures/agent/context"
