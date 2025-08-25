@@ -1,6 +1,6 @@
 # Releases
 
-## Unreleased
+## v2.28.0
 
   - Use `Traces.current_context` and `Traces.with_context` for better integration with OpenTelemetry.
 

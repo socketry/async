@@ -35,6 +35,10 @@ Please see the [project documentation](https://socketry.github.io/async/) for mo
 
 Please see the [project releases](https://socketry.github.io/async/releases/index) for all releases.
 
+### v2.28.0
+
+  - Use `Traces.current_context` and `Traces.with_context` for better integration with OpenTelemetry.
+
 ### v2.27.4
 
   - Suppress excessive warning in `Async::Scheduler#async`.
@@ -83,10 +87,6 @@ Please see the [project releases](https://socketry.github.io/async/releases/inde
 
   - Rename `ASYNC_SCHEDULER_DEFAULT_WORKER_POOL` to `ASYNC_SCHEDULER_WORKER_POOL`.
   - [Fiber Stall Profiler](https://socketry.github.io/async/releases/index#fiber-stall-profiler)
-
-### v2.21.1
-
-  - [Worker Pool](https://socketry.github.io/async/releases/index#worker-pool)
 
 ## See Also
 
