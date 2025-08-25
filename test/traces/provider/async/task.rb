@@ -11,17 +11,21 @@ require "traces/provider/async/task"
 
 describe Async::Task do
 	it "traces tasks within active tracing" do
-		context = nil
+		parent_context = child_context = nil
 		
 		Thread.new do
-			Traces.trace("test") do
+			Traces.trace("parent") do
+				parent_context = Traces.trace_context
+				
 				Async do
-					context = Traces.trace_context
+					child_context = Traces.trace_context
 				end
 			end
 		end.join
 		
-		expect(context).not.to be == nil
+		expect(child_context).to have_attributes(
+			trace_id: be == parent_context.trace_id
+		)
 	end
 	
 	it "doesn't trace tasks outside of active tracing" do
