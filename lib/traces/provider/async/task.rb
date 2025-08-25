@@ -14,7 +14,7 @@ Traces::Provider(Async::Task) do
 		end
 		
 		unless self.transient?
-			trace_context = Traces.trace_context
+			trace_context = Traces.current_context
 		end
 		
 		attributes = {
@@ -25,7 +25,7 @@ Traces::Provider(Async::Task) do
 		
 		# Run the trace in the context of the child task:
 		super do
-			Traces.trace_context = trace_context
+			Traces.with_context(trace_context)
 			
 			if annotation = self.annotation
 				attributes["annotation"] = annotation
