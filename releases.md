@@ -1,5 +1,9 @@
 # Releases
 
+## Unreleased
+
+  - Use `Traces.current_context` and `Traces.with_context` for better integration with OpenTelemetry.
+
 ## v2.27.4
 
   - Suppress excessive warning in `Async::Scheduler#async`.
