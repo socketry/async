@@ -1,5 +1,24 @@
 # Releases
 
+## Unreleased
+
+### Introduce `Async::PriorityQueue`.
+
+The new `Async::PriorityQueue` provides a thread-safe, fiber-aware queue where consumers can specify priority levels. Higher priority consumers are served first when items become available, with FIFO ordering maintained for equal priorities. This is useful for implementing priority-based task processing systems where critical operations need to be handled before lower priority work.
+
+```ruby
+Sync do
+	queue = Async::PriorityQueue.new
+	
+	# Start consumers with different priorities:
+	Async {puts queue.dequeue(priority: 1)}   # Low priority
+	Async {puts queue.dequeue(priority: 10)}  # High priority
+	
+	# High priority consumer gets this first:
+	queue.push("item")
+end
+```
+
 ## v2.28.1
 
   - Fix race condition between `Async::Barrier#stop` and finish signalling.
