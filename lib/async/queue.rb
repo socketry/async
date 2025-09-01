@@ -60,6 +60,7 @@ module Async
 			raise ClosedError, "Cannot enqueue items to a closed queue!"
 		end
 		
+		# Compatibility with {::Queue#push}.
 		def <<(item)
 			self.push(item)
 		end
@@ -76,6 +77,7 @@ module Async
 			@delegate.pop
 		end
 		
+		# Compatibility with {::Queue#pop}.
 		def pop(...)
 			@delegate.pop(...)
 		end
