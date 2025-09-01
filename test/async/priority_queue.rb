@@ -252,8 +252,6 @@ describe Async::PriorityQueue do
 			
 			low_task.wait
 		end
-		
-		
 	end
 	
 	with "#waiting" do

@@ -54,6 +54,7 @@ module Async
 			@parent = parent
 			@waiting = IO::Event::PriorityHeap.new
 			@sequence = 0
+			
 			@mutex = Mutex.new
 		end
 		
@@ -158,16 +159,10 @@ module Async
 					return nil
 				end
 				
-				# Fast path: if items available and no waiters, return immediately:
-				if !@items.empty? && @waiting.size == 0
-					return @items.shift
-				end
-				
-				# If items available but there are waiters, check if we have higher priority:
-				if !@items.empty? && @waiting.size > 0
-					# Peek at highest priority waiter:
-					if @waiting.peek && priority > @waiting.peek.priority
-						# We have higher priority, take the item immediately:
+				# Fast path: if items available and either no waiters or we have higher priority:
+				unless @items.empty?
+					head = @waiting.peek
+					if head.nil? or priority > head.priority
 						return @items.shift
 					end
 				end
