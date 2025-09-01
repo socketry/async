@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+  - Thread-safe `Async::Condition` and `Async::Notification`, implemented using `Thread::Queue`.
+
 ### Introduce `Async::PriorityQueue`.
 
 The new `Async::PriorityQueue` provides a thread-safe, fiber-aware queue where consumers can specify priority levels. Higher priority consumers are served first when items become available, with FIFO ordering maintained for equal priorities. This is useful for implementing priority-based task processing systems where critical operations need to be handled before lower priority work.
