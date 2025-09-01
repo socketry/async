@@ -10,10 +10,14 @@
 require_relative "notification"
 
 module Async
-	# A queue which allows items to be processed in order.
+	# A thread-safe queue which allows items to be processed in order.
+	#
+	# This implementation uses Thread::Queue internally for thread safety while
+	# maintaining compatibility with the fiber scheduler.
 	#
 	# It has a compatible interface with {Notification} and {Condition}, except that it's multi-value.
 	#
+	# @asynchronous This class is thread-safe.
 	# @public Since *Async v1*.
 	class Queue
 		# An error raised when trying to enqueue items to a closed queue.
@@ -21,87 +25,59 @@ module Async
 		class ClosedError < RuntimeError
 		end
 		
-		# Create a new queue.
+		# Create a new thread-safe queue.
 		#
 		# @parameter parent [Interface(:async) | Nil] The parent task to use for async operations.
-		# @parameter available [Notification] The notification to use for signaling when items are available.
-		def initialize(parent: nil, available: Notification.new)
-			@items = []
-			@closed = false
+		def initialize(parent: nil, delegate: Thread::Queue.new)
+			@delegate = delegate
 			@parent = parent
-			@available = available
 		end
 		
 		# @returns [Boolean] Whether the queue is closed.
 		def closed?
-			@closed
+			@delegate.closed?
 		end
 		
 		# Close the queue, causing all waiting tasks to return `nil`. Any subsequent calls to {enqueue} will raise an exception.
 		def close
-			@closed = true
-			
-			while @available.waiting?
-				@available.signal(nil)
-			end
+			@delegate.close
 		end
-		
-		# @attribute [Array] The items in the queue.
-		attr :items
 		
 		# @returns [Integer] The number of items in the queue.
 		def size
-			@items.size
+			@delegate.size
 		end
 		
 		# @returns [Boolean] Whether the queue is empty.
 		def empty?
-			@items.empty?
+			@delegate.empty?
 		end
 		
 		# Add an item to the queue.
 		def push(item)
-			if @closed
-				raise ClosedError, "Cannot push items to a closed queue."
-			end
-			
-			@items << item
-			
-			@available.signal unless self.empty?
+			@delegate.push(item)
+		rescue ClosedQueueError
+			raise ClosedError, "Cannot enqueue items to a closed queue!"
 		end
 		
-		# Compatibility with {::Queue#push}.
 		def <<(item)
 			self.push(item)
 		end
-		
+
 		# Add multiple items to the queue.
 		def enqueue(*items)
-			if @closed
-				raise ClosedError, "Cannot enqueue items to a closed queue."
-			end
-			
-			@items.concat(items)
-			
-			@available.signal unless self.empty?
+			items.each { |item| @delegate.push(item) }
+		rescue ClosedQueueError
+			raise ClosedError, "Cannot enqueue items to a closed queue!"
 		end
 		
 		# Remove and return the next item from the queue.
 		def dequeue
-			while @items.empty?
-				if @closed
-					return nil
-				end
-				
-				@available.wait
-			end
-			
-			@items.shift
+			@delegate.pop
 		end
 		
-		# Compatibility with {::Queue#pop}.
-		def pop
-			self.dequeue
+		def pop(...)
+			@delegate.pop(...)
 		end
 		
 		# Process each item in the queue.
@@ -136,7 +112,8 @@ module Async
 		end
 	end
 	
-	# A queue which limits the number of items that can be enqueued.
+	# A thread-safe queue which limits the number of items that can be enqueued.
+	#
 	# @public Since *Async v1*.
 	class LimitedQueue < Queue
 		# @private This exists purely for emitting a warning.
@@ -149,78 +126,19 @@ module Async
 		# Create a new limited queue.
 		#
 		# @parameter limit [Integer] The maximum number of items that can be enqueued.
-		# @parameter full [Notification] The notification to use for signaling when the queue is full.
-		def initialize(limit = 1, full: Notification.new, **options)
-			super(**options)
-			
-			@limit = limit
-			@full = full
+		# @parameter full [Notification] The notification to use for signaling when the queue is full. (ignored, for compatibility)
+		def initialize(limit = 1, **options)
+			super(**options, delegate: Thread::SizedQueue.new(limit))
 		end
 		
 		# @attribute [Integer] The maximum number of items that can be enqueued.
-		attr :limit
-		
-		# Close the queue, causing all waiting tasks to return `nil`. Any subsequent calls to {enqueue} will raise an exception.
-		# Also signals all tasks waiting for the queue to be full.
-		def close
-			super
-			
-			while @full.waiting?
-				@full.signal(nil)
-			end
+		def limit
+			@delegate.max
 		end
 		
 		# @returns [Boolean] Whether trying to enqueue an item would block.
 		def limited?
-			!@closed && @items.size >= @limit
-		end
-		
-		# Add an item to the queue.
-		#
-		# If the queue is full, this method will block until there is space available.
-		#
-		# @parameter item [Object] The item to add to the queue.
-		def push(item)
-			while limited?
-				@full.wait
-			end
-			
-			super
-		end
-		
-		# Add multiple items to the queue.
-		#
-		# If the queue is full, this method will block until there is space available. 
-		#
-		# @parameter items [Array] The items to add to the queue.
-		def enqueue(*items)
-			while !items.empty?
-				while limited?
-					@full.wait
-				end
-				
-				if @closed
-					raise ClosedError, "Cannot enqueue items to a closed queue."
-				end
-				
-				available = @limit - @items.size
-				@items.concat(items.shift(available))
-				
-				@available.signal unless self.empty?
-			end
-		end
-		
-		# Remove and return the next item from the queue.
-		#
-		# If the queue is empty, this method will block until an item is available.
-		#
-		# @returns [Object] The next item in the queue.
-		def dequeue
-			item = super
-			
-			@full.signal
-			
-			return item
+			!@delegate.closed? && @delegate.size >= @delegate.max
 		end
 	end
 end
