@@ -43,6 +43,8 @@ module Async
 		# Execute a child task and add it to the barrier.
 		# @asynchronous Executes the given block concurrently.
 		def async(*arguments, parent: (@parent or Task.current), **options, &block)
+			raise "Barrier is stopped!" if @finished.closed?
+			
 			waiting = nil
 			
 			parent.async(*arguments, **options) do |task, *arguments|
@@ -50,7 +52,7 @@ module Async
 				@tasks.append(waiting)
 				block.call(task, *arguments)
 			ensure
-				@finished.signal(waiting)
+				@finished.signal(waiting) unless @finished.closed?
 			end
 		end
 		

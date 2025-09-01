@@ -197,6 +197,53 @@ describe Async::Barrier do
 			task2.wait
 			task3.wait
 		end
+		
+		it "can stop tasks with ensure blocks without raising errors" do
+			ensure_block_executed = false
+			
+			task = barrier.async do |task|
+				sleep(10) # This will be interrupted by stop
+			ensure
+				# This ensure block should execute without causing ClosedError
+				sleep(0.01) # Simulate cleanup work
+				ensure_block_executed = true
+			end
+			
+			# Stop the barrier while the task is running
+			barrier.stop
+			
+			# Wait for the task to complete (it should be stopped)
+			task.wait
+			
+			expect(task).to be(:stopped?)
+			expect(ensure_block_executed).to be == true
+		end
+		
+		it "can stop multiple tasks with ensure blocks simultaneously" do
+			ensure_counts = []
+			tasks = []
+			
+			# Create multiple tasks with ensure blocks
+			3.times do |i|
+				tasks << barrier.async do |task|
+					sleep(10) # This will be interrupted by stop
+				ensure
+					# Each ensure block should execute without causing ClosedError
+					sleep(0.01) # Simulate cleanup work
+					ensure_counts << i
+				end
+			end
+			
+			# Stop the barrier while tasks are running
+			barrier.stop
+			
+			# Wait for all tasks to complete
+			tasks.each(&:wait)
+			
+			# All tasks should be stopped and all ensure blocks executed
+			tasks.each {|task| expect(task).to be(:stopped?)}
+			expect(ensure_counts.sort).to be == [0, 1, 2]
+		end
 	end
 	
 	with "semaphore" do

@@ -32,6 +32,11 @@ module Async
 			@available = available
 		end
 		
+		# @returns [Boolean] Whether the queue is closed.
+		def closed?
+			@closed
+		end
+		
 		# Close the queue, causing all waiting tasks to return `nil`. Any subsequent calls to {enqueue} will raise an exception.
 		def close
 			@closed = true
