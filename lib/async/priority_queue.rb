@@ -7,6 +7,8 @@
 require "io/event/priority_heap"
 require "thread"
 
+require_relative "queue"
+
 module Async
 	# A queue which allows items to be processed in priority order of consumers.
 	#
@@ -16,9 +18,7 @@ module Async
 	#
 	# @public Since *Async v2*.
 	class PriorityQueue
-		# An error raised when trying to enqueue items to a closed queue.
-		class ClosedError < RuntimeError
-		end
+		ClosedError = Queue::ClosedError
 		
 		# A waiter represents a fiber waiting to dequeue with a given priority.
 		Waiter = Struct.new(:fiber, :priority, :sequence, :condition, :value) do
@@ -41,6 +41,7 @@ module Async
 			
 			def wait_for_value(mutex)
 				condition.wait(mutex)
+				return self.value
 			end
 		end
 		
@@ -62,9 +63,12 @@ module Async
 			@mutex.synchronize do
 				@closed = true
 				
-				# Signal all waiting fibers with nil:
+				# Signal all waiting fibers with nil, skipping dead ones:
 				while waiter = @waiting.pop
-					waiter.signal(nil)
+					if waiter.fiber.alive?
+						waiter.signal(nil)
+					end
+					# Dead waiter discarded, continue to next one.
 				end
 			end
 		end
@@ -100,10 +104,14 @@ module Async
 				
 				@items << item
 				
-				# Wake up the highest priority waiter if any:
-				if waiter = @waiting.pop
-					value = @items.shift
-					waiter.signal(value)
+				# Wake up the highest priority waiter if any, skipping dead waiters:
+				while waiter = @waiting.pop
+					if waiter.fiber.alive?
+						value = @items.shift
+						waiter.signal(value)
+						break
+					end
+					# Dead waiter discarded, try next one.
 				end
 			end
 		end
@@ -124,10 +132,13 @@ module Async
 				
 				@items.concat(items)
 				
-				# Wake up waiting fibers in priority order:
+				# Wake up waiting fibers in priority order, skipping dead waiters:
 				while !@items.empty? && (waiter = @waiting.pop)
-					value = @items.shift
-					waiter.signal(value)
+					if waiter.fiber.alive?
+						value = @items.shift
+						waiter.signal(value)
+					end
+					# Dead waiter discarded, continue to next one.
 				end
 			end
 		end
@@ -164,16 +175,14 @@ module Async
 				# Need to wait - create our own condition variable and add to waiting queue:
 				sequence = @sequence
 				@sequence += 1
+				
 				condition = ConditionVariable.new
 				waiter = Waiter.new(Fiber.current, priority, sequence, condition, nil)
 				@waiting.push(waiter)
 				
 				# Wait for our specific condition variable to be signaled:
-				# The mutex is released during wait, reacquired after
-				waiter.wait_for_value(@mutex)
-				
-				# Return the value we received (could be nil if queue was closed):
-				return waiter.value
+				# The mutex is released during wait, reacquired after:
+				return waiter.wait_for_value(@mutex)
 			end
 		end
 		
