@@ -21,8 +21,9 @@ describe Async::Condition do
 		
 		expect(task).to be(:running?)
 		
-		# This will cause the task to exit:
 		condition.signal
+		
+		task.wait
 		
 		expect(task).to be(:completed?)
 	end

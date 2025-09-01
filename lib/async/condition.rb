@@ -13,55 +13,37 @@ module Async
 	class Condition
 		# Create a new condition.
 		def initialize
-			@waiting = List.new
+			@ready = ::Thread::Queue.new
 		end
-		
-		class FiberNode < List::Node
-			def initialize(fiber)
-				@fiber = fiber
-			end
-			
-			def transfer(*arguments)
-				@fiber.transfer(*arguments)
-			end
-			
-			def alive?
-				@fiber.alive?
-			end
-		end
-		
-		private_constant :FiberNode
 		
 		# Queue up the current fiber and wait on yielding the task.
 		# @returns [Object]
 		def wait
-			@waiting.stack(FiberNode.new(Fiber.current)) do
-				Fiber.scheduler.transfer
-			end
+			@ready.pop
 		end
 		
-		# @deprecated Replaced by {#waiting?}
+		# @returns [Boolean] If there are no fibers waiting on this condition.
 		def empty?
-			warn("`Async::Condition#empty?` is deprecated, use `Async::Condition#waiting?` instead.", uplevel: 1, category: :deprecated) if $VERBOSE
-			
-			@waiting.empty?
+			@ready.num_waiting.zero?
 		end
 		
 		# @returns [Boolean] Is any fiber waiting on this notification?
 		def waiting?
-			@waiting.size > 0
+			!self.empty?
 		end
 		
 		# Signal to a given task that it should resume operations.
 		# @parameter value [Object | Nil] The value to return to the waiting fibers.
 		def signal(value = nil)
-			return if @waiting.empty?
+			return if empty?
 			
-			waiting = self.exchange
+			ready = self.exchange
 			
-			waiting.each do |fiber|
-				Fiber.scheduler.resume(fiber, value) if fiber.alive?
+			ready.num_waiting.times do
+				ready.push(value)
 			end
+			
+			ready.close
 			
 			return nil
 		end
@@ -69,9 +51,9 @@ module Async
 		protected
 		
 		def exchange
-			waiting = @waiting
-			@waiting = List.new
-			return waiting
+			ready = @ready
+			@ready = ::Thread::Queue.new
+			return ready
 		end
 	end
 end

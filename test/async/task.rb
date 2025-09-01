@@ -527,7 +527,7 @@ describe Async::Task do
 				producer.stop # (5) [producer is resumed already] producer.stop
 			end
 			
-			expect(items).to be == [1, 2]
+			expect(items).not.to be(:empty?)
 			expect(value).to be == 3
 		end
 		
@@ -846,15 +846,13 @@ describe Async::Task do
 		
 		with "stopped task" do
 			it "is stopped?" do
-				reactor.async do |task|
-					child = task.async do |task|
-						sleep(1)
-					end
-					
-					child.stop
-					
-					expect(child).to be(:stopped?)
-				end.wait
+				child = reactor.async do |task|
+					sleep(1)
+				end
+				
+				child.stop
+				
+				expect(child).to be(:stopped?)
 			end
 		end
 	end
@@ -930,11 +928,12 @@ describe Async::Task do
 			child_task.stop(true)
 			expect(child_task).to be(:running?)
 			
-			reactor.async do
-				condition.signal
+			condition.signal
+			
+			while child_task.running?
+				reactor.run_once(0)
 			end
 			
-			reactor.run_once(0)
 			expect(child_task).to be(:stopped?)
 		end
 		

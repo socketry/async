@@ -12,7 +12,7 @@ module Async
 		it "can signal waiting task" do
 			state = nil
 			
-			reactor.async do
+			task = reactor.async do
 				state = :waiting
 				condition.wait
 				state = :resumed
@@ -21,8 +21,7 @@ module Async
 			expect(state).to be == :waiting
 			
 			condition.signal
-			
-			reactor.yield
+			task.wait
 			
 			expect(state).to be == :resumed
 		end
@@ -46,16 +45,15 @@ module Async
 		it "resumes tasks in order" do
 			order = []
 			
-			5.times do |i|
-				task = reactor.async do
+			tasks = 5.times.map do |i|
+				reactor.async do
 					condition.wait
 					order << i
 				end
 			end
 			
 			condition.signal
-			
-			reactor.yield
+			tasks.each(&:wait)
 			
 			expect(order).to be == [0, 1, 2, 3, 4]
 		end
