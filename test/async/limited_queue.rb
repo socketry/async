@@ -16,6 +16,12 @@ describe Async::LimitedQueue do
 	
 	let(:queue) {subject.new}
 	
+	with "#limit"	do
+		it "has a default limit of 1" do
+			expect(queue.limit).to be == 1
+		end
+	end
+	
 	it "should become limited" do
 		expect(queue).not.to be(:limited?)
 		queue.enqueue(10)
