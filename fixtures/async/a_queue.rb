@@ -141,6 +141,7 @@ module Async
 				
 				waiting_task.wait
 				expect(waiting_task).to be(:finished?)
+				expect(queue).to be(:closed?)
 			end
 		end
 		
