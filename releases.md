@@ -1,6 +1,6 @@
 # Releases
 
-## Unreleased
+## v2.28.1
 
   - Fix race condition between `Async::Barrier#stop` and finish signalling.
 
