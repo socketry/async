@@ -3,6 +3,7 @@
 ## Unreleased
 
   - Thread-safe `Async::Condition` and `Async::Notification`, implemented using `Thread::Queue`.
+  - Thread-safe `Async::Queue` and `Async::LimitedQueue`, implemented using `Thread::Queue` and `Thread::LimitedQueue` respectively.
 
 ### Introduce `Async::PriorityQueue`.
 
