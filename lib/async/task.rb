@@ -70,7 +70,7 @@ module Async
 			
 			@status = :initialized
 			@result = nil
-			@finished = finished
+			@finished = finished || Condition.new
 			
 			@defer_stop = nil
 		end
@@ -183,7 +183,7 @@ module Async
 					@block.call(self, *arguments)
 				rescue => error
 					# I'm not completely happy with this overhead, but the alternative is to not log anything which makes debugging extremely difficult. Maybe we can introduce a debug wrapper which adds extra logging.
-					if @finished.nil?
+					if @finished.empty?
 						warn(self, "Task may have ended with unhandled exception.", exception: error)
 					end
 					
@@ -225,12 +225,12 @@ module Async
 		#
 		# @raises [RuntimeError] If the task's fiber is the current fiber.
 		# @returns [Object] The final expression/result of the task's block.
+		# @asynchronous This method is thread-safe.
 		def wait
 			raise "Cannot wait on own fiber!" if Fiber.current.equal?(@fiber)
 			
 			# `finish!` will set both of these to nil before signaling the condition:
 			if @block || @fiber
-				@finished ||= Condition.new
 				@finished.wait
 			end
 			
