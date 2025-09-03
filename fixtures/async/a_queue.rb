@@ -151,17 +151,19 @@ module Async
 			end
 		end
 		
-		with "task finishing queue" do
-			it "can signal task completion" do
-				3.times do
-					Async(finished: queue) do
-						:result
-					end
-				end
+		with "task completion tracking" do
+			it "can track task completion" do
+				tasks = []
 				
 				3.times do
-					task = queue.dequeue
-					expect(task.wait).to be == :result
+					task = Async do
+						:result
+					end
+					tasks << task
+				end
+				
+				3.times do |i|
+					expect(tasks[i].wait).to be == :result
 				end
 			end
 		end

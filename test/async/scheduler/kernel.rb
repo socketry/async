@@ -15,13 +15,20 @@ describe Async::Scheduler do
 		let(:duration) {0.01}
 		
 		it "can sleep for a short duration" do
-			expect(reactor).to receive(:kernel_sleep).with(duration)
+			sleeps = []
+
+			mock(reactor) do |mock|
+				mock.before(:kernel_sleep) do |duration|
+					sleeps << duration
+				end
+			end
 			
 			time_taken = Async::Clock.measure do
 				sleep(duration)
 			end
 			
 			expect(time_taken).to be_within(Sus::Fixtures::Time::QUANTUM).of(duration)
+			expect(sleeps).to be(:include?, duration)
 		end
 		
 		it "can sleep forever" do

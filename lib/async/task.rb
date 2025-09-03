@@ -13,6 +13,7 @@ require "console"
 
 require_relative "node"
 require_relative "condition"
+require_relative "promise"
 require_relative "stop"
 
 Fiber.attr_accessor :async_task
@@ -69,8 +70,19 @@ module Async
 			@fiber = nil
 			
 			@status = :initialized
-			@result = nil
-			@finished = finished || Condition.new
+			@finished = Promise.new
+			
+			# Handle finished: parameter for backward compatibility:
+			case finished
+			when false
+				# `finished: false` suppresses warnings for expected task failures:
+				@finished.suppress_warnings!
+			when nil
+				# `finished: nil` is the default, no special handling:
+			else
+				# All other `finished:` values are deprecated:
+				warn("finished: argument with non-false value is deprecated and will be removed.", uplevel: 1, category: :deprecated) if $VERBOSE
+			end
 			
 			@defer_stop = nil
 		end
@@ -183,7 +195,7 @@ module Async
 					@block.call(self, *arguments)
 				rescue => error
 					# I'm not completely happy with this overhead, but the alternative is to not log anything which makes debugging extremely difficult. Maybe we can introduce a debug wrapper which adds extra logging.
-					if @finished.empty?
+					if !@finished.waiting?
 						warn(self, "Task may have ended with unhandled exception.", exception: error)
 					end
 					
@@ -229,20 +241,15 @@ module Async
 		def wait
 			raise "Cannot wait on own fiber!" if Fiber.current.equal?(@fiber)
 			
-			# `finish!` will set both of these to nil before signaling the condition:
-			if @block || @fiber
-				@finished.wait
-			end
-			
-			if @status == :failed
-				raise @result
-			else
-				return @result
-			end
+			# Wait for the task to complete - Promise handles all the complexity:
+			# It will either return the result or raise the exception automatically
+			@finished.wait
 		end
 		
 		# Access the result of the task without waiting. May be nil if the task is not completed. Does not raise exceptions.
-		attr :result
+		def result
+			@finished.value
+		end
 		
 		# Stop the task and all of its children.
 		#
@@ -375,29 +382,30 @@ module Async
 			
 			# Attempt to remove this node from the task tree.
 			consume
-			
-			# If this task was being used as a future, signal completion here:
-			if @finished
-				@finished.signal(self)
-				@finished = nil
-			end
 		end
 		
 		# State transition into the completed state.
 		def completed!(result)
-			@result = result
 			@status = :completed
+			
+			# Resolve the promise with the result:
+			@finished&.resolve(result)
 		end
 		
 		# State transition into the failed state.
 		def failed!(exception = false)
-			@result = exception
 			@status = :failed
+			
+			# Reject the promise with the exception:
+			@finished&.reject(exception)
 		end
 		
 		def stopped!
 			# Console.info(self, status:) {"Task #{self} was stopped with #{@children&.size.inspect} children!"}
 			@status = :stopped
+			
+			# Resolve the promise with nil for stopped tasks:
+			@finished&.resolve(nil)
 			
 			stopped = false
 			
