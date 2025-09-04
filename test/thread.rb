@@ -26,4 +26,23 @@ describe Thread do
 		expect(waiting).to be == 3
 		queue.close
 	end
+	
+	it "can wait on a task" do
+		ready = Async::Promise.new
+		
+		task = Async do
+			ready.wait
+			:value
+		end
+		
+		thread = Thread.new do
+			task.wait
+		end
+		
+		Fiber.scheduler.yield until thread.stop?
+		ready.resolve(true)
+		
+		expect(thread.value).to be == :value
+		expect(task.result).to be == :value
+	end
 end
