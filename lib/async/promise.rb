@@ -183,8 +183,5 @@ module Async
 				self.resolve(nil) unless @resolved
 			end
 		end
-		
-		# Alias for resolve to match common promise APIs.
-		alias signal resolve
 	end
 end

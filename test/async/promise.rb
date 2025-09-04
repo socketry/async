@@ -189,15 +189,6 @@ describe Async::Promise do
 		end
 	end
 	
-	with "signal alias" do
-		it "signal behaves like resolve" do
-			promise.signal(:aliased_value)
-			
-			expect(promise.resolved?).to be == true
-			expect(promise.wait).to be == :aliased_value
-		end
-	end
-	
 	with "warning suppression" do
 		it "can suppress warnings for expected failures" do
 			promise.suppress_warnings!
