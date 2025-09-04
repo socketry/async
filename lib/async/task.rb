@@ -13,6 +13,7 @@ require "console"
 
 require_relative "node"
 require_relative "condition"
+require_relative "promise"
 require_relative "stop"
 
 Fiber.attr_accessor :async_task
@@ -63,14 +64,24 @@ module Async
 			
 			# These instance variables are critical to the state of the task.
 			# In the initialized state, the @block should be set, but the @fiber should be nil.
-			# In the running state, the @fiber should be set.
+			# In the running state, the @fiber should be set, and @block should be nil.
 			# In a finished state, the @block should be nil, and the @fiber should be nil.
 			@block = block
 			@fiber = nil
 			
-			@status = :initialized
-			@result = nil
-			@finished = finished
+			@promise = Promise.new
+			
+			# Handle finished: parameter for backward compatibility:
+			case finished
+			when false
+				# `finished: false` suppresses warnings for expected task failures:
+				@promise.suppress_warnings!
+			when nil
+				# `finished: nil` is the default, no special handling:
+			else
+				# All other `finished:` values are deprecated:
+				warn("finished: argument with non-false value is deprecated and will be removed.", uplevel: 1, category: :deprecated) if $VERBOSE
+			end
 			
 			@defer_stop = nil
 		end
@@ -109,7 +120,7 @@ module Async
 		
 		# @returns [String] A description of the task and it's current status.
 		def to_s
-			"\#<#{self.description} (#{@status})>"
+			"\#<#{self.description} (#{self.status})>"
 		end
 		
 		# @deprecated Prefer {Kernel#sleep} except when compatibility with `stable-v1` is required.
@@ -146,22 +157,22 @@ module Async
 		
 		# @returns [Boolean] Whether the task is running.
 		def running?
-			@status == :running
+			self.alive?
 		end
 		
 		# @returns [Boolean] Whether the task failed with an exception.
 		def failed?
-			@status == :failed
+			@promise.failed?
 		end
 		
 		# @returns [Boolean] Whether the task has been stopped.
 		def stopped?
-			@status == :stopped
+			@promise.cancelled?
 		end
 		
 		# @returns [Boolean] Whether the task has completed execution and generated a result.
 		def completed?
-			@status == :completed
+			@promise.completed?
 		end
 		
 		# Alias for {#completed?}.
@@ -170,20 +181,32 @@ module Async
 		end
 		
 		# @attribute [Symbol] The status of the execution of the task, one of `:initialized`, `:running`, `:complete`, `:stopped` or `:failed`.
-		attr :status
+		def status
+			case @promise.resolved
+			when :cancelled
+				:stopped
+			when :failed
+				:failed
+			when :completed
+				:completed
+			when nil
+				self.running? ? :running : :initialized
+			end
+		end
 		
 		# Begin the execution of the task.
 		#
 		# @raises [RuntimeError] If the task is already running.
 		def run(*arguments)
-			if @status == :initialized
-				@status = :running
+			# Move from initialized to running by clearing @block
+			if block = @block
+				@block = nil
 				
 				schedule do
-					@block.call(self, *arguments)
+					block.call(self, *arguments)
 				rescue => error
 					# I'm not completely happy with this overhead, but the alternative is to not log anything which makes debugging extremely difficult. Maybe we can introduce a debug wrapper which adds extra logging.
-					if @finished.nil?
+					unless @promise.waiting?
 						warn(self, "Task may have ended with unhandled exception.", exception: error)
 					end
 					
@@ -225,24 +248,29 @@ module Async
 		#
 		# @raises [RuntimeError] If the task's fiber is the current fiber.
 		# @returns [Object] The final expression/result of the task's block.
+		# @asynchronous This method is thread-safe.
 		def wait
 			raise "Cannot wait on own fiber!" if Fiber.current.equal?(@fiber)
 			
-			# `finish!` will set both of these to nil before signaling the condition:
-			if @block || @fiber
-				@finished ||= Condition.new
-				@finished.wait
-			end
-			
-			if @status == :failed
-				raise @result
-			else
-				return @result
+			# Wait for the task to complete - Promise handles all the complexity:
+			begin
+				@promise.wait
+			rescue Promise::Cancel
+				# For backward compatibility, stopped tasks return nil
+				return nil
 			end
 		end
 		
 		# Access the result of the task without waiting. May be nil if the task is not completed. Does not raise exceptions.
-		attr :result
+		def result
+			value = @promise.value
+			# For backward compatibility, return nil for stopped tasks
+			if @promise.cancelled?
+				nil
+			else
+				value
+			end
+		end
 		
 		# Stop the task and all of its children.
 		#
@@ -375,29 +403,25 @@ module Async
 			
 			# Attempt to remove this node from the task tree.
 			consume
-			
-			# If this task was being used as a future, signal completion here:
-			if @finished
-				@finished.signal(self)
-				@finished = nil
-			end
 		end
 		
 		# State transition into the completed state.
 		def completed!(result)
-			@result = result
-			@status = :completed
+			# Resolve the promise with the result:
+			@promise&.resolve(result)
 		end
 		
 		# State transition into the failed state.
 		def failed!(exception = false)
-			@result = exception
-			@status = :failed
+			# Reject the promise with the exception:
+			@promise&.reject(exception)
 		end
 		
 		def stopped!
 			# Console.info(self, status:) {"Task #{self} was stopped with #{@children&.size.inspect} children!"}
-			@status = :stopped
+			
+			# Cancel the promise:
+			@promise&.cancel
 			
 			stopped = false
 			
@@ -442,7 +466,7 @@ module Async
 			
 			@fiber.async_task = self
 			
-			self.root.resume(@fiber)
+			(Fiber.scheduler || self.reactor).resume(@fiber)
 		end
 	end
 end

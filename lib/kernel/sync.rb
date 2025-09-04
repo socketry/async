@@ -30,7 +30,10 @@ module Kernel
 			reactor = Async::Reactor.new
 			
 			begin
-				return reactor.run(annotation: annotation, finished: ::Async::Condition.new, &block).wait
+				# Use finished: false to suppress warnings since we're handling exceptions explicitly
+				task = reactor.async(annotation: annotation, finished: false, &block)
+				reactor.run
+				return task.wait
 			ensure
 				Fiber.set_scheduler(nil)
 			end

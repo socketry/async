@@ -8,7 +8,7 @@ require "sus/fixtures/benchmark"
 require "async/queue"
 require "async"
 
-describe "Async::Queue Performance" do
+describe Async::Queue do
 	include Sus::Fixtures::Benchmark
 	
 	let(:queue) {Async::Queue.new}
@@ -139,21 +139,22 @@ describe "Async::Queue Performance" do
 		end
 	end
 	
-	with "queue size operations" do
-		measure "size checks with concurrent modifications" do |repeats|
+	with "queue state operations" do
+		measure "size and empty checks" do |repeats|
 			repeats.times do
 				Async do |task|
 					# Pre-populate with some items
 					100.times {|i| queue.push("item-#{i}")}
 					
-					# Reader checking size
+					# Check state frequently
 					size_checker = task.async do
 						100.times do
 							queue.size
+							queue.empty?
 						end
 					end
 					
-					# Writer modifying queue
+					# Concurrent operations
 					modifier = task.async do
 						50.times do |i|
 							queue.push("new-item-#{i}")
@@ -165,6 +166,26 @@ describe "Async::Queue Performance" do
 					
 					# Clean up
 					queue.size.times {queue.dequeue}
+				end
+			end
+		end
+		
+		measure "close and reopen patterns" do |repeats|
+			repeats.times do
+				# Create fresh queue each time
+				test_queue = Async::Queue.new
+				
+				Async do
+					# Fill queue
+					50.times {|i| test_queue.push("item-#{i}")}
+					
+					# Close it
+					test_queue.close
+					
+					# Try to dequeue remaining items
+					while item = test_queue.dequeue
+						# Process remaining items
+					end
 				end
 			end
 		end

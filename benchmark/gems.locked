@@ -1,0 +1,40 @@
+PATH
+  remote: ..
+  specs:
+    async (2.28.1)
+      console (~> 1.29)
+      fiber-annotation
+      io-event (~> 1.11)
+      metrics (~> 0.12)
+      traces (~> 0.18)
+
+GEM
+  remote: https://rubygems.org/
+  specs:
+    console (1.33.0)
+      fiber-annotation
+      fiber-local (~> 1.1)
+      json
+    fiber-annotation (0.2.0)
+    fiber-local (1.1.0)
+      fiber-storage
+    fiber-storage (1.0.1)
+    io-event (1.13.0)
+    json (2.13.2)
+    metrics (0.14.0)
+    sus (0.34.0)
+    sus-fixtures-benchmark (0.2.1)
+      sus (~> 0.31)
+    traces (0.18.1)
+
+PLATFORMS
+  arm64-darwin-24
+  ruby
+
+DEPENDENCIES
+  async!
+  sus
+  sus-fixtures-benchmark
+
+BUNDLED WITH
+   2.7.0
