@@ -298,19 +298,21 @@ describe Async::Task do
 			end
 			
 			it "reports failed status for failed tasks" do
-				task = reactor.async do
-					raise "Test failure"
+				reactor.run do
+					task = reactor.async do
+						raise "Test failure"
+					end
+					
+					# Wait for the task to fail
+					begin
+						task.wait
+							rescue
+						# Expected
+					end
+					
+					expect(task.status).to be == :failed
+					expect(task.failed?).to be == true
 				end
-				
-				# Wait for the task to fail
-				begin
-					task.wait
-				rescue
-					# Expected
-				end
-				
-				expect(task.status).to be == :failed
-				expect(task.failed?).to be == true
 			end
 			
 			it "status changes reflect task lifecycle" do
