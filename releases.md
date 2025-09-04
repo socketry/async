@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+This release introduces thread-safety as a core concept of Async. Many core classes now have thread-safe guarantees, allowing them to be used safely across multiple threads.
+
   - Thread-safe `Async::Condition` and `Async::Notification`, implemented using `Thread::Queue`.
   - Thread-safe `Async::Queue` and `Async::LimitedQueue`, implemented using `Thread::Queue` and `Thread::LimitedQueue` respectively.
   - `Async::Variable` is deprecated in favor of `Async::Promise`.
