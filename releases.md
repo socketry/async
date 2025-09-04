@@ -10,7 +10,35 @@
 The new `Async::PriorityQueue` provides a thread-safe, fiber-aware queue where consumers can specify priority levels. Higher priority consumers are served first when items become available, with FIFO ordering maintained for equal priorities. This is useful for implementing priority-based task processing systems where critical operations need to be handled before lower priority work.
 
 ```ruby
-rubo
+require 'async'
+require 'async/priority_queue'
+
+Async do
+  queue = Async::PriorityQueue.new
+  
+  # Start consumers with different priorities
+  low_priority = async do
+    puts "Low priority consumer got: #{queue.dequeue(priority: 1)}"
+  end
+  
+  medium_priority = async do
+    puts "Medium priority consumer got: #{queue.dequeue(priority: 5)}"
+  end
+  
+  high_priority = async do
+    puts "High priority consumer got: #{queue.dequeue(priority: 10)}"
+  end
+  
+  # Add items to the queue
+  queue.push("first item")
+  queue.push("second item")
+  queue.push("third item")
+  
+  # Output:
+  # High priority consumer got: first item
+  # Medium priority consumer got: second item  
+  # Low priority consumer got: third item
+end
 ```
 
 ## v2.28.1
