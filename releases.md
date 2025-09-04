@@ -14,6 +14,29 @@ This release introduces the new `Async::Promise` class and refactors `Async::Tas
 - **Promise cancellation** with `cancel()` method and `Cancel` exception class.
 - **Comprehensive test coverage** with 47 new test cases covering all edge cases.
 
+```ruby
+require 'async/promise'
+
+# Basic promise usage - works independently of Async framework
+promise = Async::Promise.new
+
+# In another thread or fiber, resolve the promise
+Thread.new do
+  sleep(1)  # Simulate some work
+  promise.resolve("Hello, World!")
+end
+
+# Wait for the result
+result = promise.wait
+puts result  # => "Hello, World!"
+
+# Check promise state
+puts promise.resolved?   # => true
+puts promise.completed?  # => true
+```
+
+Promises bridge Thread and Fiber concurrency models - a promise resolved in one thread can be awaited in a fiber, and vice versa.
+
 ### Introduce `Async::PriorityQueue`
 
 The new `Async::PriorityQueue` provides a thread-safe, fiber-aware queue where consumers can specify priority levels. Higher priority consumers are served first when items become available, with FIFO ordering maintained for equal priorities. This is useful for implementing priority-based task processing systems where critical operations need to be handled before lower priority work.
