@@ -4,6 +4,7 @@
 # Copyright, 2017-2025, by Samuel Williams.
 # Copyright, 2023, by Math Ieu.
 # Copyright, 2023, by Emil Tin.
+# Copyright, 2025, by Shopify Inc.
 
 require "async"
 require "async/clock"

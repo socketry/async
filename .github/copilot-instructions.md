@@ -2,7 +2,7 @@
 
 ## Use Agent Context
 
-When working on this project, consult the `agent.md` file for project-specific guidelines, architecture decisions, and development patterns. This file contains curated information that will help you make better decisions aligned with the project's goals and standards.
+When working on this project, consult the `agents.md` file for project-specific guidelines, architecture decisions, and development patterns. This file contains curated information that will help you make better decisions aligned with the project's goals and standards.
 
 If the file does not exist, you will need to install it, by running the following command:
 

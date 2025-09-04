@@ -7,6 +7,7 @@
 # Copyright, 2020, by Patrik Wenger.
 # Copyright, 2023, by Math Ieu.
 # Copyright, 2025, by Shigeru Nakajima.
+# Copyright, 2025, by Shopify Inc.
 
 require "fiber"
 require "console"

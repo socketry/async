@@ -3,6 +3,7 @@
 # Released under the MIT License.
 # Copyright, 2022-2025, by Samuel Williams.
 # Copyright, 2024, by Patrik Wenger.
+# Copyright, 2025, by Shopify Inc.
 
 module Async
 	# A composable synchronization primitive, which allows one task to wait for a number of other tasks to complete. It can be used in conjunction with {Semaphore} and/or {Barrier}.
