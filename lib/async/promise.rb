@@ -14,7 +14,7 @@ module Async
 	class Promise
 		# Create a new promise.
 		def initialize
-			# nil = pending, true = success, :error = failure:
+			# nil = pending, :completed = success, :failed = failure, :cancelled = cancelled:
 			@resolved = nil
 			
 			# Stores either the result value or the exception:
@@ -29,33 +29,55 @@ module Async
 		
 		# @returns [Boolean] Whether the promise has been resolved or rejected.
 		def resolved?
-			@mutex.synchronize { !!@resolved }
+			@mutex.synchronize {!!@resolved}
+		end
+		
+		# @returns [Symbol | Nil] The internal resolved state (:completed, :failed, :cancelled, or nil if pending).
+		# @private For internal use by Task.
+		def resolved
+			@mutex.synchronize {@resolved}
+		end
+		
+		# @returns [Boolean] Whether the promise has been cancelled.
+		def cancelled?
+			@mutex.synchronize {@resolved == :cancelled}
+		end
+		
+		# @returns [Boolean] Whether the promise failed with an exception.
+		def failed?
+			@mutex.synchronize {@resolved == :failed}
+		end
+		
+		# @returns [Boolean] Whether the promise has completed successfully.
+		def completed?
+			@mutex.synchronize {@resolved == :completed}
 		end
 		
 		# @returns [Boolean] Whether any fibers are currently waiting for this promise.
 		def waiting?
-			@mutex.synchronize { @waiting > 0 }
+			@mutex.synchronize {@waiting > 0}
 		end
 		
 		# Artificially mark that someone is waiting (useful for suppressing warnings).
 		# @private Internal use only.
 		def suppress_warnings!
-			@mutex.synchronize { @waiting += 1 }
+			@mutex.synchronize {@waiting += 1}
 		end
 		
 		# Non-blocking access to the current value. Returns nil if not yet resolved.
-		# Does not raise exceptions even if the promise was rejected.
+		# Does not raise exceptions even if the promise was rejected or cancelled.
+		# For resolved promises, returns the raw stored value (result, exception, or cancel exception).
 		#
-		# @returns [Object | Nil] The resolved value, rejected exception, or nil if pending.
+		# @returns [Object | Nil] The stored value, or nil if pending.
 		def value
-			@mutex.synchronize { @resolved ? @value : nil }
+			@mutex.synchronize {@resolved ? @value : nil}
 		end
 		
 		# Wait for the promise to be resolved and return the value.
 		# If already resolved, returns immediately. If rejected, raises the stored exception.
 		#
 		# @returns [Object] The resolved value.
-		# @raises [Exception] The rejected exception.
+		# @raises [Exception] The rejected or cancelled exception.
 		def wait
 			@mutex.synchronize do
 				# Increment waiting count:
@@ -66,10 +88,11 @@ module Async
 					@condition.wait(@mutex) unless @resolved
 					
 					# Return value or raise exception based on resolution type:
-					if @resolved == :error
-						raise @value
-					else
+					if @resolved == :completed
 						return @value
+					else
+						# Both :failed and :cancelled store exceptions in @value
+						raise @value
 					end
 				ensure
 					# Decrement waiting count when done:
@@ -88,11 +111,13 @@ module Async
 				return if @resolved
 				
 				@value = value
-				@resolved = true
+				@resolved = :completed
 				
 				# Wake up all waiting fibers:
 				@condition.broadcast
 			end
+			
+			return value
 		end
 		
 		# Reject the promise with an exception.
@@ -105,11 +130,35 @@ module Async
 				return if @resolved
 				
 				@value = exception
-				@resolved = :error
+				@resolved = :failed
 				
 				# Wake up all waiting fibers:
 				@condition.broadcast
 			end
+			
+			return nil
+		end
+		
+		# Exception used to indicate cancellation.
+		class Cancel < Exception
+		end
+		
+		# Cancel the promise, indicating cancellation.
+		# All current and future waiters will receive nil.
+		# Can only be called on pending promises - no-op if already resolved.
+		def cancel(exception = Cancel.new("Promise was cancelled!"))
+			@mutex.synchronize do
+				# No-op if already in any final state
+				return if @resolved
+				
+				@value = exception
+				@resolved = :cancelled
+				
+				# Wake up all waiting fibers:
+				@condition.broadcast
+			end
+			
+			return nil
 		end
 		
 		# Resolve the promise with the result of the block.
@@ -121,12 +170,17 @@ module Async
 			raise "Promise already resolved!" if @resolved
 			
 			begin
-				result = yield
-				resolve(result)
-				return result
+				return self.resolve(yield)
+			rescue Cancel => exception
+				return self.cancel(exception)
 			rescue => error
-				reject(error)
-				raise  # Re-raise so caller knows it failed
+				return self.reject(error)
+			rescue Exception => exception
+				self.reject(exception)
+				raise
+			ensure
+				# Handle non-local exits (throw, etc.) that bypass normal flow:
+				self.resolve(nil) unless @resolved
 			end
 		end
 		

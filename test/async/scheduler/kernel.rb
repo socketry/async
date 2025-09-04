@@ -16,7 +16,7 @@ describe Async::Scheduler do
 		
 		it "can sleep for a short duration" do
 			sleeps = []
-
+			
 			mock(reactor) do |mock|
 				mock.before(:kernel_sleep) do |duration|
 					sleeps << duration

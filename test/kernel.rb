@@ -11,7 +11,7 @@ describe Kernel do
 	with "#sleep" do
 		it "can intercept sleep" do
 			sleeps = []
-
+			
 			mock(reactor) do |mock|
 				mock.before(:kernel_sleep) do |duration|
 					sleeps << duration
@@ -19,7 +19,7 @@ describe Kernel do
 			end
 			
 			sleep(0.001)
-
+			
 			expect(sleeps).to be(:include?, 0.001)
 		end
 	end

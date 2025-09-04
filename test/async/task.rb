@@ -218,10 +218,11 @@ describe Async::Task do
 			expect(task).to be(:finished?)
 			expect(task).to be(:completed?)
 			
+			# This should be a no-op:
 			task.stop
 			
 			expect(task).to be(:finished?)
-			expect(task.status).to be == :stopped
+			expect(task.status).to be == :completed
 		end
 		
 		it "can stop a task in the initialized state" do
@@ -257,6 +258,82 @@ describe Async::Task do
 			expect(child.status).to be == :stopped
 			
 			expect(reactor.children).to be(:empty?)
+		end
+		
+		with "#status" do
+			it "reports initialized status for new tasks" do
+				task = Async::Task.new(reactor) do
+					sleep 1
+				end
+				
+				expect(task.status).to be == :initialized
+			end
+			
+			it "reports running status for running tasks" do
+				task = reactor.async do |task|
+					task.yield
+				end
+				
+				expect(task.status).to be == :running
+				task.stop
+			end
+			
+			it "reports completed status for completed tasks" do
+				task = reactor.async do
+					42
+				end
+				
+				result = task.wait
+				expect(task.status).to be == :completed
+				expect(result).to be == 42
+			end
+			
+			it "reports stopped status for stopped tasks" do
+				task = reactor.async do |task|
+					task.yield
+				end
+				
+				task.stop
+				expect(task.status).to be == :stopped
+			end
+			
+			it "reports failed status for failed tasks" do
+				task = reactor.async do
+					raise "Test failure"
+				end
+				
+				# Wait for the task to fail
+				begin
+					task.wait
+				rescue
+					# Expected
+				end
+				
+				expect(task.status).to be == :failed
+				expect(task.failed?).to be == true
+			end
+			
+			it "status changes reflect task lifecycle" do
+				task = nil
+				
+				reactor.run do
+					task = Async::Task.new(reactor) do |task|
+						task.yield
+						"completed"
+					end
+					
+					expect(task.status).to be == :initialized
+					
+					# Run the task
+					task.run
+					expect(task.status).to be == :running
+					
+					# Complete the task
+					result = task.wait
+					expect(task.status).to be == :completed
+					expect(result).to be == "completed"
+				end.wait
+			end
 		end
 		
 		it "can be stopped" do
@@ -547,8 +624,11 @@ describe Async::Task do
 				
 				parent.wait
 				expect(parent).to be(:complete?)
+				
+				# Should be a no-op since parent is already completed:
 				parent.stop
-				expect(parent).to be(:stopped?)
+				expect(parent).to be(:complete?)
+				
 				expect(transient).to be(:running?)
 			end.wait
 		end

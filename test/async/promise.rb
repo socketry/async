@@ -10,7 +10,7 @@ require "sus/fixtures/async"
 describe Async::Promise do
 	include Sus::Fixtures::Async::ReactorContext
 	
-	let(:promise) { subject.new }
+	let(:promise) {subject.new}
 	
 	it "starts as unresolved" do
 		expect(promise.resolved?).to be == false
@@ -90,7 +90,7 @@ describe Async::Promise do
 	end
 	
 	with "#wait" do
-
+		
 		it "blocks until resolved" do
 			result = nil
 			
@@ -184,7 +184,7 @@ describe Async::Promise do
 			
 			expect(results).to be(:empty?)
 			expect(errors.size).to be == 3
-			expect(errors).to be(:all?) { |error| error == test_error }
+			expect(errors).to be(:all?) {|error| error == test_error}
 			expect(promise.waiting?).to be == false
 		end
 	end
@@ -210,6 +210,127 @@ describe Async::Promise do
 		end
 	end
 	
+	with "#cancel" do
+		it "can be cancelled" do
+			promise.cancel
+			
+			expect(promise.resolved?).to be == true
+			expect(promise.cancelled?).to be == true
+			expect(promise.completed?).to be == false
+			expect(promise.failed?).to be == false
+			expect(promise.value).to be_a(Async::Promise::Cancel)
+			
+			expect do
+				promise.wait
+			end.to raise_exception(Async::Promise::Cancel, message: be =~ /cancelled/)
+		end
+		
+		it "can be cancelled with custom exception" do
+			custom_error = StandardError.new("custom cancellation")
+			promise.cancel(custom_error)
+			
+			expect(promise.cancelled?).to be == true
+			expect(promise.value).to be == custom_error
+			
+			expect do
+				promise.wait
+			end.to raise_exception(StandardError, message: be =~ /custom cancellation/)
+		end
+		
+		it "ignores subsequent cancel calls" do
+			promise.cancel(StandardError.new("first cancel"))
+			promise.cancel(StandardError.new("second cancel"))
+			
+			expect do
+				promise.wait
+			end.to raise_exception(StandardError, message: be =~ /first cancel/)
+		end
+		
+		it "ignores resolve after cancel" do
+			promise.cancel
+			promise.resolve(:ignored)
+			
+			expect(promise.cancelled?).to be == true
+			expect do
+				promise.wait
+			end.to raise_exception(Async::Promise::Cancel)
+		end
+		
+		it "ignores reject after cancel" do
+			promise.cancel
+			promise.reject(StandardError.new("ignored"))
+			
+			expect(promise.cancelled?).to be == true
+			expect do
+				promise.wait
+			end.to raise_exception(Async::Promise::Cancel)
+		end
+		
+		it "handles multiple concurrent waiters with cancellation" do
+			results = []
+			errors = []
+			
+			# Start multiple waiters:
+			waiters = 3.times.map do |i|
+				reactor.async do
+					begin
+						results << promise.wait
+					rescue => error
+						errors << error
+					end
+				end
+			end
+			
+			# All should be waiting:
+			expect(promise.waiting?).to be == true
+			
+			# Cancel - all waiters should get the cancel exception:
+			promise.cancel(StandardError.new("shared cancellation"))
+			waiters.each(&:wait)
+			
+			expect(results).to be(:empty?)
+			expect(errors.size).to be == 3
+			expect(errors).to be(:all?) {|error| error.message =~ /shared cancellation/}
+			expect(promise.waiting?).to be == false
+		end
+	end
+	
+	with "state predicates" do
+		it "reports correct state for completed promise" do
+			promise.resolve(:success)
+			
+			expect(promise.resolved?).to be == true
+			expect(promise.completed?).to be == true
+			expect(promise.failed?).to be == false
+			expect(promise.cancelled?).to be == false
+		end
+		
+		it "reports correct state for failed promise" do
+			promise.reject(StandardError.new("error"))
+			
+			expect(promise.resolved?).to be == true
+			expect(promise.completed?).to be == false
+			expect(promise.failed?).to be == true
+			expect(promise.cancelled?).to be == false
+		end
+		
+		it "reports correct state for cancelled promise" do
+			promise.cancel
+			
+			expect(promise.resolved?).to be == true
+			expect(promise.completed?).to be == false
+			expect(promise.failed?).to be == false
+			expect(promise.cancelled?).to be == true
+		end
+		
+		it "reports correct state for pending promise" do
+			expect(promise.resolved?).to be == false
+			expect(promise.completed?).to be == false
+			expect(promise.failed?).to be == false
+			expect(promise.cancelled?).to be == false
+		end
+	end
+	
 	with "#fulfill" do
 		it "resolves with the result of a successful block" do
 			result = promise.fulfill do
@@ -224,15 +345,17 @@ describe Async::Promise do
 		it "rejects when the block raises an exception" do
 			test_error = StandardError.new("block error")
 			
-			expect do
-				promise.fulfill do
-					raise test_error
-				end
-			end.to raise_exception(StandardError, message: be =~ /block error/)
+			# StandardError is absorbed by fulfill (not re-raised to caller):
+			result = promise.fulfill do
+				raise test_error
+			end
 			
+			expect(result).to be_nil
 			expect(promise.resolved?).to be == true
+			expect(promise.failed?).to be == true
 			expect(promise.value).to be == test_error
 			
+			# But promise.wait still raises the exception:
 			expect do
 				promise.wait
 			end.to raise_exception(StandardError, message: be =~ /block error/)
@@ -271,17 +394,155 @@ describe Async::Promise do
 			# Test the ensure block behavior when an exception occurs:
 			promise = Async::Promise.new
 			
-			expect do
-				promise.fulfill do
-					raise StandardError.new("complex error")
-				end
-			end.to raise_exception(StandardError, message: be =~ /complex error/)
+			# StandardError is absorbed by fulfill (not re-raised):
+			result = promise.fulfill do
+				raise StandardError.new("complex error")
+			end
 			
+			expect(result).to be_nil
 			# Promise should be rejected, not resolved with nil:
 			expect(promise.resolved?).to be == true
+			expect(promise.failed?).to be == true
 			expect do
 				promise.wait
 			end.to raise_exception(StandardError, message: be =~ /complex error/)
+		end
+		
+		it "handles Cancel exceptions (absorbed, not re-raised)" do
+			cancel_exception = Async::Promise::Cancel.new("user cancelled")
+			
+			result = promise.fulfill do
+				raise cancel_exception
+			end
+			
+			# Cancel exceptions are absorbed - no re-raise to caller:
+			expect(result).to be_nil
+			expect(promise.cancelled?).to be == true
+			expect(promise.value).to be == cancel_exception
+			
+			# But promise.wait will raise the cancel exception:
+			expect do
+				promise.wait
+			end.to raise_exception(Async::Promise::Cancel, message: be =~ /user cancelled/)
+		end
+		
+		it "handles custom Cancel exceptions" do
+			custom_cancel = StandardError.new("custom stop")
+			
+			result = promise.fulfill do
+				raise Async::Promise::Cancel.new("wrapper").tap {|c| c.instance_variable_set(:@cause, custom_cancel)}
+			end
+			
+			expect(result).to be_nil
+			expect(promise.cancelled?).to be == true
+		end
+		
+		it "handles StandardError exceptions (absorbed, not re-raised)" do
+			test_error = StandardError.new("business logic error")
+			
+			result = promise.fulfill do
+				raise test_error
+			end
+			
+			# StandardError exceptions are absorbed - no re-raise to caller:
+			expect(result).to be_nil
+			expect(promise.failed?).to be == true
+			expect(promise.value).to be == test_error
+			
+			# But promise.wait will raise the exception:
+			expect do
+				promise.wait
+			end.to raise_exception(StandardError, message: be =~ /business logic error/)
+		end
+		
+		it "handles system exceptions (propagated to caller)" do
+			system_error = NoMemoryError.new("critical system error")
+			
+			expect do
+				promise.fulfill do
+					raise system_error
+				end
+			end.to raise_exception(NoMemoryError, message: be =~ /critical system error/)
+			
+			# Promise should still be failed:
+			expect(promise.failed?).to be == true
+			expect(promise.value).to be == system_error
+		end
+		
+		it "handles non-local exit with 'next'" do
+			result = promise.fulfill do
+				next :early_exit
+			end
+			
+			# 'next' should work normally - block returns value:
+			expect(result).to be == :early_exit
+			expect(promise.completed?).to be == true
+			expect(promise.wait).to be == :early_exit
+		end
+		
+		it "handles non-local exit with 'throw'" do
+			result = catch(:tag) do
+				promise.fulfill do
+					throw :tag, :thrown_value
+				end
+			end
+			
+			# throw bypasses normal return but ensure block should resolve promise:
+			expect(result).to be == :thrown_value
+			expect(promise.resolved?).to be == true
+			expect(promise.completed?).to be == true
+			expect(promise.wait).to be_nil  # ensure block resolves with nil
+		end
+		
+		it "ensure block handles all non-exception exits" do
+			# Test that ensure block properly resolves promise for any exit mechanism
+			promise1 = Async::Promise.new
+			
+			# Block that would leave promise unresolved without ensure:
+			catch(:exit) do
+				promise1.fulfill do
+					throw :exit
+				end
+			end
+			
+			# Promise should be resolved by ensure block:
+			expect(promise1.resolved?).to be == true
+			expect(promise1.completed?).to be == true
+		end
+		
+		it "ensure block doesn't interfere with normal exception handling" do
+			# Make sure ensure doesn't override proper exception handling
+			test_error = StandardError.new("should be handled normally")
+			
+			result = promise.fulfill do
+				raise test_error
+			end
+			
+			# Should be handled by rescue, not ensure:
+			expect(result).to be_nil
+			expect(promise.failed?).to be == true
+			expect(promise.value).to be == test_error
+		end
+		
+		it "exception hierarchy is handled in correct order" do
+			# Test that more specific exceptions are caught before general ones
+			promise1 = Async::Promise.new
+			promise2 = Async::Promise.new
+			promise3 = Async::Promise.new
+			
+			# Cancel exception should be caught specifically:
+			promise1.fulfill {raise Async::Promise::Cancel.new}
+			expect(promise1.cancelled?).to be == true
+			
+			# StandardError should be caught by rescue =>:
+			promise2.fulfill {raise ArgumentError.new("standard")}
+			expect(promise2.failed?).to be == true
+			
+			# System exception should be caught by rescue Exception and re-raised:
+			expect do
+				promise3.fulfill {raise SystemExit.new}
+			end.to raise_exception(SystemExit)
+			expect(promise3.failed?).to be == true
 		end
 	end
 	
@@ -291,9 +552,9 @@ describe Async::Promise do
 			
 			# Start concurrent resolution attempts:
 			tasks = [
-				reactor.async { promise.resolve(:first) },
-				reactor.async { promise.reject(StandardError.new("second")) },
-				reactor.async { promise.resolve(:third) }
+				reactor.async {promise.resolve(:first)},
+				reactor.async {promise.reject(StandardError.new("second"))},
+				reactor.async {promise.resolve(:third)}
 			]
 			
 			tasks.each(&:wait)
@@ -321,6 +582,78 @@ describe Async::Promise do
 			[waiter, resolver].each(&:wait)
 			
 			expect(results).to be == [:race_result]
+		end
+	end
+	
+	with "immutability edge cases" do
+		it "cancel after resolve is ignored" do
+			promise.resolve(:success)
+			original_value = promise.value
+			
+			promise.cancel(StandardError.new("should be ignored"))
+			
+			expect(promise.completed?).to be == true
+			expect(promise.value).to be == original_value
+			expect(promise.wait).to be == :success
+		end
+		
+		it "cancel after reject is ignored" do
+			error = StandardError.new("original error")
+			promise.reject(error)
+			original_value = promise.value
+			
+			promise.cancel(StandardError.new("should be ignored"))
+			
+			expect(promise.failed?).to be == true
+			expect(promise.value).to be == original_value
+			expect do
+				promise.wait
+			end.to raise_exception(StandardError, message: be =~ /original error/)
+		end
+		
+		it "resolve after cancel is ignored" do
+			promise.cancel
+			original_value = promise.value
+			
+			promise.resolve(:should_be_ignored)
+			
+			expect(promise.cancelled?).to be == true
+			expect(promise.value).to be == original_value
+			expect do
+				promise.wait
+			end.to raise_exception(Async::Promise::Cancel)
+		end
+		
+		it "reject after cancel is ignored" do
+			promise.cancel
+			original_value = promise.value
+			
+			promise.reject(StandardError.new("should be ignored"))
+			
+			expect(promise.cancelled?).to be == true
+			expect(promise.value).to be == original_value
+			expect do
+				promise.wait
+			end.to raise_exception(Async::Promise::Cancel)
+		end
+		
+		it "fulfill after cancel raises already resolved error" do
+			promise.cancel
+			
+			expect do
+				promise.fulfill {:should_not_execute}
+			end.to raise_exception(RuntimeError, message: be =~ /already resolved/)
+		end
+		
+		it "multiple resolution attempts are deterministic" do
+			# First resolution wins, regardless of type
+			promise.resolve(:first)
+			promise.reject(StandardError.new("second"))
+			promise.cancel(StandardError.new("third"))
+			promise.resolve(:fourth)
+			
+			expect(promise.completed?).to be == true
+			expect(promise.wait).to be == :first
 		end
 	end
 end
