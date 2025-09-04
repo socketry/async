@@ -6,6 +6,7 @@
 
 module Async
 	# A composable synchronization primitive, which allows one task to wait for a number of other tasks to complete. It can be used in conjunction with {Semaphore} and/or {Barrier}.
+	#
 	# @deprecated `Async::Waiter` is deprecated, use `Async::Barrier` instead. 
 	class Waiter
 		# Create a waiter instance.

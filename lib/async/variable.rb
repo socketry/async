@@ -7,11 +7,15 @@ require_relative "condition"
 
 module Async
 	# A synchronization primitive that allows one task to wait for another task to resolve a value.
+	#
+	# @deprecated Use {Async::Promise} instead.
 	class Variable
 		# Create a new variable.
 		#
 		# @parameter condition [Condition] The condition to use for synchronization.
 		def initialize(condition = Condition.new)
+			warn("`Async::Variable` is deprecated, use `Async::Promise` instead.", category: :deprecated, uplevel: 1) if $VERBOSE
+			
 			@condition = condition
 			@value = nil
 		end
