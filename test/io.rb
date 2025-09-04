@@ -228,6 +228,7 @@ describe IO do
 			begin
 				# Write some data to make it readable
 				output.write("Hello World")
+				output.flush
 				
 				readables, writables, errorables = IO.select([input], nil, nil, 0.1)
 				
