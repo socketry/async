@@ -1,6 +1,6 @@
 # Releases
 
-## Unreleased
+## v2.29.0
 
 This release introduces thread-safety as a core concept of Async. Many core classes now have thread-safe guarantees, allowing them to be used safely across multiple threads.
 
@@ -12,12 +12,14 @@ This release introduces thread-safety as a core concept of Async. Many core clas
 
 This release introduces the new `Async::Promise` class and refactors `Async::Task` to use promises for state management internally. This architectural improvement achieves the design goal that "a task should be a promise with attached computation and cancellation handling."
 
-- **Thread-safe promise implementation** with immutable state transitions.
-- **Consistent state management** using symbols: `:completed`, `:failed`, `:cancelled`.
-- **Promise cancellation** with `cancel()` method and `Cancel` exception class.
-- **Comprehensive test coverage** with 47 new test cases covering all edge cases.
+  - **Thread-safe promise implementation** with immutable state transitions.
+  - **Consistent state management** using symbols: `:completed`, `:failed`, `:cancelled`.
+  - **Promise cancellation** with `cancel()` method and `Cancel` exception class.
+  - **Comprehensive test coverage** with 47 new test cases covering all edge cases.
 
-```ruby
+<!-- end list -->
+
+``` ruby
 require 'async/promise'
 
 # Basic promise usage - works independently of Async framework
@@ -44,7 +46,7 @@ Promises bridge Thread and Fiber concurrency models - a promise resolved in one 
 
 The new `Async::PriorityQueue` provides a thread-safe, fiber-aware queue where consumers can specify priority levels. Higher priority consumers are served first when items become available, with FIFO ordering maintained for equal priorities. This is useful for implementing priority-based task processing systems where critical operations need to be handled before lower priority work.
 
-```ruby
+``` ruby
 require 'async'
 require 'async/priority_queue'
 

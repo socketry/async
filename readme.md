@@ -35,6 +35,16 @@ Please see the [project documentation](https://socketry.github.io/async/) for mo
 
 Please see the [project releases](https://socketry.github.io/async/releases/index) for all releases.
 
+### v2.29.0
+
+This release introduces thread-safety as a core concept of Async. Many core classes now have thread-safe guarantees, allowing them to be used safely across multiple threads.
+
+  - Thread-safe `Async::Condition` and `Async::Notification`, implemented using `Thread::Queue`.
+  - Thread-safe `Async::Queue` and `Async::LimitedQueue`, implemented using `Thread::Queue` and `Thread::LimitedQueue` respectively.
+  - `Async::Variable` is deprecated in favor of `Async::Promise`.
+  - [Introduce `Async::Promise`](https://socketry.github.io/async/releases/index#introduce-async::promise)
+  - [Introduce `Async::PriorityQueue`](https://socketry.github.io/async/releases/index#introduce-async::priorityqueue)
+
 ### v2.28.1
 
   - Fix race condition between `Async::Barrier#stop` and finish signalling.
@@ -80,12 +90,6 @@ Please see the [project releases](https://socketry.github.io/async/releases/inde
   - Added support for `io_select` hook in the fiber scheduler, allowing non-blocking `IO.select` operations. This enables better integration with code that uses `IO.select` for multiplexing IO operations.
   - [Use `IO::Event::WorkerPool` for Blocking Operations](https://socketry.github.io/async/releases/index#use-io::event::workerpool-for-blocking-operations)
   - [Better handling of `IO#close` using `fiber_interrupt`](https://socketry.github.io/async/releases/index#better-handling-of-io#close-using-fiber_interrupt)
-
-### v2.24.0
-
-  - Ruby v3.1 support is dropped.
-  - `Async::Wrapper` which was previously deprecated, is now removed.
-  - [Flexible Timeouts](https://socketry.github.io/async/releases/index#flexible-timeouts)
 
 ## See Also
 
