@@ -43,6 +43,16 @@ module Async
 				condition.wait(mutex)
 				return self.value
 			end
+			
+			# Invalidate this waiter, making it unusable and detectable as abandoned.
+			def invalidate!
+				self.fiber = nil
+			end
+			
+			# Check if this waiter has been invalidated.
+			def valid?
+				self.fiber&.alive?
+			end
 		end
 		
 		# Create a new priority queue.
@@ -64,12 +74,9 @@ module Async
 			@mutex.synchronize do
 				@closed = true
 				
-				# Signal all waiting fibers with nil, skipping dead ones:
+				# Signal all waiting fibers with nil, skipping dead/invalid ones:
 				while waiter = @waiting.pop
-					if waiter.fiber.alive?
-						waiter.signal(nil)
-					end
-					# Dead waiter discarded, continue to next one.
+					waiter.signal(nil)
 				end
 			end
 		end
@@ -105,14 +112,14 @@ module Async
 				
 				@items << item
 				
-				# Wake up the highest priority waiter if any, skipping dead waiters:
+				# Wake up the highest priority waiter if any, skipping dead/invalid waiters:
 				while waiter = @waiting.pop
-					if waiter.fiber.alive?
+					if waiter.valid?
 						value = @items.shift
 						waiter.signal(value)
 						break
 					end
-					# Dead waiter discarded, try next one.
+					# Dead/invalid waiter discarded, try next one.
 				end
 			end
 		end
@@ -133,13 +140,13 @@ module Async
 				
 				@items.concat(items)
 				
-				# Wake up waiting fibers in priority order, skipping dead waiters:
+				# Wake up waiting fibers in priority order, skipping dead/invalid waiters:
 				while !@items.empty? && (waiter = @waiting.pop)
-					if waiter.fiber.alive?
+					if waiter.valid?
 						value = @items.shift
 						waiter.signal(value)
 					end
-					# Dead waiter discarded, continue to next one.
+					# Dead/invalid waiter discarded, continue to next one.
 				end
 			end
 		end
@@ -172,12 +179,16 @@ module Async
 				@sequence += 1
 				
 				condition = ConditionVariable.new
-				waiter = Waiter.new(Fiber.current, priority, sequence, condition, nil)
-				@waiting.push(waiter)
 				
-				# Wait for our specific condition variable to be signaled:
-				# The mutex is released during wait, reacquired after:
-				return waiter.wait_for_value(@mutex)
+				begin
+					waiter = Waiter.new(Fiber.current, priority, sequence, condition, nil)
+					@waiting.push(waiter)
+					
+					# Wait for our specific condition variable to be signaled:
+					return waiter.wait_for_value(@mutex)
+				ensure
+					waiter&.invalidate!
+				end
 			end
 		end
 		
