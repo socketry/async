@@ -547,4 +547,82 @@ describe Async::PriorityQueue do
 			]
 		end
 	end
+	
+	with "waiter invalidation" do
+		it "should invalidate waiters when tasks are stopped to prevent memory leaks" do
+			# Start a task that will wait and then be stopped
+			task = reactor.async do
+				queue.dequeue(priority: 1)
+			end
+			
+			expect(queue.waiting).to be == 1
+			
+			# Stop the task (simulates exception)
+			task.stop
+			task.wait
+			
+			# Now enqueue an item - should not try to wake the invalid waiter
+			queue.enqueue("test_item")
+			
+			# The item should still be available for a new waiter
+			result = nil
+			new_task = reactor.async do
+				result = queue.dequeue
+			end
+			
+			new_task.wait
+			expect(result).to be == "test_item"
+		end
+		
+		it "should skip invalid waiters during enqueue" do
+			received_items = []
+			
+			# Start multiple waiters
+			tasks = []
+			3.times do |i|
+				tasks << reactor.async do
+					item = queue.dequeue(priority: i)
+					received_items << [i, item]
+				end
+			end
+			
+			# Give tasks time to start waiting
+			expect(queue.waiting).to be == 3
+			
+			# Stop the middle priority task (priority 1)
+			tasks[1].stop
+			tasks[1].wait
+			
+			# Add items to the queue
+			queue.enqueue("item1", "item2")
+			
+			tasks[0].wait
+			tasks[2].wait
+			
+			# Should have received items in the valid waiters only
+			# Invalid waiter (priority 1) should be skipped
+			expect(received_items.size).to be == 2
+			
+			# Items should go to highest priority waiters (2, then 0)
+			priorities_served = received_items.map(&:first).sort.reverse
+			expect(priorities_served).to be == [2, 0]
+		end
+	end
+	
+	describe Async::PriorityQueue::Waiter do
+		it "should invalidate correctly" do
+			condition = ConditionVariable.new
+			fiber = Fiber.current
+			waiter = Async::PriorityQueue::Waiter.new(fiber, 1, 1, condition, nil)
+			
+			expect(waiter).to be(:valid?)
+			expect(waiter.fiber).to be == fiber
+			expect(waiter.condition).to be == condition
+			
+			waiter.invalidate!
+			
+			expect(waiter).not.to be(:valid?)
+			expect(waiter.fiber).to be_nil
+		end
+	end
 end
