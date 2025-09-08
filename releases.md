@@ -1,11 +1,11 @@
 # Releases
 
-## Unreleased
+## v2.30.0
 
-- Add timeout support to `Async::Queue#dequeue` and `Async::Queue#pop` methods.
-- Add timeout support to `Async::PriorityQueue#dequeue` and `Async::PriorityQueue#pop` methods.
-- Add `closed?` method to `Async::PriorityQueue` for full queue interface compatibility.
-- Support non-blocking operations using `timeout: 0` parameter.
+  - Add timeout support to `Async::Queue#dequeue` and `Async::Queue#pop` methods.
+  - Add timeout support to `Async::PriorityQueue#dequeue` and `Async::PriorityQueue#pop` methods.
+  - Add `closed?` method to `Async::PriorityQueue` for full queue interface compatibility.
+  - Support non-blocking operations using `timeout: 0` parameter.
 
 ## v2.29.0
 
