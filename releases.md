@@ -1,5 +1,12 @@
 # Releases
 
+## Unreleased
+
+- Add timeout support to `Async::Queue#dequeue` and `Async::Queue#pop` methods.
+- Add timeout support to `Async::PriorityQueue#dequeue` and `Async::PriorityQueue#pop` methods.
+- Add `closed?` method to `Async::PriorityQueue` for full queue interface compatibility.
+- Support non-blocking operations using `timeout: 0` parameter.
+
 ## v2.29.0
 
 This release introduces thread-safety as a core concept of Async. Many core classes now have thread-safe guarantees, allowing them to be used safely across multiple threads.
