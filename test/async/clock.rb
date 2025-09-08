@@ -31,6 +31,41 @@ describe Async::Clock do
 		expect(clock.total).to be_within(2 * Sus::Fixtures::Time::QUANTUM).of(0.02)
 	end
 	
+	with "#start" do
+		it "handles multiple start/stop cycles" do
+			3.times do
+				clock.start!
+				# Calling start! again should be idempotent - no time should be added
+				first_total = clock.total
+				clock.start!
+				second_total = clock.total
+				
+				# The total should not jump significantly just from calling start! again
+				expect(second_total - first_total).to be < 0.001
+				clock.stop!
+			end
+			
+			expect(clock.total).to be >= 0
+		end
+	end
+	
+	with "#stop" do
+		it "handles stop without start" do
+			result = clock.stop!
+			expect(result).to be == 0
+			expect(clock.total).to be == 0
+		end
+
+		it "handles multiple stops" do
+			clock.start!
+			first_stop = clock.stop!
+			second_stop = clock.stop!
+			
+			expect(first_stop).to be == second_stop
+			expect(clock.total).to be == first_stop
+		end
+	end
+
 	with "#total" do
 		with "initial duration" do
 			let(:clock) {subject.new(1.5)}
@@ -47,6 +82,21 @@ describe Async::Clock do
 			expect(total).to be >= 0
 			sleep(0.0001)
 			expect(clock.total).to be >= total
+		end
+
+		it "preserves total during start/stop cycles" do
+			# First cycle
+			clock.start!
+			sleep(0.001)
+			first_total = clock.stop!
+			
+			# Second cycle
+			clock.start!
+			sleep(0.001)
+			second_total = clock.stop!
+			
+			expect(second_total).to be > first_total
+			expect(clock.total).to be == second_total
 		end
 	end
 	
@@ -74,6 +124,25 @@ describe Async::Clock do
 			clock.reset!
 			sleep(0.0001)
 			expect(clock.total).to be > 0.0
+		end
+	end
+	
+	with ".now" do
+		it "produces monotonic timestamps" do
+			first = Async::Clock.now
+			second = Async::Clock.now
+			third = Async::Clock.now
+			
+			expect(second).to be >= first
+			expect(third).to be >= second
+		end
+		
+		it "measures positive durations" do
+			duration = Async::Clock.measure do
+				# Even minimal operations should have non-negative duration
+			end
+			
+			expect(duration).to be >= 0
 		end
 	end
 end
