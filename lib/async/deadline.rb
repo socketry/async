@@ -7,12 +7,12 @@ require_relative "clock"
 
 # @namespace
 module Async
-	# Manages a countdown timer for timeout operations.
-	# Provides precise deadline tracking for compound operations to prevent timeout accumulation where multiple operations could exceed user timeouts.
+	# Represents a deadline timeout with decrementing remaining time.
+	# Includes an efficient representation for zero (non-blocking) timeouts.
 	# @public Since *Async v2.31*.
 	class Deadline
 		# Singleton module for immediate timeouts (zero or negative).
-		# Avoids object allocation for performance.
+		# Avoids object allocation for fast path (non-blocking) timeouts.
 		module Zero
 			# Check if the deadline has expired.
 			# @returns [Boolean] Always returns true since zero timeouts are immediately expired.
