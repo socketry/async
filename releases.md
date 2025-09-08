@@ -1,6 +1,6 @@
 # Releases
 
-## Unreleased
+## v2.31.0
 
   - Introduce `Async::Deadline` for precise timeout management in compound operations.
 

@@ -35,6 +35,10 @@ Please see the [project documentation](https://socketry.github.io/async/) for mo
 
 Please see the [project releases](https://socketry.github.io/async/releases/index) for all releases.
 
+### v2.31.0
+
+  - Introduce `Async::Deadline` for precise timeout management in compound operations.
+
 ### v2.30.0
 
   - Add timeout support to `Async::Queue#dequeue` and `Async::Queue#pop` methods.
@@ -80,17 +84,6 @@ This release introduces thread-safety as a core concept of Async. Many core clas
 
   - `Async::Task#stop` supports an optional `cause:` argument (that defaults to `$!`), which allows you to specify the cause (exception) for stopping the task.
   - Add thread-safety agent context.
-
-### v2.26.0
-
-  - `Async::Notification#signal` now returns `true` if a task was signaled, `false` otherwise, providing better feedback for notification operations.
-  - `require "async/limited_queue"` is required to use `Async::LimitedQueue` without a deprecation warning. `Async::LimitedQueue` is not deprecated, but it's usage via `async/queue` is deprecated.
-  - `Async::Task#sleep` is deprecated with no replacement.
-  - `Async::Task.yield` is deprecated with no replacement.
-  - `Async::Scheduler#async` is deprecated, use `Async{}`, `Sync{}` or `Async::Task#async` instead.
-  - Agent context is now available, via the [`agent-context` gem](https://github.com/ioquatix/agent-context).
-  - [`Async::Barrier` Improvements](https://socketry.github.io/async/releases/index#async::barrier-improvements)
-  - [Introduce `Async::Queue#close`](https://socketry.github.io/async/releases/index#introduce-async::queue#close)
 
 ## See Also
 
