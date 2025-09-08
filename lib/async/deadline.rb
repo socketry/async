@@ -5,6 +5,7 @@
 
 require_relative "clock"
 
+# @namespace
 module Async
 	# Manages a countdown timer for timeout operations.
 	# Provides precise deadline tracking for compound operations to prevent timeout accumulation where multiple operations could exceed user timeouts.
@@ -13,10 +14,14 @@ module Async
 		# Singleton module for immediate timeouts (zero or negative).
 		# Avoids object allocation for performance.
 		module Zero
+			# Check if the deadline has expired.
+			# @returns [Boolean] Always returns true since zero timeouts are immediately expired.
 			def self.expired?
 				true
 			end
 			
+			# Get the remaining time.
+			# @returns [Integer] Always returns 0 since zero timeouts have no remaining time.
 			def self.remaining
 				0
 			end
