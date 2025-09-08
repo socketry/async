@@ -39,8 +39,8 @@ module Async
 				condition.signal
 			end
 			
-			def wait_for_value(mutex)
-				condition.wait(mutex)
+			def wait_for_value(mutex, timeout = nil)
+				condition.wait(mutex, timeout)
 				return self.value
 			end
 			
@@ -54,6 +54,8 @@ module Async
 				self.fiber&.alive?
 			end
 		end
+		
+		private_constant :Waiter
 		
 		# Create a new priority queue.
 		#
@@ -79,6 +81,11 @@ module Async
 					waiter.signal(nil)
 				end
 			end
+		end
+		
+		# @returns [Boolean] Whether the queue is closed.
+		def closed?
+			@closed
 		end
 		
 		# @attribute [Array] The items in the queue.
@@ -153,13 +160,14 @@ module Async
 		
 		# Remove and return the next item from the queue.
 		#
-		# If the queue is empty, this method will block until an item is available.
+		# If the queue is empty, this method will block until an item is available or timeout expires.
 		# Fibers are served in priority order, with higher priority fibers receiving
 		# items first.
 		#
 		# @parameter priority [Numeric] The priority of this consumer (higher = served first).
-		# @returns [Object] The next item in the queue.
-		def dequeue(priority: 0)
+		# @parameter timeout [Numeric, nil] Maximum time to wait for an item. If nil, waits indefinitely. If 0, returns immediately.
+		# @returns [Object, nil] The next item in the queue, or nil if timeout expires.
+		def dequeue(priority: 0, timeout: nil)
 			@mutex.synchronize do
 				# If queue is closed and empty, return nil immediately:
 				if @closed && @items.empty?
@@ -174,6 +182,9 @@ module Async
 					end
 				end
 				
+				# Handle immediate timeout (non-blocking)
+				return nil if timeout == 0
+				
 				# Need to wait - create our own condition variable and add to waiting queue:
 				sequence = @sequence
 				@sequence += 1
@@ -185,7 +196,7 @@ module Async
 					@waiting.push(waiter)
 					
 					# Wait for our specific condition variable to be signaled:
-					return waiter.wait_for_value(@mutex)
+					return waiter.wait_for_value(@mutex, timeout)
 				ensure
 					waiter&.invalidate!
 				end
@@ -195,8 +206,10 @@ module Async
 		# Compatibility with {::Queue#pop}.
 		#
 		# @parameter priority [Numeric] The priority of this consumer.
-		def pop(priority: 0)
-			self.dequeue(priority: priority)
+		# @parameter timeout [Numeric, nil] Maximum time to wait for an item. If nil, waits indefinitely. If 0, returns immediately.
+		# @returns [Object, nil] The dequeued item, or nil if timeout expires.
+		def pop(priority: 0, timeout: nil)
+			self.dequeue(priority: priority, timeout: timeout)
 		end
 		
 		# Process each item in the queue.

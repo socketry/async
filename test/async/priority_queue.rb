@@ -6,11 +6,16 @@
 
 require "async/priority_queue"
 require "sus/fixtures/async"
+require "async/a_queue"
+require "async/a_queue_with_timeout"
 
 describe Async::PriorityQueue do
 	include Sus::Fixtures::Async::ReactorContext
 	
 	let(:queue) {subject.new}
+	
+	it_behaves_like Async::AQueue
+	it_behaves_like Async::AQueueWithTimeout
 	
 	with "#push" do
 		it "can push and pop items" do
@@ -606,23 +611,6 @@ describe Async::PriorityQueue do
 			# Items should go to highest priority waiters (2, then 0)
 			priorities_served = received_items.map(&:first).sort.reverse
 			expect(priorities_served).to be == [2, 0]
-		end
-	end
-	
-	describe Async::PriorityQueue::Waiter do
-		it "should invalidate correctly" do
-			condition = ConditionVariable.new
-			fiber = Fiber.current
-			waiter = Async::PriorityQueue::Waiter.new(fiber, 1, 1, condition, nil)
-			
-			expect(waiter).to be(:valid?)
-			expect(waiter.fiber).to be == fiber
-			expect(waiter.condition).to be == condition
-			
-			waiter.invalidate!
-			
-			expect(waiter).not.to be(:valid?)
-			expect(waiter.fiber).to be_nil
 		end
 	end
 end

@@ -73,13 +73,17 @@ module Async
 		end
 		
 		# Remove and return the next item from the queue.
-		def dequeue
-			@delegate.pop
+		# @parameter timeout [Numeric, nil] Maximum time to wait for an item. If nil, waits indefinitely. If 0, returns immediately.
+		# @returns [Object, nil] The dequeued item, or nil if timeout expires.
+		def dequeue(timeout: nil)
+			@delegate.pop(timeout: timeout)
 		end
 		
 		# Compatibility with {::Queue#pop}.
-		def pop(...)
-			@delegate.pop(...)
+		# @parameter timeout [Numeric, nil] Maximum time to wait for an item. If nil, waits indefinitely. If 0, returns immediately.
+		# @returns [Object, nil] The dequeued item, or nil if timeout expires.
+		def pop(timeout: nil)
+			@delegate.pop(timeout: timeout)
 		end
 		
 		# Process each item in the queue.

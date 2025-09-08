@@ -10,9 +10,11 @@ require "async/queue"
 
 require "sus/fixtures/async"
 require "async/a_queue"
+require "async/a_queue_with_timeout"
 
 describe Async::Queue do
 	include Sus::Fixtures::Async::ReactorContext
 	
 	it_behaves_like Async::AQueue
+	it_behaves_like Async::AQueueWithTimeout
 end
