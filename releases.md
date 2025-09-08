@@ -1,5 +1,9 @@
 # Releases
 
+## Unreleased
+
+  - Introduce `Async::Deadline` for precise timeout management in compound operations.
+
 ## v2.30.0
 
   - Add timeout support to `Async::Queue#dequeue` and `Async::Queue#pop` methods.
