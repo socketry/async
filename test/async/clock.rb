@@ -55,7 +55,7 @@ describe Async::Clock do
 			expect(result).to be == 0
 			expect(clock.total).to be == 0
 		end
-
+		
 		it "handles multiple stops" do
 			clock.start!
 			first_stop = clock.stop!
@@ -65,7 +65,7 @@ describe Async::Clock do
 			expect(clock.total).to be == first_stop
 		end
 	end
-
+	
 	with "#total" do
 		with "initial duration" do
 			let(:clock) {subject.new(1.5)}
@@ -83,7 +83,7 @@ describe Async::Clock do
 			sleep(0.0001)
 			expect(clock.total).to be >= total
 		end
-
+		
 		it "preserves total during start/stop cycles" do
 			# First cycle
 			clock.start!
