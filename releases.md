@@ -1,6 +1,6 @@
 # Releases
 
-## Unreleased
+## v2.32.0
 
   - Introduce `Queue#waiting_count` and `PriorityQueue#waiting_count`. Generally for statistics/testing purposes only.
 

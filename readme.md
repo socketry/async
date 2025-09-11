@@ -35,6 +35,10 @@ Please see the [project documentation](https://socketry.github.io/async/) for mo
 
 Please see the [project releases](https://socketry.github.io/async/releases/index) for all releases.
 
+### v2.32.0
+
+  - Introduce `Queue#waiting_count` and `PriorityQueue#waiting_count`. Generally for statistics/testing purposes only.
+
 ### v2.31.0
 
   - Introduce `Async::Deadline` for precise timeout management in compound operations.
@@ -79,11 +83,6 @@ This release introduces thread-safety as a core concept of Async. Many core clas
 ### v2.27.1
 
   - Updated documentation and agent context.
-
-### v2.27.0
-
-  - `Async::Task#stop` supports an optional `cause:` argument (that defaults to `$!`), which allows you to specify the cause (exception) for stopping the task.
-  - Add thread-safety agent context.
 
 ## See Also
 
