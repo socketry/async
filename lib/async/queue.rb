@@ -53,6 +53,11 @@ module Async
 			@delegate.empty?
 		end
 		
+		# @returns [Integer] The number of tasks waiting for an item.
+		def waiting_count
+			@delegate.num_waiting
+		end
+		
 		# Add an item to the queue.
 		def push(item)
 			@delegate.push(item)

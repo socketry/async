@@ -1,5 +1,9 @@
 # Releases
 
+## Unreleased
+
+  - Introduce `Queue#waiting_count` and `PriorityQueue#waiting_count`. Generally for statistics/testing purposes only.
+
 ## v2.31.0
 
   - Introduce `Async::Deadline` for precise timeout management in compound operations.

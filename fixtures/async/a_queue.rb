@@ -41,6 +41,18 @@ module Async
 				expect(queue.pop).to be == :item
 				expect(queue.size).to be == 0
 			end
+			
+			it "can block until an item is available" do
+				child = reactor.async do
+					queue.pop
+				end
+				
+				expect(queue).to have_attributes(size: be == 0, waiting_count: be == 1)
+				
+				queue.push(:item)
+				
+				expect(child.wait).to be == :item
+			end
 		end
 		
 		with "#each" do

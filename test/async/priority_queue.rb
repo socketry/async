@@ -92,7 +92,7 @@ describe Async::PriorityQueue do
 			end
 			
 			# Confirm all consumers are waiting:
-			expect(queue.waiting).to be == 3
+			expect(queue.waiting_count).to be == 3
 			
 			# Add items:
 			queue.push(:item1)
@@ -134,7 +134,7 @@ describe Async::PriorityQueue do
 			end
 			
 			# Confirm all consumers are waiting:
-			expect(queue.waiting).to be == 4
+			expect(queue.waiting_count).to be == 4
 			
 			# Add items:
 			4.times {|i| queue.push("item#{i}")}
@@ -162,7 +162,7 @@ describe Async::PriorityQueue do
 				results << [:high, queue.dequeue(priority: 10)]
 			end
 			
-			expect(queue.waiting).to be == 2
+			expect(queue.waiting_count).to be == 2
 			
 			# Add one item - should go to high priority consumer:
 			queue.push(:item)
@@ -198,7 +198,7 @@ describe Async::PriorityQueue do
 			end
 			
 			# Confirm low priority consumer is waiting:
-			expect(queue.waiting).to be == 1
+			expect(queue.waiting_count).to be == 1
 			
 			# Add an item - now we have waiters:
 			queue.push(:available_item)
@@ -209,7 +209,7 @@ describe Async::PriorityQueue do
 			end
 			
 			# Confirm second low priority consumer is waiting (first one got the item):
-			expect(queue.waiting).to be == 1
+			expect(queue.waiting_count).to be == 1
 			
 			# Now a high priority consumer should jump ahead of remaining waiters:
 			high = reactor.async do
@@ -217,7 +217,7 @@ describe Async::PriorityQueue do
 			end
 			
 			# Confirm high priority consumer is also waiting (total 2 waiting):
-			expect(queue.waiting).to be == 2
+			expect(queue.waiting_count).to be == 2
 			
 			# Add more items to satisfy all waiters:
 			queue.push(:item2)
@@ -248,7 +248,7 @@ describe Async::PriorityQueue do
 			end
 			
 			# Confirm low priority waiter got item1 and finished:
-			expect(queue.waiting).to be == 0
+			expect(queue.waiting_count).to be == 0
 			
 			# The low priority waiter should have taken item1.
 			# High priority consumer gets item2:
@@ -261,21 +261,21 @@ describe Async::PriorityQueue do
 	
 	with "#waiting" do
 		it "returns the number of waiting fibers" do
-			expect(queue.waiting).to be == 0
+			expect(queue.waiting_count).to be == 0
 			
 			task1 = reactor.async {queue.dequeue}
-			expect(queue.waiting).to be == 1
+			expect(queue.waiting_count).to be == 1
 			
 			task2 = reactor.async {queue.dequeue}
-			expect(queue.waiting).to be == 2
+			expect(queue.waiting_count).to be == 2
 			
 			queue.push(:item)
 			task1.wait
-			expect(queue.waiting).to be == 1
+			expect(queue.waiting_count).to be == 1
 			
 			queue.push(:item)
 			task2.wait
-			expect(queue.waiting).to be == 0
+			expect(queue.waiting_count).to be == 0
 		end
 	end
 	
@@ -297,7 +297,7 @@ describe Async::PriorityQueue do
 			end
 			
 			# Confirm both async tasks are waiting:
-			expect(queue.waiting).to be == 2
+			expect(queue.waiting_count).to be == 2
 			
 			# Add items:
 			queue.push(:item1)
@@ -330,7 +330,7 @@ describe Async::PriorityQueue do
 			end
 			
 			# Confirm all waiters are ready:
-			expect(queue.waiting).to be == 3
+			expect(queue.waiting_count).to be == 3
 			
 			# Add multiple items at once:
 			queue.enqueue(:item1, :item2, :item3)
@@ -360,7 +360,7 @@ describe Async::PriorityQueue do
 			end
 			
 			# Confirm iterator is waiting:
-			expect(queue.waiting).to be == 1
+			expect(queue.waiting_count).to be == 1
 			
 			# Add items and nil to terminate:
 			queue.push(:first)
@@ -394,7 +394,7 @@ describe Async::PriorityQueue do
 			task = reactor.async {queue.dequeue(priority: 5)}
 			
 			# Confirm waiter is ready:
-			expect(queue.waiting).to be == 1
+			expect(queue.waiting_count).to be == 1
 			
 			# Close the queue:
 			queue.close
@@ -437,7 +437,7 @@ describe Async::PriorityQueue do
 			end
 			
 			# Confirm all consumers are waiting:
-			expect(queue.waiting).to be == num_consumers
+			expect(queue.waiting_count).to be == num_consumers
 			
 			# Add items:
 			num_items.times {|i| queue.push("item#{i}")}
@@ -467,7 +467,7 @@ describe Async::PriorityQueue do
 			task = reactor.async {queue.dequeue(priority: 5)}
 			
 			# Confirm waiter is waiting:
-			expect(queue.waiting).to be == 1
+			expect(queue.waiting_count).to be == 1
 			
 			# Stop the waiting task:
 			task.stop
@@ -485,7 +485,7 @@ describe Async::PriorityQueue do
 			task = reactor.async {queue.dequeue(priority: 5)}
 			
 			# Confirm waiter is waiting:
-			expect(queue.waiting).to be == 1
+			expect(queue.waiting_count).to be == 1
 			
 			# Stop the waiting task:
 			task.stop
@@ -507,7 +507,7 @@ describe Async::PriorityQueue do
 			task3 = reactor.async {results << [:task3, queue.dequeue(priority: 1)]}
 			
 			# Confirm all three are waiting:
-			expect(queue.waiting).to be == 3
+			expect(queue.waiting_count).to be == 3
 			
 			# Stop first two tasks:
 			task1.stop
@@ -522,7 +522,7 @@ describe Async::PriorityQueue do
 			# BUG: Currently stopped waiters consume items:
 			expect(results).to be == [[:task3, :item1]]  # Should get first item
 			expect(queue.size).to be == 1  # Second item should remain
-			expect(queue.waiting).to be == 0  # No waiters should remain
+			expect(queue.waiting_count).to be == 0  # No waiters should remain
 		end
 		
 		it "maintains correct priority order with stopped waiters" do
@@ -534,7 +534,7 @@ describe Async::PriorityQueue do
 			medium_task = reactor.async {results << [:medium, queue.dequeue(priority: 5)]}
 			
 			# Confirm all are waiting:
-			expect(queue.waiting).to be == 3
+			expect(queue.waiting_count).to be == 3
 			
 			# Stop the high priority waiter (should have been first):
 			high_task.stop
@@ -560,7 +560,7 @@ describe Async::PriorityQueue do
 				queue.dequeue(priority: 1)
 			end
 			
-			expect(queue.waiting).to be == 1
+			expect(queue.waiting_count).to be == 1
 			
 			# Stop the task (simulates exception)
 			task.stop
@@ -592,7 +592,7 @@ describe Async::PriorityQueue do
 			end
 			
 			# Give tasks time to start waiting
-			expect(queue.waiting).to be == 3
+			expect(queue.waiting_count).to be == 3
 			
 			# Stop the middle priority task (priority 1)
 			tasks[1].stop

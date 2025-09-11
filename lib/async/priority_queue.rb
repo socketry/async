@@ -102,11 +102,14 @@ module Async
 		end
 		
 		# @returns [Integer] The number of fibers waiting to dequeue.
-		def waiting
+		def waiting_count
 			@mutex.synchronize do
 				@waiting.size
 			end
 		end
+		
+		# @deprecated Use {#waiting_count} instead.
+		alias waiting waiting_count
 		
 		# Add an item to the queue.
 		#
