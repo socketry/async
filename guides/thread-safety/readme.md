@@ -14,14 +14,14 @@ When analyzing existing projects, you should check files one by one, looking for
 
 - **Data corruption is the primary concern** - prevention is absolutely critical.
 - **Isolation should be the default** - operations should not share mutable state.
-  - **Shared mutable state should be avoided**. Prefer pure functions, immutable objects, and dependency injection.
+	- **Shared mutable state should be avoided**. Prefer pure functions, immutable objects, and dependency injection.
 - **Assume that code will be executed concurrently** by multiple fibers, threads and processes.
 - **Assume that code may context switch at any time**, but especially during I/O operations.
-  - I/O operations include network calls, file I/O, database queries, etc.
-  - Other context switch points include `Fiber.yield`, `sleep`, waiting on child processes, DNS queries, and interrupts (signal handling).
+	- I/O operations include network calls, file I/O, database queries, etc.
+	- Other context switch points include `Fiber.yield`, `sleep`, waiting on child processes, DNS queries, and interrupts (signal handling).
 - **Fibers and threads are NOT the same thing**, however they do share similar safety requirements.
 - **C extensions e.g. C/Rust etc. can block the fiber scheduler entirely**.
-  - Native code, when implemented correctly, is usually okay, but bugs can exist anywhere, even in mature code.
+	- Native code, when implemented correctly, is usually okay, but bugs can exist anywhere, even in mature code.
 
 ## Quick Reference
 
@@ -71,23 +71,23 @@ Therefore, the best practice is to avoid shared mutable state whenever possible.
 ### Shared mutable state
 
 Shared mutable state, including class instance variables accessed by multiple threads or fibers, is problematic and should be avoided. This includes class instance variables, module variables, and any mutable objects that are shared across threads or fibers.
-  
+	
 ```ruby
 class CurrencyConverter
-  def initialize
-    @exchange_rates = {} # Issue: Shared mutable state
-  end
-  
-  def update_rate(currency, rate)
-    # Issue: Multiple threads can modify @exchange_rates concurrently
-    @exchange_rates[currency] = rate
-  end
-  
-  def convert(amount, from_currency, to_currency)
-    # Issue: If @exchange_rates is modified while this method runs, it can lead to incorrect conversions
-    rate = @exchange_rates[from_currency] / @exchange_rates[to_currency]
-    amount * rate
-  end
+	def initialize
+		@exchange_rates = {} # Issue: Shared mutable state
+	end
+	
+	def update_rate(currency, rate)
+		# Issue: Multiple threads can modify @exchange_rates concurrently
+		@exchange_rates[currency] = rate
+	end
+	
+	def convert(amount, from_currency, to_currency)
+		# Issue: If @exchange_rates is modified while this method runs, it can lead to incorrect conversions
+		rate = @exchange_rates[from_currency] / @exchange_rates[to_currency]
+		amount * rate
+	end
 end
 ```
 
@@ -105,15 +105,15 @@ Class variables (`@@variable`) and class attributes (`class_attribute`) represen
 
 ```ruby
 class GlobalConfig
-  @@settings = {} # Issue: Class variables are shared across inheritance
+	@@settings = {} # Issue: Class variables are shared across inheritance
 
-  def set(key, value)
-    @@settings[key] = value
-  end
+	def set(key, value)
+		@@settings[key] = value
+	end
 
-  def get(key)
-    @@settings[key]
-  end
+	def get(key)
+		@@settings[key]
+	end
 end
 
 class UserConfig < GlobalConfig
@@ -137,9 +137,9 @@ Lazy initialization is a common pattern in Ruby, but the `||=` operator is not a
 
 ```ruby
 class Loader
-  def self.data
-    @data ||= JSON.load_file('data.json')
-  end
+	def self.data
+		@data ||= JSON.load_file('data.json')
+	end
 end
 ```
 
@@ -151,21 +151,21 @@ This could cause situations where `self.data != self.data` for example, or modif
 
 ```ruby
 class Loader
-  @mutex = Mutex.new
+	@mutex = Mutex.new
 
-  def self.data
-    # Double-checked locking pattern:
-    return @data if @data
+	def self.data
+		# Double-checked locking pattern:
+		return @data if @data
 
-    @mutex.synchronize do
-      return @data if @data
+		@mutex.synchronize do
+			return @data if @data
 
-      # Now we are sure that @data is nil, we can safely fetch it:
-      @data = JSON.load_file('data.json')
-    end
+			# Now we are sure that @data is nil, we can safely fetch it:
+			@data = JSON.load_file('data.json')
+		end
 
-    return @data
-  end
+		return @data
+	end
 end
 ```
 
@@ -173,19 +173,19 @@ In addition, it should be noted that lazy initialization of a `Mutex` (and other
 
 ```ruby
 class Loader
-  def self.data
-    @mutex ||= Mutex.new # Issue: Not thread-safe
+	def self.data
+		@mutex ||= Mutex.new # Issue: Not thread-safe
 
-    @mutex.synchronize do
-      # Double-checked locking pattern:
-      return @data if @data
+		@mutex.synchronize do
+			# Double-checked locking pattern:
+			return @data if @data
 
-      # Now we are sure that @data is nil, we can safely fetch it:
-      @data = JSON.load_file('data.json')
-    end
+			# Now we are sure that @data is nil, we can safely fetch it:
+			@data = JSON.load_file('data.json')
+		end
 
-    return @data
-  end
+		return @data
+	end
 end
 ```
 
@@ -195,15 +195,15 @@ In the case that each instance is only accessed by a single thread or fiber, mem
 
 ```ruby
 class Loader
-  def things
-    # Safe: each instance has its own @things
-    @things ||= compute_things
-  end
+	def things
+		# Safe: each instance has its own @things
+		@things ||= compute_things
+	end
 end
 
 def do_something
-  loader = Loader.new
-  loader.things # Safe: only accessed by this thread/fiber
+	loader = Loader.new
+	loader.things # Safe: only accessed by this thread/fiber
 end
 ```
 
@@ -213,11 +213,11 @@ Like lazy initialization, memoization using `Hash` caches can lead to race condi
 
 ```ruby
 class ExpensiveComputation
-  @cache = {}
+	@cache = {}
 
-  def self.compute(key)
-    @cache[key] ||= expensive_operation(key) # Issue: Not thread-safe
-  end
+	def self.compute(key)
+		@cache[key] ||= expensive_operation(key) # Issue: Not thread-safe
+	end
 end
 ```
 
@@ -229,14 +229,14 @@ Note that this mutex creates contention on all calls to `compute`, which can be 
 
 ```ruby
 class ExpensiveComputation
-  @cache = {}
-  @mutex = Mutex.new
+	@cache = {}
+	@mutex = Mutex.new
 
-  def self.compute(key)
-    @mutex.synchronize do
-      @cache[key] ||= expensive_operation(key)
-    end
-  end
+	def self.compute(key)
+		@mutex.synchronize do
+			@cache[key] ||= expensive_operation(key)
+		end
+	end
 end
 ```
 
@@ -244,13 +244,13 @@ end
 
 ```ruby
 class ExpensiveComputation
-  @cache = Concurrent::Map.new
+	@cache = Concurrent::Map.new
 
-  def self.compute(key)
-    @cache.compute_if_absent(key) do
-      expensive_operation(key)
-    end
-  end
+	def self.compute(key)
+		@cache.compute_if_absent(key) do
+			expensive_operation(key)
+		end
+	end
 end
 ```
 
@@ -305,11 +305,11 @@ Sharing network connections, database connections, or other resources across thr
 client = Database.connect
 
 Thread.new do
-  results = client.query("SELECT * FROM users")
+	results = client.query("SELECT * FROM users")
 end
 
 Thread.new do
-  results = client.query("SELECT * FROM products")
+	results = client.query("SELECT * FROM products")
 end
 ```
 
@@ -322,19 +322,19 @@ Using a connection pool can help manage shared connections safely:
 ```ruby
 require 'connection_pool'
 pool = ConnectionPool.new(size: 5, timeout: 5) do
-  Database.connect
+	Database.connect
 end
 
 Thread.new do
-  pool.with do |client|
-    results = client.query("SELECT * FROM users")
-  end
+	pool.with do |client|
+		results = client.query("SELECT * FROM users")
+	end
 end
 
 Thread.new do
-  pool.with do |client|
-    results = client.query("SELECT * FROM products")
-  end
+	pool.with do |client|
+		results = client.query("SELECT * FROM products")
+	end
 end
 ```
 
@@ -344,18 +344,18 @@ Enumerating shared mutable container (e.g. `Array` or `Hash`) can cause consiste
 
 ```ruby
 class SharedList
-  def initialize
-    @list = []
-  end
+	def initialize
+		@list = []
+	end
 
-  def add(item)
-    @list << item
-  end
+	def add(item)
+		@list << item
+	end
 
-  def each(&block)
-    # Issue: Modifications during enumeration can lead to inconsistent state
-    @list.each(&block)
-  end
+	def each(&block)
+		# Issue: Modifications during enumeration can lead to inconsistent state
+		@list.each(&block)
+	end
 end
 ```
 
@@ -369,22 +369,22 @@ To ensure that the enumeration is safe, you can use a `Mutex` to synchronize acc
 
 ```ruby
 class SharedList
-  def initialize
-    @list = []
-    @mutex = Mutex.new
-  end
+	def initialize
+		@list = []
+		@mutex = Mutex.new
+	end
 
-  def add(item)
-    @mutex.synchronize do
-      @list << item
-    end
-  end
+	def add(item)
+		@mutex.synchronize do
+			@list << item
+		end
+	end
 
-  def each(&block)
-    @mutex.synchronize do
-      @list.each(&block)
-    end
-  end
+	def each(&block)
+		@mutex.synchronize do
+			@list.each(&block)
+		end
+	end
 end
 ```
 
@@ -395,13 +395,13 @@ Alternatively, you can defer operations that modify the shared state until after
 ```ruby
 stale = []
 shared_list.each do |item|
-  if item.stale?
-    stale << item
-  end
+	if item.stale?
+		stale << item
+	end
 end
 
 stale.each do |item|
-  shared_list.remove(item)
+	shared_list.remove(item)
 end
 ```
 
@@ -410,7 +410,7 @@ Or better yet, use immutable data structures or pure functions that do not rely 
 ```ruby
 fresh = []
 shared_list.each do |item|
-  fresh << item unless item.stale?
+	fresh << item unless item.stale?
 end
 
 shared_list.replace(fresh) # Replace the entire list with a new one
@@ -422,7 +422,7 @@ Race conditions occur when state changes in an unpredictable way due to concurre
 
 ```ruby
 while system.busy?
-  system.wait
+	system.wait
 end
 ```
 
@@ -434,26 +434,26 @@ If you are able to modify the state transition logic of the shared resource, you
 
 ```ruby
 class System
-  def initialize
-    @mutex = Mutex.new
-    @condition = ConditionVariable.new
-    @usage = 0
-  end
+	def initialize
+		@mutex = Mutex.new
+		@condition = ConditionVariable.new
+		@usage = 0
+	end
 
-  def release
-    @mutex.synchronize do
-      @usage -= 1
-      @condition.signal if @usage == 0
-    end
-  end
+	def release
+		@mutex.synchronize do
+			@usage -= 1
+			@condition.signal if @usage == 0
+		end
+	end
 
-  def wait_until_free
-    @mutex.synchronize do
-      while @usage > 0
-        @condition.wait(@mutex)
-      end
-    end
-  end
+	def wait_until_free
+		@mutex.synchronize do
+			while @usage > 0
+				@condition.wait(@mutex)
+			end
+		end
+	end
 end
 ```
 
@@ -463,10 +463,10 @@ External resources can also lead to "time of check to time of use" issues, where
 
 ```ruby
 if File.exist?('cache.json')
-  @data = File.read('cache.json')
+	@data = File.read('cache.json')
 else
-  @data = fetch_data_from_api
-  File.write('cache.json', @data)
+	@data = fetch_data_from_api
+	File.write('cache.json', @data)
 end
 ```
 
@@ -480,12 +480,12 @@ Using content-addressable storage and atomic file operations can help avoid race
 
 ```ruby
 begin
-  File.read('cache.json')
+	File.read('cache.json')
 rescue Errno::ENOENT
-  File.open('cache.json', 'w') do |file|
-    file.flock(File::LOCK_EX)
-    file.write(fetch_data_from_api)
-  end
+	File.open('cache.json', 'w') do |file|
+		file.flock(File::LOCK_EX)
+		file.write(fetch_data_from_api)
+	end
 end
 ```
 
@@ -497,10 +497,10 @@ Using actual thread-local storage for "per-request" state can be problematic in 
 
 ```ruby
 class RequestContext
-  def self.current
-    Thread.current.thread_variable_get(:request_context) ||
-      Thread.current.thread_variable_set(:request_context, Hash.new)
-  end
+	def self.current
+		Thread.current.thread_variable_get(:request_context) ||
+			Thread.current.thread_variable_set(:request_context, Hash.new)
+	end
 end
 ```
 
@@ -510,55 +510,98 @@ In addition, some libraries may use `Thread.current` as a key in a hash or other
 
 ```ruby
 class Pool
-  def initialize
-    @connections = {}
-    @mutex = Mutex.new
-  end
-  
-  def current_connection
-    @mutex.synchronize do
-      @connections[Thread.current] ||= create_new_connection
-    end
-  end
-end
-```
-
-#### Use `Thread.current` for per-request state
-
-Despite the look, this is actually fiber-local and thus scoped to the smallest unit of concurrency in Ruby, which is the fiber. This means that it is safe to use `Thread.current` for per-request state, as long as you are aware that it is actually fiber-local storage.
-
-```ruby
-Thread.current[:connection] ||= create_new_connection
-```
-
-As a counter point, it not a good idea to use fiber-local storage for a cache, since it will never be shared.
-
-#### Use `Fiber[key]` for per-request state
-
-Using `Fiber[key]` can be a better alternative for per-request state as it is scoped to the fiber and is also inherited to child contexts.
-
-```ruby
-Fiber[:user_id] = request.session[:user_id] # Set per-request state
-
-jobs.each do |job|
-  Thread.new do
-    puts "Processing job for user #{Fiber[:user_id]}"
-    # Do something with the job...
-  end
+	def initialize
+		@connections = {}
+		@mutex = Mutex.new
+	end
+	
+	def current_connection
+		@mutex.synchronize do
+			@connections[Thread.current] ||= create_new_connection
+		end
+	end
 end
 ```
 
 #### Use `Fiber.attr` for per-request state
 
-As a direct alternative to `Thread.current`, with a slight performance advantage and readability improvement, you can use `Fiber.attr` to store per-request state. This is scoped to the fiber and is also inherited to child contexts.
+Use `Fiber.attr :my_attribute` for storing per-request state. `Fiber.current.my_attribute` provides a clean, readable way to define fiber-scoped attributes with excellent performance characteristics.
 
 ```ruby
-Fiber.attr :my_application_user_id
+# Use prefixed names to avoid namespace conflicts:
+Fiber.attr :falcon_request_id
 
-Fiber.current.my_application_user_id = request.session[:user_id] # Set per-request state
+# Set per-request state:
+Fiber.current.falcon_request_id = SecureRandom.uuid
+
+# Access anywhere in the same fiber:
+def process_data
+	puts "Request ID: #{Fiber.current.falcon_request_id}"
+end
 ```
 
-This state is not inherited to child fibers (or threads), so it's use is limited to the current fiber context. It should also be noted that the same technique can be used for threads, e.g. `Thread.attr`, but this has the same issues as `Thread.current.thread_variable_get/set`, since it is scoped to the thread and not the fiber.
+#### Use `Fiber[key]` for inheritable per-request state
+
+Use `Fiber[key]` when you need per-request state that **inherits across concurrency boundaries** (to child fibers and threads). This is particularly useful for request tracing, user context, or other state that should flow through your entire request processing pipeline.
+
+```ruby
+Fiber[:user_id] = request.session[:user_id]
+Fiber[:trace_id] = request.headers['X-Trace-ID']
+
+jobs.each do |job|
+	Thread.new do
+		# Child threads inherit the fiber storage:
+		puts "Processing job for user #{Fiber[:user_id]} (trace: #{Fiber[:trace_id]})"
+		process_job(job)
+	end
+end
+
+Async do |task|
+	# Child fibers also inherit the storage:
+	task.async do
+		puts "Background task for user: #{Fiber[:user_id]}"
+	end
+end
+```
+
+Note that since this state is inherited across concurrency boundaries, any mutable objects stored here must be thread-safe or you risk data corruption. Therefore you should prefer immutable values including strings, numbers, frozen objects, or other immutable data types, and avoid mutable objects like arrays, hashes, unless they're thread-safe.
+
+```ruby
+# Safe - immutable values:
+Fiber[:user_id] = "user_123"
+Fiber[:account_type] = :premium
+
+# Risky - mutable objects:
+Fiber[:user_preferences] = {} # Could be modified concurrently
+Fiber[:request_data] = SomeObject.new # Unless thread-safe
+```
+
+#### Use `Thread.current` for per-request state
+
+While `Thread.current[key]` is technically safe for per-request state in Ruby, **it has significant readability and comprehension issues** that make it a poor choice:
+
+```ruby
+Thread.current[:connection] ||= create_new_connection
+```
+
+Despite the look, this is actually stored per-fiber and thus acceptable for storing per-request state. While it works, the confusion it creates makes `Fiber.attr` or `Fiber[key]` much better options.
+
+#### Use `Thread.attr` for actual thread-local storage
+
+When you specifically need **actual per-thread storage** (not per-fiber), use `Thread.attr`. This is scoped to the OS thread and is not inherited by child fibers.
+
+```ruby
+Thread.attr :connection_pool
+
+# Each thread gets its own connection pool
+Thread.current.connection_pool = ConnectionPool.new(size: 5)
+
+def get_connection
+	Thread.current.connection_pool.checkout
+end
+```
+
+This approach is rarely needed in fiber-based applications and should be used sparingly, however it can be useful for state or caches that should persist across multiple fibers but is not generally thread safe. Storing an instance per thread can help mitigate thread safety issues.
 
 ### C extensions that block the scheduler
 
@@ -570,29 +613,29 @@ Synchronization primitives like `Mutex`, `ConditionVariable`, and `Queue` are es
 
 ```ruby
 class Counter
-  def initialize(count = 0)
-    @count = count
-    @mutex = Mutex.new
-  end
+	def initialize(count = 0)
+		@count = count
+		@mutex = Mutex.new
+	end
 
-  def increment
-    @mutex.synchronize do
-      @count += 1
-    end
-  end
+	def increment
+		@mutex.synchronize do
+			@count += 1
+		end
+	end
 
-  def times
-    @mutex.synchronize do
-      @count.times do |i|
-        yield i
-      end
-    end
-  end
+	def times
+		@mutex.synchronize do
+			@count.times do |i|
+				yield i
+			end
+		end
+	end
 end
 
 counter = Counter.new
 counter.times do |i|
-  counter.increment # deadlock
+	counter.increment # deadlock
 end
 ```
 
@@ -606,33 +649,33 @@ As an alternative to the above, reducing the scope of the lock can help avoid de
 
 ```ruby
 class Counter
-  # ...
+	# ...
 
-  def times
-    count = @mutex.synchronize{@count}
+	def times
+		count = @mutex.synchronize{@count}
 
-    # Avoid holding the lock while yielding to user code:
-    count.times do |i|
-      yield i
-    end
-  end
+		# Avoid holding the lock while yielding to user code:
+		count.times do |i|
+			yield i
+		end
+	end
 end
 ```
 
 ## Best Practices for Concurrency in Ruby
 
 1. **Favor pure, isolated, and immutable objects and functions.**
-   The safest and easiest way to write concurrent code is to avoid shared mutable state entirely. Isolated objects and pure functions eliminate the risk of race conditions and make reasoning about code much simpler.
+	 The safest and easiest way to write concurrent code is to avoid shared mutable state entirely. Isolated objects and pure functions eliminate the risk of race conditions and make reasoning about code much simpler.
 
 2. **Use per-request (or per-fiber) state correctly.**
-   When you need to associate state with a request, job, or fiber, prefer explicit context passing, or use fiber-local variables (e.g. `Fiber[:key]`). Avoid using thread-local storage in fiber-based code, as fibers may share threads and this can lead to subtle bugs.
+	 When you need to associate state with a request, job, or fiber, prefer explicit context passing, or use fiber-local variables (e.g. `Fiber[:key]`). Avoid using thread-local storage in fiber-based code, as fibers may share threads and this can lead to subtle bugs.
 
 3. **Use synchronization primitives only when sharing is truly necessary.**
-   If you must share mutable state (for performance, memory efficiency, or correctness), protect it with the appropriate synchronization primitives:
+	 If you must share mutable state (for performance, memory efficiency, or correctness), protect it with the appropriate synchronization primitives:
 
-   * Prefer high-level, lock-free data structures (e.g. `Concurrent::Map`) when possible.
-   * If locks are necessary, use fine-grained locking to minimize contention and reduce deadlock risk.
-   * Avoid coarse-grained locks except as a last resort, as they can severely limit concurrency and hurt performance.
+	 * Prefer high-level, lock-free data structures (e.g. `Concurrent::Map`) when possible.
+	 * If locks are necessary, use fine-grained locking to minimize contention and reduce deadlock risk.
+	 * Avoid coarse-grained locks except as a last resort, as they can severely limit concurrency and hurt performance.
 
 ### Hierarchy of Concurrency Safety
 
