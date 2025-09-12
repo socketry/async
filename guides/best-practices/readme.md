@@ -184,5 +184,3 @@ end
 ```
 
 It can be especially important to impose timeouts when processing user-provided data.
-
-## 
