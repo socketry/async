@@ -1,6 +1,6 @@
 # Releases
 
-## Unreleased
+## v2.32.1
 
   - Fix typo in documentation.
 

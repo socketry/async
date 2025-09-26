@@ -35,6 +35,10 @@ Please see the [project documentation](https://socketry.github.io/async/) for mo
 
 Please see the [project releases](https://socketry.github.io/async/releases/index) for all releases.
 
+### v2.32.1
+
+  - Fix typo in documentation.
+
 ### v2.32.0
 
   - Introduce `Queue#waiting_count` and `PriorityQueue#waiting_count`. Generally for statistics/testing purposes only.
@@ -79,10 +83,6 @@ This release introduces thread-safety as a core concept of Async. Many core clas
 ### v2.27.2
 
   - Fix `context/index.yaml` schema.
-
-### v2.27.1
-
-  - Updated documentation and agent context.
 
 ## See Also
 
