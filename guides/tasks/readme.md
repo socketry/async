@@ -189,14 +189,19 @@ end
 barrier = Async::Barrier.new
 semaphore = Async::Semaphore.new(2, parent: barrier)
 
-jobs.each do |job|
-	semaphore.async(parent: barrier) do
-		# ... process job ...
+begin
+	jobs.each do |job|
+		semaphore.async do
+			# ... process job ...
+		end
 	end
-end
 
-# Wait until all jobs are done:
-barrier.wait
+	# Wait until all jobs are done:
+	barrier.wait
+ensure
+	# Stop any remaining jobs:
+	barrier.stop
+end
 ~~~
 
 ## Stopping a Task
