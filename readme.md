@@ -35,6 +35,10 @@ Please see the [project documentation](https://socketry.github.io/async/) for mo
 
 Please see the [project releases](https://socketry.github.io/async/releases/index) for all releases.
 
+### v2.33.0
+
+  - Introduce `Async::Promise.fulfill` for optional promise resolution.
+
 ### v2.32.1
 
   - Fix typo in documentation.
@@ -79,10 +83,6 @@ This release introduces thread-safety as a core concept of Async. Many core clas
 ### v2.27.3
 
   - Ensure trace attributes are strings, fixes integration with OpenTelemetry.
-
-### v2.27.2
-
-  - Fix `context/index.yaml` schema.
 
 ## See Also
 

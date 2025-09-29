@@ -1,6 +1,6 @@
 # Releases
 
-## Unreleased
+## v2.33.0
 
   - Introduce `Async::Promise.fulfill` for optional promise resolution.
 
