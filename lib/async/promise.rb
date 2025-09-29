@@ -184,5 +184,19 @@ module Async
 				self.resolve(nil) unless @resolved
 			end
 		end
+		
+		# If a promise is given, fulfill it with the result of the block.
+		# If no promise is given, simply yield to the block.
+		# This is useful for methods that may optionally take a promise to fulfill.
+		# @parameter promise [Promise | Nil] The optional promise to fulfill.
+		# @yields {...} The block to call to resolve the promise or return a value.
+		# @returns [Object] The result of the block.
+		def self.fulfill(promise, &block)
+			if promise
+				return promise.fulfill(&block)
+			else
+				return yield
+			end
+		end
 	end
 end

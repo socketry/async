@@ -648,4 +648,58 @@ describe Async::Promise do
 			expect(promise.wait).to be == :first
 		end
 	end
+	
+	with ".fulfill" do
+		it "fulfills the promise when given" do
+			promise = Async::Promise.new
+			
+			result = Async::Promise.fulfill(promise) do
+				:block_result
+			end
+			
+			expect(result).to be == :block_result
+			expect(promise.resolved?).to be == true
+			expect(promise.wait).to be == :block_result
+		end
+		
+		it "simply yields when no promise is given" do
+			result = Async::Promise.fulfill(nil) do
+				:direct_result
+			end
+			
+			expect(result).to be == :direct_result
+		end
+		
+		it "handles exceptions when promise is given" do
+			promise = Async::Promise.new
+			test_error = StandardError.new("test error")
+			
+			result = Async::Promise.fulfill(promise) do
+				raise test_error
+			end
+			
+			expect(result).to be_nil
+			expect(promise.failed?).to be == true
+			expect(promise.value).to be == test_error
+		end
+		
+		it "propagates exceptions when no promise is given" do
+			test_error = StandardError.new("test error")
+			
+			expect do
+				Async::Promise.fulfill(nil) do
+					raise test_error
+				end
+			end.to raise_exception(StandardError, message: be =~ /test error/)
+		end
+		
+		it "works with falsy promise values" do
+			# Test that it properly checks for nil/false, not just truthiness
+			result = Async::Promise.fulfill(false) do
+				:should_yield_directly
+			end
+			
+			expect(result).to be == :should_yield_directly
+		end
+	end
 end

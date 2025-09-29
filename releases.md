@@ -1,5 +1,9 @@
 # Releases
 
+## Unreleased
+
+  - Introduce `Async::Promise.fulfill` for optional promise resolution.
+
 ## v2.32.1
 
   - Fix typo in documentation.
