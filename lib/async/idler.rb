@@ -13,10 +13,13 @@ module Async
 		# @parameter maximum_load [Numeric] The maximum load before we start shedding work.
 		# @parameter backoff [Numeric] The initial backoff time, used for delaying work.
 		# @parameter parent [Interface(:async) | Nil] The parent task to use for async operations.
-		def initialize(maximum_load = 0.8, backoff: 0.01, parent: nil)
+		def initialize(maximum_load = 0.8, backoff: 0.001, parent: nil)
 			@maximum_load = maximum_load
 			@backoff = backoff
+			@current = backoff
+			
 			@parent = parent
+			@mutex = Mutex.new
 		end
 		
 		# Wait until the system is idle, then execute the given block in a new task.
@@ -38,20 +41,29 @@ module Async
 		#
 		# If the scheduler is overloaded, this method will sleep for an exponentially increasing amount of time.
 		def wait
-			scheduler = Fiber.scheduler
-			backoff = nil
-			
-			while true
-				load = scheduler.load
+			@mutex.synchronize do
+				scheduler = Fiber.scheduler
 				
-				break if load < @maximum_load
-				
-				if backoff
-					sleep(backoff)
-					backoff *= 2.0
-				else
-					scheduler.yield
-					backoff = @backoff
+				while true
+					load = scheduler.load
+					
+					if load <= @maximum_load
+						# Even though load is okay, if @current is high, we were recently overloaded. Sleep proportionally to prevent burst after load drop:
+						if @current > @backoff
+							# Sleep a fraction of @current to rate limit:
+							sleep(@current - @backoff)
+							
+							# Decay @current gently towards @backoff:
+							alpha = 0.99
+							@current *= alpha + (1.0 - alpha) * (load / @maximum_load)
+						end
+						
+						break
+					else
+						# We're overloaded, so increase backoff:
+						@current *= (load / @maximum_load)
+						sleep(@current)
+					end
 				end
 			end
 		end
