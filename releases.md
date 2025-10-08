@@ -1,5 +1,28 @@
 # Releases
 
+## Unreleased
+
+### `Kernel::Barrier` Convenience Interface
+
+Starting multiple concurrent tasks and waiting for them to finish is a common pattern. This change introduces a small ergonomic helper, `Barrier`, defined in `Kernel`, that encapsulates this behavior: it creates an `Async::Barrier`, yields it to a block, waits for completion (using `Sync` to run a reactor if needed), and ensures remaining tasks are stopped on exit.
+
+``` ruby
+require 'async'
+
+Barrier do |barrier|
+	3.times do |i|
+		barrier.async do |task|
+			sleep(rand * 0.1)  # Simulate work
+			puts "Task #{i} completed"
+		end
+	end
+end
+
+# All tasks are guaranteed to complete or be stopped when the block exits.
+```
+
+If an exception is raised by a task, it will be propagated to the caller, and any remaining tasks will be stopped. The `parent:` parameter can be used to specify a parent task for the barrier, otherwise it will use the current task if available, or create a new reactor if not.
+
 ## v2.33.0
 
   - Introduce `Async::Promise.fulfill` for optional promise resolution.
