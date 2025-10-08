@@ -124,13 +124,12 @@ describe Kernel do
 			
 			# Should complete successfully
 		end
-	end
-	
-	with "Kernel::Barrier" do
+		
 		it "should create a barrier, yield it, wait, and stop automatically" do
 			finished = 0
 			results = []
-			Barrier() do |barrier|
+			
+			Barrier do |barrier|
 				3.times do |i|
 					barrier.async do |task|
 						sleep(0.01 * i)
@@ -146,7 +145,7 @@ describe Kernel do
 		
 		it "should handle exceptions and still clean up properly" do
 			expect do
-				Barrier() do |barrier|
+				Barrier do |barrier|
 					barrier.async do |task|
 						raise "Kernel helper exception"
 					end
