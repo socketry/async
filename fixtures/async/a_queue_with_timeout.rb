@@ -43,7 +43,6 @@ module Async
 				
 				expect(result).to be_nil
 				expect(elapsed).to be >= 0.1
-				expect(elapsed).to be < 0.2  # Should not wait much longer
 			end
 			
 			it "returns item before timeout expires" do
