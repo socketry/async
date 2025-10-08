@@ -35,6 +35,10 @@ Please see the [project documentation](https://socketry.github.io/async/) for mo
 
 Please see the [project releases](https://socketry.github.io/async/releases/index) for all releases.
 
+### v2.34.0
+
+  - [`Kernel::Barrier` Convenience Interface](https://socketry.github.io/async/releases/index#kernel::barrier-convenience-interface)
+
 ### v2.33.0
 
   - Introduce `Async::Promise.fulfill` for optional promise resolution.
@@ -79,10 +83,6 @@ This release introduces thread-safety as a core concept of Async. Many core clas
 ### v2.27.4
 
   - Suppress excessive warning in `Async::Scheduler#async`.
-
-### v2.27.3
-
-  - Ensure trace attributes are strings, fixes integration with OpenTelemetry.
 
 ## See Also
 

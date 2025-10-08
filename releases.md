@@ -1,6 +1,6 @@
 # Releases
 
-## Unreleased
+## v2.34.0
 
 ### `Kernel::Barrier` Convenience Interface
 
