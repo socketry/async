@@ -27,7 +27,7 @@ describe Async::Idler do
 		end
 		
 		# This test must be longer than the idle calculation window (1s)...
-		sleep 1.1
+		sleep 2.0
 		
 		# Verify that the load is within the desired range:
 		expect(Fiber.scheduler.load).to be_within(0.2).of(0.5)
