@@ -82,7 +82,7 @@ describe Kernel do
 		
 		it "should stop remaining tasks when block exits early" do
 			tasks = []
-
+			
 			Sync do |parent|
 				begin
 					Barrier do |barrier|
@@ -98,7 +98,7 @@ describe Kernel do
 				rescue => e
 					# Expected exception
 				end
-
+				
 				# Wait for tasks to finish/stopped deterministically
 				tasks.each do |t|
 					begin
@@ -108,7 +108,7 @@ describe Kernel do
 					end
 				end
 			end
-
+			
 			# All three tasks should have been stopped
 			expect(tasks.map(&:stopped?).all?).to be == true
 		end
@@ -125,7 +125,7 @@ describe Kernel do
 			# Should complete successfully
 		end
 	end
-
+	
 	with "Kernel::Barrier" do
 		it "should create a barrier, yield it, wait, and stop automatically" do
 			finished = 0
@@ -139,11 +139,11 @@ describe Kernel do
 					end
 				end
 			end
-
+			
 			expect(finished).to be == 3
 			expect(results.size).to be == 3
 		end
-
+		
 		it "should handle exceptions and still clean up properly" do
 			expect do
 				Barrier() do |barrier|
@@ -156,14 +156,14 @@ describe Kernel do
 				end
 			end.to raise_exception(RuntimeError, message: be =~ /Kernel helper exception/)
 		end
-
+		
 		it "should support parent parameter" do
 			parent_task = nil
 			child_task = nil
-
+			
 			Sync do |task|
 				parent_task = task
-
+				
 				Barrier(parent: task) do |barrier|
 					barrier.async do |async_task|
 						child_task = async_task
@@ -173,7 +173,7 @@ describe Kernel do
 					end
 				end
 			end
-
+			
 			expect(child_task).not.to be_nil
 		end
 	end
