@@ -55,12 +55,24 @@ This expresses the intent to the caller that this method should only be invoked 
 
 ## Use barriers to manage unbounded concurrency
 
-Barriers provide a way to manage an unbounded number of tasks.
+Barriers provide a way to manage an unbounded number of tasks. The top-level `Barrier` method creates a barrier with built-in load management using an `Async::Idler`.
 
 ```ruby
-Async do
-	barrier = Async::Barrier.new
-	
+Barrier do |barrier|
+	items.each do |item|
+		barrier.async do
+			process(item)
+		end
+	end
+end
+```
+
+The barrier will automatically wait for all tasks to complete and stop any outstanding tasks when the block exits. By default, it uses an `Async::Idler` to prevent system overload by scheduling tasks when the system load is below 80%.
+
+If you want to process tasks in order of completion, you can explicitly call `wait` with a block:
+
+```ruby
+Barrier do |barrier|
 	items.each do |item|
 		barrier.async do
 			process(item)
@@ -75,46 +87,57 @@ Async do
 		# If you don't want to wait for any more tasks you can break:
 		break
 	end
-	
-	# Or just wait for all tasks to finish:
-	barrier.wait # May raise an exception if a task failed.
-ensure
-	# Stop all outstanding tasks in the barrier:
-	barrier&.stop
+end
+```
+
+To disable load management (not recommended for unbounded concurrency), you can pass `parent: nil`:
+
+```ruby
+Barrier(parent: nil) do |barrier|
+	# No load management - creates tasks as fast as possible
+	items.each do |item|
+		barrier.async do
+			process(item)
+		end
+	end
 end
 ```
 
 ## Use a semaphore to limit the number of concurrent tasks
 
-Semaphores allow you to limit the level of concurrency to a fixed number of tasks:
+Semaphores allow you to limit the level of concurrency to a fixed number of tasks. When using semaphores with barriers, the barrier should be the root of your task hierarchy, and the semaphore should be a child of the barrier:
 
 ```ruby
-Async do |task|
-	barrier = Async::Barrier.new
+Barrier(parent: nil) do |barrier|
 	semaphore = Async::Semaphore.new(4, parent: barrier)
 	
-	# Since the semaphore.async may block, we need to run the work scheduling in a child task:
-	task.async do
-		items.each do |item|
-			semaphore.async do
-				process(item)
-			end
+	items.each do |item|
+		semaphore.async do
+			process(item)
 		end
 	end
-	
-	# Wait for all the work to complete:
-	barrier.wait
-ensure
-	# Stop all outstanding tasks in the barrier:
-	barrier&.stop
 end
 ```
 
-In general, the barrier should be the root of your task hierarchy, and the semaphore should be a child of the barrier. This allows you to manage the lifetime of all tasks created by the semaphore, and ensures that all tasks are stopped when the barrier is stopped.
+In this example, we use `parent: nil` for the barrier to disable load management, since the semaphore already provides concurrency control. The semaphore limits execution to 4 concurrent tasks, and the barrier ensures all tasks are stopped when the block exits.
 
 ### Idler
 
-Idlers are like semaphores but with a limit defined by current processor utilization. In other words, an idler will do work up to a specific ratio of idle/busy time in the scheduler, and try to maintain that.
+Idlers are like semaphores but with a limit defined by current processor utilization. In other words, an idler will schedule work up to a specific ratio of idle/busy time in the scheduler.
+
+The top-level `Barrier` method uses an idler by default, making it safe for unbounded concurrency:
+
+```ruby
+Barrier do |barrier|  # Uses Async::Idler.new(0.8) by default
+	work.each do |work|
+		barrier.async do
+			work.call
+		end
+	end
+end
+```
+
+You can also use an idler directly without a barrier:
 
 ```ruby
 Async do
