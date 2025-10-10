@@ -145,7 +145,7 @@ Async do |task|
 		while chunk = socket.gets
 			queue.push(chunk)
 		end
-	end
+
 		# After this point, we won't be able to add items to the queue, and popping items will eventually result in nil once all items are dequeued:
 		queue.close
 	end
