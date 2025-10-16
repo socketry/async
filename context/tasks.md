@@ -450,4 +450,4 @@ Async do
 end
 ```
 
-Upon existing the top level async block, the {ruby @refresh} task will be set to `nil`. Bear in mind, you should not share these resources across threads; doing so would need some form of mutual exclusion.
+Upon exiting the top level async block, the {ruby @refresh} task will be set to `nil`. Bear in mind, you should not share these resources across threads; doing so would need some form of mutual exclusion.
