@@ -87,11 +87,10 @@ This release introduces thread-safety as a core concept of Async. Many core clas
 ## See Also
 
   - [async-http](https://github.com/socketry/async-http) — Asynchronous HTTP client/server.
+  - [falcon](https://github.com/socketry/falcon) — A rack compatible server built on top of `async-http`.
   - [async-websocket](https://github.com/socketry/async-websocket) — Asynchronous client and server websockets.
   - [async-dns](https://github.com/socketry/async-dns) — Asynchronous DNS resolver and server.
-  - [falcon](https://github.com/socketry/falcon) — A rack compatible server built on top of `async-http`.
-  - [rubydns](https://github.com/ioquatix/rubydns) — An easy to use Ruby DNS server.
-  - [slack-ruby-bot](https://github.com/slack-ruby/slack-ruby-bot) — A client for making slack bots.
+  - [toolbox](https://github.com/socketry/toolbox) — GDB & LLDB extensions for debugging Ruby applications with Fibers.
 
 ## Contributing
 
