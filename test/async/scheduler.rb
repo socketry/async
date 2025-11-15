@@ -11,7 +11,7 @@ require "net/http"
 require "sus/fixtures/console"
 
 describe Async::Scheduler do
-	include_context Sus::Fixtures::Console::CapturedLogger
+	include Sus::Fixtures::Console::CapturedLogger
 	
 	it "is supported" do
 		expect(Async::Scheduler).to be(:supported?)

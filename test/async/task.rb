@@ -1052,7 +1052,7 @@ describe Async::Task do
 	end
 	
 	with "failing task" do
-		include_context Sus::Fixtures::Console::CapturedLogger
+		include Sus::Fixtures::Console::CapturedLogger
 		
 		it "logs a warning if a task fails without being waited on" do
 			failed_task = nil
