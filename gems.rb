@@ -44,4 +44,5 @@ group :test do
 	gem "bake-test-external"
 	
 	gem "benchmark-ips"
+	gem "openssl", "~> 3.3.2"
 end
