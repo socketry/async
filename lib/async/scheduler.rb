@@ -9,6 +9,7 @@
 require_relative "clock"
 require_relative "task"
 require_relative "timeout"
+require_relative "fork_handler"
 
 require "io/event"
 
@@ -146,24 +147,26 @@ module Async
 		# Terminate all child tasks and close the scheduler.
 		# @public Since *Async v1*.
 		def close
-			self.run_loop do
-				until self.terminate
-					self.run_once!
+			unless @children.nil?
+				self.run_loop do
+					until self.terminate
+						self.run_once!
+					end
 				end
 			end
 			
 			Kernel.raise "Closing scheduler with blocked operations!" if @blocked > 0
 		ensure
 			# We want `@selector = nil` to be a visible side effect from this point forward, specifically in `#interrupt` and `#unblock`. If the selector is closed, then we don't want to push any fibers to it.
-			selector = @selector
-			@selector = nil
+			if selector = @selector
+				@selector = nil
+				selector.close
+			end
 			
-			selector&.close
-			
-			worker_pool = @worker_pool
-			@worker_pool = nil
-			
-			worker_pool&.close
+			if worker_pool = @worker_pool
+				@worker_pool = nil
+				worker_pool.close
+			end
 			
 			consume
 		end
@@ -641,6 +644,25 @@ module Async
 			with_timeout(duration, exception, message) do
 				yield duration
 			end
+		end
+		
+		# Handle fork in the child process. This method is called automatically when `Process.fork` is invoked.
+		#
+		# The child process starts with a clean slate - no scheduler is set. Users can create a new scheduler if needed.
+		#
+		# @public Since *Async v2.35*.
+		def process_fork
+			if profiler = @profiler
+				@profiler = nil
+				profiler.stop
+			end
+			
+			@children = nil
+			@selector = nil
+			@timers = nil
+			
+			# Close the scheduler:
+			Fiber.set_scheduler(nil)
 		end
 	end
 end
