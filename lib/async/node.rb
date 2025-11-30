@@ -214,7 +214,8 @@ module Async
 		end
 		
 		protected def remove_child(child)
-			@children.remove(child)
+			# In the case of a fork, the children list may be nil:
+			@children&.remove(child)
 			child.set_parent(nil)
 		end
 		
