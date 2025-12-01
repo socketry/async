@@ -5,6 +5,7 @@
 # Copyright, 2019, by Ryan Musgrave.
 # Copyright, 2020-2022, by Bruno Sutic.
 # Copyright, 2025, by Jahfer Husain.
+# Copyright, 2025, by Shopify Inc.
 
 require "async/queue"
 

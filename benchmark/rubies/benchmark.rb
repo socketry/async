@@ -194,7 +194,7 @@ NUM_WORKERS.times do |i|
 	workers.push f
 end
 
-workers.each {|f| f.resume}
+workers.each{|f| f.resume}
 
 master_fiber = Fiber.new do
 	NUM_WORKERS.times do |worker_num|

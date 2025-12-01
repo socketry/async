@@ -89,7 +89,7 @@ module Async
 		end
 		
 		it "can enqueue multiple items" do
-			items = Array.new(10) {rand(10)}
+			items = Array.new(10){rand(10)}
 			
 			reactor.async do |task|
 				queue.enqueue(*items)

@@ -35,6 +35,10 @@ Please see the [project documentation](https://socketry.github.io/async/) for mo
 
 Please see the [project releases](https://socketry.github.io/async/releases/index) for all releases.
 
+### Unreleased
+
+  - `Process.fork` is now properly handled by the Async fiber scheduler, ensuring that the scheduler state is correctly reset in the child process after a fork. This prevents issues where the child process inherits the scheduler state from the parent, which could lead to unexpected behavior.
+
 ### v2.34.0
 
   - [`Kernel::Barrier` Convenience Interface](https://socketry.github.io/async/releases/index#kernel::barrier-convenience-interface)
@@ -79,10 +83,6 @@ This release introduces thread-safety as a core concept of Async. Many core clas
 ### v2.28.0
 
   - Use `Traces.current_context` and `Traces.with_context` for better integration with OpenTelemetry.
-
-### v2.27.4
-
-  - Suppress excessive warning in `Async::Scheduler#async`.
 
 ## See Also
 

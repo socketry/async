@@ -34,6 +34,7 @@ Copyright, 2025, by Alan Wu.
 Copyright, 2025, by Shopify Inc.  
 Copyright, 2025, by Josh Teeter.  
 Copyright, 2025, by Jatin Goyal.  
+Copyright, 2025, by Yuhi Sato.  
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

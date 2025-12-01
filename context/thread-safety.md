@@ -106,11 +106,11 @@ Class variables (`@@variable`) and class attributes (`class_attribute`) represen
 ```ruby
 class GlobalConfig
 	@@settings = {} # Issue: Class variables are shared across inheritance
-
+	
 	def set(key, value)
 		@@settings[key] = value
 	end
-
+	
 	def get(key)
 		@@settings[key]
 	end
@@ -138,7 +138,7 @@ Lazy initialization is a common pattern in Ruby, but the `||=` operator is not a
 ```ruby
 class Loader
 	def self.data
-		@data ||= JSON.load_file('data.json')
+		@data ||= JSON.load_file("data.json")
 	end
 end
 ```
@@ -152,18 +152,18 @@ This could cause situations where `self.data != self.data` for example, or modif
 ```ruby
 class Loader
 	@mutex = Mutex.new
-
+	
 	def self.data
 		# Double-checked locking pattern:
 		return @data if @data
-
+		
 		@mutex.synchronize do
 			return @data if @data
-
+			
 			# Now we are sure that @data is nil, we can safely fetch it:
-			@data = JSON.load_file('data.json')
+			@data = JSON.load_file("data.json")
 		end
-
+		
 		return @data
 	end
 end
@@ -175,15 +175,15 @@ In addition, it should be noted that lazy initialization of a `Mutex` (and other
 class Loader
 	def self.data
 		@mutex ||= Mutex.new # Issue: Not thread-safe
-
+		
 		@mutex.synchronize do
 			# Double-checked locking pattern:
 			return @data if @data
-
+			
 			# Now we are sure that @data is nil, we can safely fetch it:
-			@data = JSON.load_file('data.json')
+			@data = JSON.load_file("data.json")
 		end
-
+		
 		return @data
 	end
 end
@@ -214,7 +214,7 @@ Like lazy initialization, memoization using `Hash` caches can lead to race condi
 ```ruby
 class ExpensiveComputation
 	@cache = {}
-
+	
 	def self.compute(key)
 		@cache[key] ||= expensive_operation(key) # Issue: Not thread-safe
 	end
@@ -231,7 +231,7 @@ Note that this mutex creates contention on all calls to `compute`, which can be 
 class ExpensiveComputation
 	@cache = {}
 	@mutex = Mutex.new
-
+	
 	def self.compute(key)
 		@mutex.synchronize do
 			@cache[key] ||= expensive_operation(key)
@@ -245,7 +245,7 @@ end
 ```ruby
 class ExpensiveComputation
 	@cache = Concurrent::Map.new
-
+	
 	def self.compute(key)
 		@cache.compute_if_absent(key) do
 			expensive_operation(key)
@@ -320,7 +320,7 @@ end
 Using a connection pool can help manage shared connections safely:
 
 ```ruby
-require 'connection_pool'
+require "connection_pool"
 pool = ConnectionPool.new(size: 5, timeout: 5) do
 	Database.connect
 end
@@ -347,11 +347,11 @@ class SharedList
 	def initialize
 		@list = []
 	end
-
+	
 	def add(item)
 		@list << item
 	end
-
+	
 	def each(&block)
 		# Issue: Modifications during enumeration can lead to inconsistent state
 		@list.each(&block)
@@ -373,13 +373,13 @@ class SharedList
 		@list = []
 		@mutex = Mutex.new
 	end
-
+	
 	def add(item)
 		@mutex.synchronize do
 			@list << item
 		end
 	end
-
+	
 	def each(&block)
 		@mutex.synchronize do
 			@list.each(&block)
@@ -439,14 +439,14 @@ class System
 		@condition = ConditionVariable.new
 		@usage = 0
 	end
-
+	
 	def release
 		@mutex.synchronize do
 			@usage -= 1
 			@condition.signal if @usage == 0
 		end
 	end
-
+	
 	def wait_until_free
 		@mutex.synchronize do
 			while @usage > 0
@@ -462,11 +462,11 @@ end
 External resources can also lead to "time of check to time of use" issues, where the state of the resource changes between checking its status and using it.
 
 ```ruby
-if File.exist?('cache.json')
-	@data = File.read('cache.json')
+if File.exist?("cache.json")
+	@data = File.read("cache.json")
 else
 	@data = fetch_data_from_api
-	File.write('cache.json', @data)
+	File.write("cache.json", @data)
 end
 ```
 
@@ -480,9 +480,9 @@ Using content-addressable storage and atomic file operations can help avoid race
 
 ```ruby
 begin
-	File.read('cache.json')
+	File.read("cache.json")
 rescue Errno::ENOENT
-	File.open('cache.json', 'w') do |file|
+	File.open("cache.json", "w") do |file|
 		file.flock(File::LOCK_EX)
 		file.write(fetch_data_from_api)
 	end
@@ -546,7 +546,7 @@ Use `Fiber[key]` when you need per-request state that **inherits across concurre
 
 ```ruby
 Fiber[:user_id] = request.session[:user_id]
-Fiber[:trace_id] = request.headers['X-Trace-ID']
+Fiber[:trace_id] = request.headers["X-Trace-ID"]
 
 jobs.each do |job|
 	Thread.new do
@@ -617,13 +617,13 @@ class Counter
 		@count = count
 		@mutex = Mutex.new
 	end
-
+	
 	def increment
 		@mutex.synchronize do
 			@count += 1
 		end
 	end
-
+	
 	def times
 		@mutex.synchronize do
 			@count.times do |i|
@@ -650,10 +650,10 @@ As an alternative to the above, reducing the scope of the lock can help avoid de
 ```ruby
 class Counter
 	# ...
-
+	
 	def times
 		count = @mutex.synchronize{@count}
-
+		
 		# Avoid holding the lock while yielding to user code:
 		count.times do |i|
 			yield i

@@ -32,6 +32,7 @@ group :test do
 	gem "decode"
 	
 	gem "rubocop"
+	gem "rubocop-md"
 	gem "rubocop-socketry"
 	
 	gem "sus-fixtures-async"

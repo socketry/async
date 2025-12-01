@@ -128,7 +128,7 @@ describe Async::Condition do
 				
 				Async do |task|
 					# Check empty state
-					100.times {test_condition.empty?}
+					100.times{test_condition.empty?}
 					
 					# Create a waiter
 					waiter = task.async do
@@ -136,7 +136,7 @@ describe Async::Condition do
 					end
 					
 					# Check waiting state
-					100.times {test_condition.waiting?}
+					100.times{test_condition.waiting?}
 					
 					# Signal to complete
 					test_condition.signal("done")
@@ -188,7 +188,7 @@ describe Async::Condition do
 					# Producer
 					producer = task.async do
 						ready_condition.wait # Wait for consumer to be ready
-						50.times {|i| "item-#{i}"} # Simulate work
+						50.times{|i| "item-#{i}"} # Simulate work
 						done_condition.signal("finished")
 					end
 					
@@ -211,7 +211,7 @@ describe Async::Condition do
 				test_condition = Async::Condition.new
 				
 				Async do |task|
-					waiter = task.async {test_condition.wait}
+					waiter = task.async{test_condition.wait}
 					
 					test_condition.signal("cleanup")
 					waiter.wait

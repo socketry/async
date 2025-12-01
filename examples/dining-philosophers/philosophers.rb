@@ -48,7 +48,7 @@ end
 # This code ensures that philosophers can think and eat concurrently while properly handling the synchronization of forks to avoid conflicts.
 Async do |task|
 	# We create an array of Async::Semaphore objects to represent the forks. Each semaphore is initialized with a count of 1, representing a single fork.
-	forks = Array.new(5) {Async::Semaphore.new(1)}
+	forks = Array.new(5){Async::Semaphore.new(1)}
 	
 	# We create an array of philosophers, each of whom gets two forks (their left and right neighbors).
 	philosophers = Array.new(5) do |i|

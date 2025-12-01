@@ -30,39 +30,39 @@ module Async
 		
 		# @returns [Boolean] Whether the promise has been resolved or rejected.
 		def resolved?
-			@mutex.synchronize {!!@resolved}
+			@mutex.synchronize{!!@resolved}
 		end
 		
 		# @returns [Symbol | Nil] The internal resolved state (:completed, :failed, :cancelled, or nil if pending).
 		# @private For internal use by Task.
 		def resolved
-			@mutex.synchronize {@resolved}
+			@mutex.synchronize{@resolved}
 		end
 		
 		# @returns [Boolean] Whether the promise has been cancelled.
 		def cancelled?
-			@mutex.synchronize {@resolved == :cancelled}
+			@mutex.synchronize{@resolved == :cancelled}
 		end
 		
 		# @returns [Boolean] Whether the promise failed with an exception.
 		def failed?
-			@mutex.synchronize {@resolved == :failed}
+			@mutex.synchronize{@resolved == :failed}
 		end
 		
 		# @returns [Boolean] Whether the promise has completed successfully.
 		def completed?
-			@mutex.synchronize {@resolved == :completed}
+			@mutex.synchronize{@resolved == :completed}
 		end
 		
 		# @returns [Boolean] Whether any fibers are currently waiting for this promise.
 		def waiting?
-			@mutex.synchronize {@waiting > 0}
+			@mutex.synchronize{@waiting > 0}
 		end
 		
 		# Artificially mark that someone is waiting (useful for suppressing warnings).
 		# @private Internal use only.
 		def suppress_warnings!
-			@mutex.synchronize {@waiting += 1}
+			@mutex.synchronize{@waiting += 1}
 		end
 		
 		# Non-blocking access to the current value. Returns nil if not yet resolved.
@@ -71,7 +71,7 @@ module Async
 		#
 		# @returns [Object | Nil] The stored value, or nil if pending.
 		def value
-			@mutex.synchronize {@resolved ? @value : nil}
+			@mutex.synchronize{@resolved ? @value : nil}
 		end
 		
 		# Wait for the promise to be resolved and return the value.

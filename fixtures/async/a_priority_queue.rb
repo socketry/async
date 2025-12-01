@@ -110,14 +110,14 @@ module Async
 			end
 			
 			it "supports priority parameter in wait" do
-				reactor.async {queue.push(:item)}
+				reactor.async{queue.push(:item)}
 				expect(queue.wait(priority: 5)).to be == :item
 			end
 			
 			it "supports priority parameter in each" do
 				items = [:item1, :item2]
 				reactor.async do
-					items.each {|item| queue.push(item)}
+					items.each{|item| queue.push(item)}
 					queue.push(nil)
 				end
 				
@@ -148,11 +148,11 @@ module Async
 			it "tracks number of waiting consumers" do
 				expect(queue.waiting).to be == 0
 				
-				task1 = reactor.async {queue.dequeue}
+				task1 = reactor.async{queue.dequeue}
 				reactor.yield
 				expect(queue.waiting).to be == 1
 				
-				task2 = reactor.async {queue.dequeue}
+				task2 = reactor.async{queue.dequeue}
 				reactor.yield
 				expect(queue.waiting).to be == 2
 				

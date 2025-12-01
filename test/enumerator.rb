@@ -35,7 +35,7 @@ describe Enumerator do
 			enumerator = enum(task)
 			result << enumerator.next
 			result << enumerator.next
-			result << begin enumerator.next rescue $! end
+			result << (enumerator.next rescue $!)
 		end
 		
 		expect(result[0]).to be == 1

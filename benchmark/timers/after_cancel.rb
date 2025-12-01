@@ -2,7 +2,7 @@
 # frozen_string_literal: true
 
 # Released under the MIT License.
-# Copyright, 2024, by Samuel Williams.
+# Copyright, 2024-2025, by Samuel Williams.
 
 require "benchmark/ips"
 
@@ -17,7 +17,7 @@ Benchmark.ips do |benchmark|
 		timers = Timers::Group.new
 		
 		while count > 0
-			timer = timers.after(0) {}
+			timer = timers.after(0){}
 			timer.cancel
 			count -= 1
 		end
@@ -29,7 +29,7 @@ Benchmark.ips do |benchmark|
 		timers = IO::Event::Timers.new
 		
 		while count > 0
-			timer = timers.after(0) {}
+			timer = timers.after(0){}
 			timer.cancel!
 			count -= 1
 		end

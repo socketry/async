@@ -21,7 +21,7 @@ Initialized --> Stopped : Stop
 ## Example
 
 ```ruby
-require 'async'
+require "async"
 
 # Create an asynchronous task that sleeps for 1 second:
 Async do |task|

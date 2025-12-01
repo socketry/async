@@ -78,7 +78,7 @@ You can use this approach to embed the reactor in another event loop. For some i
 In order to integrate with native Ruby blocking operations, the {ruby Async::Scheduler} uses a {ruby Fiber::Scheduler} interface.
 
 ```ruby
-require 'async'
+require "async"
 
 scheduler = Async::Scheduler.new
 Fiber.set_scheduler(scheduler)

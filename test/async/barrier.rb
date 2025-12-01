@@ -241,7 +241,7 @@ describe Async::Barrier do
 			tasks.each(&:wait)
 			
 			# All tasks should be stopped and all ensure blocks executed
-			tasks.each {|task| expect(task).to be(:stopped?)}
+			tasks.each{|task| expect(task).to be(:stopped?)}
 			expect(ensure_counts.sort).to be == [0, 1, 2]
 		end
 	end

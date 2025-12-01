@@ -99,8 +99,8 @@ By constructing your program correctly, it's easy to implement concurrent map-re
 ```ruby
 Async do
 	# Map (create several concurrent tasks)
-	users_size = Async{User.size}
-	posts_size = Async{Post.size}
+	users_size = Async {User.size}
+	posts_size = Async {Post.size}
 	
 	# Reduce (wait for and merge the results)
 	average = posts_size.wait / users_size.wait
@@ -220,7 +220,7 @@ Async do
 			puts "Hello World #{i}"
 		end
 	end
-
+	
 	# Stop all the above tasks:
 	tasks.each(&:stop)
 end
@@ -414,8 +414,8 @@ and you could be handling 1000s of requests per second.
 The task doing the updating in the background is an implementation detail, so it is marked as `transient`.
 
 ```ruby
-require 'async'
-require 'thread/local' # thread-local gem.
+require "async"
+require "thread/local" # thread-local gem.
 
 class TimeStringCache
 	extend Thread::Local # defines `instance` class method that lazy-creates a separate instance per thread

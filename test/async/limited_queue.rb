@@ -29,7 +29,7 @@ describe Async::LimitedQueue do
 	end
 	
 	it "enqueues items up to a limit" do
-		items = Array.new(2) {rand(10)}
+		items = Array.new(2){rand(10)}
 		reactor.async do
 			queue.enqueue(*items)
 		end

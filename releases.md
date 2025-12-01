@@ -11,7 +11,7 @@
 Starting multiple concurrent tasks and waiting for them to finish is a common pattern. This change introduces a small ergonomic helper, `Barrier`, defined in `Kernel`, that encapsulates this behavior: it creates an `Async::Barrier`, yields it to a block, waits for completion (using `Sync` to run a reactor if needed), and ensures remaining tasks are stopped on exit.
 
 ``` ruby
-require 'async'
+require "async"
 
 Barrier do |barrier|
 	3.times do |i|
@@ -70,15 +70,15 @@ This release introduces the new `Async::Promise` class and refactors `Async::Tas
 <!-- end list -->
 
 ``` ruby
-require 'async/promise'
+require "async/promise"
 
 # Basic promise usage - works independently of Async framework
 promise = Async::Promise.new
 
 # In another thread or fiber, resolve the promise
 Thread.new do
-  sleep(1)  # Simulate some work
-  promise.resolve("Hello, World!")
+	sleep(1)  # Simulate some work
+	promise.resolve("Hello, World!")
 end
 
 # Wait for the result
@@ -97,34 +97,34 @@ Promises bridge Thread and Fiber concurrency models - a promise resolved in one 
 The new `Async::PriorityQueue` provides a thread-safe, fiber-aware queue where consumers can specify priority levels. Higher priority consumers are served first when items become available, with FIFO ordering maintained for equal priorities. This is useful for implementing priority-based task processing systems where critical operations need to be handled before lower priority work.
 
 ``` ruby
-require 'async'
-require 'async/priority_queue'
+require "async"
+require "async/priority_queue"
 
 Async do
-  queue = Async::PriorityQueue.new
-  
-  # Start consumers with different priorities
-  low_priority = async do
-    puts "Low priority consumer got: #{queue.dequeue(priority: 1)}"
-  end
-  
-  medium_priority = async do
-    puts "Medium priority consumer got: #{queue.dequeue(priority: 5)}"
-  end
-  
-  high_priority = async do
-    puts "High priority consumer got: #{queue.dequeue(priority: 10)}"
-  end
-  
-  # Add items to the queue
-  queue.push("first item")
-  queue.push("second item")
-  queue.push("third item")
-  
-  # Output:
-  # High priority consumer got: first item
-  # Medium priority consumer got: second item  
-  # Low priority consumer got: third item
+	queue = Async::PriorityQueue.new
+	
+		# Start consumers with different priorities
+	low_priority = async do
+		puts "Low priority consumer got: #{queue.dequeue(priority: 1)}"
+	end
+	
+	medium_priority = async do
+		puts "Medium priority consumer got: #{queue.dequeue(priority: 5)}"
+	end
+	
+	high_priority = async do
+		puts "High priority consumer got: #{queue.dequeue(priority: 10)}"
+	end
+	
+		# Add items to the queue
+	queue.push("first item")
+	queue.push("second item")
+	queue.push("third item")
+	
+		# Output:
+		# High priority consumer got: first item
+		# Medium priority consumer got: second item  
+		# Low priority consumer got: third item
 end
 ```
 
@@ -374,10 +374,10 @@ This gives better visibility into what the scheduler is doing, and should help d
 The `async` gem depends on `console` gem, because my goal was to have good logging by default without thinking about it too much. However, some users prefer to avoid using the `console` gem for logging, so I've added an experimental set of shims which should allow you to bypass the `console` gem entirely.
 
 ``` ruby
-require 'async/console'
-require 'async'
+require "async/console"
+require "async"
 
-Async{raise "Boom"}
+Async {raise "Boom"}
 ```
 
 Will now use `Kernel#warn` to print the task failure warning:
@@ -411,7 +411,7 @@ reactor = Async::Reactor.new # internally calls Fiber.set_scheduler
 
 # This should run in the above reactor, rather than creating a new one.
 Async do
-  puts "Hello World"
+	puts "Hello World"
 end
 ```
 

@@ -54,7 +54,7 @@ describe Async::Waiter do
 		
 		it "passes annotation to barrier" do
 			expect(barrier).to receive(:async).with(annotation: "waited upon task")
-			waiter.async(annotation: "waited upon task") {}
+			waiter.async(annotation: "waited upon task"){}
 		end
 	end
 end

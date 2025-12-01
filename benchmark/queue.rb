@@ -28,10 +28,10 @@ describe Async::Queue do
 			repeats.times do
 				Async do
 					# Create a batch of 100 items each time
-					items = Array.new(100) {|i| "item-#{i}"}
+					items = Array.new(100){|i| "item-#{i}"}
 					queue.enqueue(*items)
 					# Clear queue for next iteration
-					100.times {queue.dequeue}
+					100.times{queue.dequeue}
 				end
 			end
 		end
@@ -40,7 +40,7 @@ describe Async::Queue do
 			repeats.times do
 				Async do
 					# Pre-populate queue with 100 items
-					items = Array.new(100) {|i| "item-#{i}"}
+					items = Array.new(100){|i| "item-#{i}"}
 					queue.enqueue(*items)
 					
 					# Measure dequeue operations
@@ -119,7 +119,7 @@ describe Async::Queue do
 							queue.push("item-#{i}")
 						end
 						# Signal completion to all consumers
-						num_consumers.times {queue.push(nil)}
+						num_consumers.times{queue.push(nil)}
 					end
 					
 					# Multiple consumers
@@ -145,7 +145,7 @@ describe Async::Queue do
 			repeats.times do
 				Async do |task|
 					# Pre-populate with some items
-					100.times {|i| queue.push("item-#{i}")}
+					100.times{|i| queue.push("item-#{i}")}
 					
 					# Check state frequently
 					size_checker = task.async do
@@ -166,7 +166,7 @@ describe Async::Queue do
 					[size_checker, modifier].each(&:wait)
 					
 					# Clean up
-					queue.size.times {queue.dequeue}
+					queue.size.times{queue.dequeue}
 				end
 			end
 		end
@@ -178,7 +178,7 @@ describe Async::Queue do
 				
 				Async do
 					# Fill queue
-					50.times {|i| test_queue.push("item-#{i}")}
+					50.times{|i| test_queue.push("item-#{i}")}
 					
 					# Close it
 					test_queue.close
@@ -197,16 +197,16 @@ describe Async::Queue do
 			repeats.times do
 				Async do
 					# Fill the queue
-					100.times {|i| queue.push("item-#{i}")}
+					100.times{|i| queue.push("item-#{i}")}
 					
 					# Empty the queue  
-					100.times {queue.dequeue}
+					100.times{queue.dequeue}
 					
 					# Fill again to test reuse
-					100.times {|i| queue.push("item-#{i}")}
+					100.times{|i| queue.push("item-#{i}")}
 					
 					# Empty again
-					100.times {queue.dequeue}
+					100.times{queue.dequeue}
 				end
 			end
 		end

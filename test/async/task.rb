@@ -307,7 +307,7 @@ describe Async::Task do
 					# Wait for the task to fail
 					begin
 						task.wait
-							rescue
+					rescue
 						# Expected
 					end
 					
@@ -726,7 +726,7 @@ describe Async::Task do
 			Sync do |task|
 				begin
 					# This can invoke `io_wait`, which previously had `rescue TimeoutError`, causing the timeout to be ignored.
-					task.with_timeout(0.1) {input.gets}
+					task.with_timeout(0.1){input.gets}
 				rescue Async::TimeoutError => error
 					# Ignore.
 				end
@@ -793,7 +793,7 @@ describe Async::Task do
 		
 		with "finished task" do
 			it "has no backtrace" do
-				task = Async{}
+				task = Async {}
 				
 				expect(task.backtrace).to be_nil
 			end
@@ -864,7 +864,7 @@ describe Async::Task do
 		
 		it "will not raise exception values returned by the task" do
 			error = StandardError.new
-			task = reactor.async {error}
+			task = reactor.async{error}
 			expect(task.wait).to be == error
 			expect(task.result).to be == error
 		end
@@ -943,7 +943,7 @@ describe Async::Task do
 	with "#children" do
 		it "enumerates children in same order they are created" do
 			tasks = 10.times.map do |i|
-				reactor.async(annotation: "Task #{i}") {sleep(1)}
+				reactor.async(annotation: "Task #{i}"){sleep(1)}
 			end
 			
 			expect(reactor.children.each.to_a).to be == tasks

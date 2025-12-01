@@ -12,6 +12,6 @@ Traces::Provider(Async::Barrier) do
 			"size" => self.size
 		}
 		
-		Traces.trace("async.barrier.wait", attributes: attributes) {super}
+		Traces.trace("async.barrier.wait", attributes: attributes){super}
 	end
 end

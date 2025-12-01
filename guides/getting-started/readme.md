@@ -65,7 +65,7 @@ You should consider the boundary around your program and the request handling. F
 Similar to a promise, {ruby Async::Task} produces results. In order to wait for these results, you must invoke {ruby Async::Task#wait}:
 
 ``` ruby
-require 'async'
+require "async"
 
 task = Async do
 	rand
@@ -99,7 +99,7 @@ end
 Unless you need fan-out, map-reduce style concurrency, you can actually use a slightly more efficient {ruby Kernel::Sync} execution model. This method will run your block in the current event loop if one exists, or create an event loop if not. You can use it for code which uses asynchronous primitives, but itself does not need to be asynchronous with respect to other tasks.
 
 ```ruby
-require 'async/http/internet'
+require "async/http/internet"
 
 def fetch(url)
 	Sync do
@@ -109,11 +109,11 @@ def fetch(url)
 end
 
 # At the level of your program, this method will create an event loop:
-fetch(...)
+fetch("https://example.com")
 
 Sync do
 	# The event loop already exists, and will be reused:
-	fetch(...)
+	fetch("https://example.com")
 end
 ```
 
@@ -154,13 +154,13 @@ The former allows you to inject the parent, which could be a barrier or semaphor
 The Fiber Scheduler interface is compatible with most pure Ruby code and well-behaved C code. For example, you can use {ruby Net::HTTP} for performing concurrent HTTP requests:
 
 ```ruby
-urls = [...]
+urls = ["http://example.com", "http://example.org", "http://example.net"]
 
 Async do
 	# Perform several concurrent requests:
 	responses = urls.map do |url|
 		Async do
-			Net::HTTP.get(url)
+			Net::HTTP.get(URI(url))
 		end
 	end.map(&:wait)
 end

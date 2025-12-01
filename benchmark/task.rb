@@ -15,7 +15,7 @@ describe Async::Task do
 		measure "simple task creation and completion" do |repeats|
 			Async do |task|
 				repeats.times do
-					child = task.async {"result"}
+					child = task.async{"result"}
 					child.wait
 				end
 			end
@@ -51,7 +51,7 @@ describe Async::Task do
 		measure "wait on immediately completing tasks" do |repeats|
 			Async do |task|
 				repeats.times do
-					child = task.async {"result"}
+					child = task.async{"result"}
 					child.wait
 				end
 			end
@@ -74,7 +74,7 @@ describe Async::Task do
 			completed_tasks = []
 			Async do |task|
 				100.times do
-					completed_tasks << task.async {"completed"}
+					completed_tasks << task.async{"completed"}
 				end
 				
 				# Wait for all to complete

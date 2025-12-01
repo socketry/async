@@ -72,7 +72,7 @@ module Async
 		
 		# Add multiple items to the queue.
 		def enqueue(*items)
-			items.each {|item| @delegate.push(item)}
+			items.each{|item| @delegate.push(item)}
 		rescue ClosedQueueError
 			raise ClosedError, "Cannot enqueue items to a closed queue!"
 		end

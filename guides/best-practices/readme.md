@@ -7,7 +7,7 @@ This guide gives an overview of best practices for using Async.
 `Async{}` has two uses: it creates an event loop if one doesn't exist, and it creates a task which runs asynchronously with respect to the parent scope. However, the top level `Async{}` block will be synchronous because it creates the event loop. In some programs, you do not care about executing asynchronously, but you still want your code to run in an event loop. `Sync{}` exists to do this efficiently.
 
 ```ruby
-require 'async'
+require "async"
 
 class Packages
 	def initialize(urls)
@@ -83,7 +83,7 @@ Barrier do |barrier|
 	barrier.wait do |task|
 		result = task.wait
 		# Do something with result.
-
+		
 		# If you don't want to wait for any more tasks you can break:
 		break
 	end

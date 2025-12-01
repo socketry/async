@@ -9,7 +9,7 @@ This guide explains how to debug issues with programs that use Async.
 The simplest way to debug an Async program is to use `puts` to print messages to the console. This is useful for understanding the flow of your program and the values of variables. However, it can be difficult to use `puts` to debug programs that use asynchronous code, as the output may be interleaved. To prevent this, wrap it in `Fiber.blocking{}`:
 
 ```ruby
-require 'async'
+require "async"
 
 Async do
 	3.times do |i|
@@ -42,8 +42,8 @@ If you don't use `Fiber.blocking{}`, the event loop will continue to run and you
 The `async-debug` gem provides a visual debugger for Async programs. It is a powerful tool that allows you to inspect the state of your program and see the hierarchy of your program:
 
 ```ruby
-require 'async'
-require 'async/debug'
+require "async"
+require "async/debug"
 
 Sync do
 	debugger = Async::Debug.serve

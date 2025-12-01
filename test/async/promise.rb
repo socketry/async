@@ -422,7 +422,7 @@ describe Async::Promise do
 			custom_cancel = StandardError.new("custom stop")
 			
 			result = promise.fulfill do
-				raise Async::Promise::Cancel.new("wrapper").tap {|c| c.instance_variable_set(:@cause, custom_cancel)}
+				raise Async::Promise::Cancel.new("wrapper").tap{|c| c.instance_variable_set(:@cause, custom_cancel)}
 			end
 			
 			expect(result).to be_nil
@@ -523,16 +523,16 @@ describe Async::Promise do
 			promise3 = Async::Promise.new
 			
 			# Cancel exception should be caught specifically:
-			promise1.fulfill {raise Async::Promise::Cancel.new}
+			promise1.fulfill{raise Async::Promise::Cancel.new}
 			expect(promise1.cancelled?).to be == true
 			
 			# StandardError should be caught by rescue =>:
-			promise2.fulfill {raise ArgumentError.new("standard")}
+			promise2.fulfill{raise ArgumentError.new("standard")}
 			expect(promise2.failed?).to be == true
 			
 			# System exception should be caught by rescue Exception and re-raised:
 			expect do
-				promise3.fulfill {raise SystemExit.new}
+				promise3.fulfill{raise SystemExit.new}
 			end.to raise_exception(SystemExit)
 			expect(promise3.failed?).to be == true
 		end
@@ -544,9 +544,9 @@ describe Async::Promise do
 			
 			# Start concurrent resolution attempts:
 			tasks = [
-				reactor.async {promise.resolve(:first)},
-				reactor.async {promise.reject(StandardError.new("second"))},
-				reactor.async {promise.resolve(:third)}
+				reactor.async{promise.resolve(:first)},
+				reactor.async{promise.reject(StandardError.new("second"))},
+				reactor.async{promise.resolve(:third)}
 			]
 			
 			tasks.each(&:wait)
@@ -633,7 +633,7 @@ describe Async::Promise do
 			promise.cancel
 			
 			expect do
-				promise.fulfill {:should_not_execute}
+				promise.fulfill{:should_not_execute}
 			end.to raise_exception(RuntimeError, message: be =~ /already resolved/)
 		end
 		
