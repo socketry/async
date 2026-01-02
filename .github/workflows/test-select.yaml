@@ -24,7 +24,8 @@ jobs:
           - "3.2"
           - "3.3"
           - "3.4"
-          - "head"
+          - "4.0"
+          - head
     
     steps:
     - uses: actions/checkout@v3

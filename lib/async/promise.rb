@@ -2,7 +2,7 @@
 
 # Released under the MIT License.
 # Copyright, 2025, by Shopify Inc.
-# Copyright, 2025, by Samuel Williams.
+# Copyright, 2025-2026, by Samuel Williams.
 
 module Async
 	# A promise represents a value that will be available in the future.

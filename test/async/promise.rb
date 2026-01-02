@@ -2,7 +2,7 @@
 
 # Released under the MIT License.
 # Copyright, 2025, by Shopify Inc.
-# Copyright, 2025, by Samuel Williams.
+# Copyright, 2025-2026, by Samuel Williams.
 
 require "async/promise"
 

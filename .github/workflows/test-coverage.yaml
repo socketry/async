@@ -26,10 +26,13 @@ jobs:
             ruby: "3.4"
             io_event_selector: EPoll
           - os: ubuntu
-            ruby: "3.4"
+            ruby: "4.0"
+            io_event_selector: EPoll
+          - os: ubuntu
+            ruby: "4.0"
             io_event_selector: URing
           - os: ubuntu
-            ruby: "3.4"
+            ruby: "4.0"
             io_event_selector: URing
             fiber_profiler_capture: "true"
           - os: ubuntu
@@ -46,7 +49,7 @@ jobs:
       FIBER_PROFILER_CAPTURE: ${{matrix.fiber_profiler_capture}}
     
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     - uses: ruby/setup-ruby-pkgs@v1
       with:
         ruby-version: ${{matrix.ruby}}
@@ -58,7 +61,7 @@ jobs:
       timeout-minutes: 5
       run: bundle exec bake test
     
-    - uses: actions/upload-artifact@v4
+    - uses: actions/upload-artifact@v5
       with:
         include-hidden-files: true
         if-no-files-found: error
@@ -70,13 +73,13 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     - uses: ruby/setup-ruby@v1
       with:
         ruby-version: ruby
         bundler-cache: true
     
-    - uses: actions/download-artifact@v4
+    - uses: actions/download-artifact@v6
     
     - name: Validate coverage
       timeout-minutes: 5
