@@ -86,7 +86,9 @@ module Async
 				
 				begin
 					# Wait for resolution if not already resolved:
-					@condition.wait(@mutex) unless @resolved
+					until @resolved
+						@condition.wait(@mutex)
+					end
 					
 					# Return value or raise exception based on resolution type:
 					if @resolved == :completed

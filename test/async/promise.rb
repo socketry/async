@@ -91,7 +91,6 @@ describe Async::Promise do
 	end
 	
 	with "#wait" do
-		
 		it "blocks until resolved" do
 			result = nil
 			
@@ -700,6 +699,37 @@ describe Async::Promise do
 			end
 			
 			expect(result).to be == :should_yield_directly
+		end
+	end
+end
+
+describe Async::Promise do
+	include Sus::Fixtures::Async::ReactorContext
+	
+	let(:promise) {subject.new}
+	
+	describe "#wait" do
+		it "handles spurious wake-ups gracefully" do
+			promise = Async::Promise.new
+			result = nil
+			
+			thread = Thread.new do
+				result = promise.wait
+			rescue => error
+				# Pass.
+			end
+			
+			Thread.pass until thread.stop?
+			
+			10.times do
+				thread.wakeup # Trigger spurious wake-up.
+				Thread.pass
+			end
+			
+			promise.resolve(:success)
+			thread.join
+			
+			expect(result).to be == :success
 		end
 	end
 end
