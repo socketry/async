@@ -54,7 +54,7 @@ jobs:
       with:
         ruby-version: ${{matrix.ruby}}
         bundler-cache: true
-        cache-version: io_uring
+        cache-version: uring-coverage
         apt-get: liburing-dev
     
     - name: Run tests

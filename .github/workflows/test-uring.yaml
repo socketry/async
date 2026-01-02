@@ -36,7 +36,7 @@ jobs:
       with:
         ruby-version: ${{matrix.ruby}}
         bundler-cache: true
-        cache-version: io_uring
+        cache-version: uring
     
     - name: Backends
       run: bundle exec ruby -r"io/event" -e "puts IO::Event::Selector.constants"
