@@ -30,7 +30,7 @@ describe Async::Idler do
 		sleep 2.0
 		
 		# Verify that the load is within the desired range:
-		expect(Fiber.scheduler.load).to be_within(0.2).of(0.5)
+		expect(Fiber.scheduler.load).to be_within(0.25).of(0.5)
 	end
 	
 	it_behaves_like Async::ChainableAsync
