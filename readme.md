@@ -35,6 +35,10 @@ Please see the [project documentation](https://socketry.github.io/async/) for mo
 
 Please see the [project releases](https://socketry.github.io/async/releases/index) for all releases.
 
+### v2.35.1
+
+  - Fix incorrect handling of spurious wakeups in `Async::Promise#wait`, which could lead to premature (incorrect) resolution of the promise.
+
 ### v2.35.0
 
   - `Process.fork` is now properly handled by the Async fiber scheduler, ensuring that the scheduler state is correctly reset in the child process after a fork. This prevents issues where the child process inherits the scheduler state from the parent, which could lead to unexpected behavior.
@@ -79,10 +83,6 @@ This release introduces thread-safety as a core concept of Async. Many core clas
 ### v2.28.1
 
   - Fix race condition between `Async::Barrier#stop` and finish signalling.
-
-### v2.28.0
-
-  - Use `Traces.current_context` and `Traces.with_context` for better integration with OpenTelemetry.
 
 ## See Also
 

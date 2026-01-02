@@ -1,6 +1,6 @@
 # Releases
 
-## Unreleased
+## v2.35.1
 
   - Fix incorrect handling of spurious wakeups in `Async::Promise#wait`, which could lead to premature (incorrect) resolution of the promise.
 
