@@ -1,6 +1,6 @@
 # Releases
 
-## Unreleased
+## v2.35.2
 
   - Improved handling of `Process.fork` on Ruby 4+.
   - Improve `@promise` state handling in `Task#initialize`, preventing incomplete instances being visible to the scheduler.

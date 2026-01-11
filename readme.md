@@ -35,6 +35,11 @@ Please see the [project documentation](https://socketry.github.io/async/) for mo
 
 Please see the [project releases](https://socketry.github.io/async/releases/index) for all releases.
 
+### v2.35.2
+
+  - Improved handling of `Process.fork` on Ruby 4+.
+  - Improve `@promise` state handling in `Task#initialize`, preventing incomplete instances being visible to the scheduler.
+
 ### v2.35.1
 
   - Fix incorrect handling of spurious wakeups in `Async::Promise#wait`, which could lead to premature (incorrect) resolution of the promise.
@@ -79,10 +84,6 @@ This release introduces thread-safety as a core concept of Async. Many core clas
   - `Async::Variable` is deprecated in favor of `Async::Promise`.
   - [Introduce `Async::Promise`](https://socketry.github.io/async/releases/index#introduce-async::promise)
   - [Introduce `Async::PriorityQueue`](https://socketry.github.io/async/releases/index#introduce-async::priorityqueue)
-
-### v2.28.1
-
-  - Fix race condition between `Async::Barrier#stop` and finish signalling.
 
 ## See Also
 
