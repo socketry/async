@@ -61,8 +61,6 @@ module Async
 		# @parameter reactor [Reactor] the reactor this task will run within.
 		# @parameter parent [Task] the parent task.
 		def initialize(parent = Task.current?, finished: nil, **options, &block)
-			super(parent, **options)
-			
 			# These instance variables are critical to the state of the task.
 			# In the initialized state, the @block should be set, but the @fiber should be nil.
 			# In the running state, the @fiber should be set, and @block should be nil.
@@ -85,6 +83,9 @@ module Async
 			end
 			
 			@defer_stop = nil
+			
+			# Call this after all state is initialized, as it may call `add_child` which will set the parent and make it visible to the scheduler.
+			super(parent, **options)
 		end
 		
 		# @returns [Scheduler] The scheduler for this task.
