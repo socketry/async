@@ -99,8 +99,8 @@ By constructing your program correctly, it's easy to implement concurrent map-re
 ```ruby
 Async do
 	# Map (create several concurrent tasks)
-	users_size = Async {User.size}
-	posts_size = Async {Post.size}
+	users_size = Async{User.size}
+	posts_size = Async{Post.size}
 	
 	# Reduce (wait for and merge the results)
 	average = posts_size.wait / users_size.wait

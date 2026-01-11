@@ -184,7 +184,7 @@ describe Async::Promise do
 			
 			expect(results).to be(:empty?)
 			expect(errors.size).to be == 3
-			expect(errors).to be(:all?) {|error| error == test_error}
+			expect(errors).to be(:all?){|error| error == test_error}
 			expect(promise.waiting?).to be == false
 		end
 	end
@@ -281,7 +281,7 @@ describe Async::Promise do
 			
 			expect(results).to be(:empty?)
 			expect(errors.size).to be == 3
-			expect(errors).to be(:all?) {|error| error.message =~ /shared cancellation/}
+			expect(errors).to be(:all?){|error| error.message =~ /shared cancellation/}
 			expect(promise.waiting?).to be == false
 		end
 	end

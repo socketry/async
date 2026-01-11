@@ -793,7 +793,7 @@ describe Async::Task do
 		
 		with "finished task" do
 			it "has no backtrace" do
-				task = Async {}
+				task = Async{}
 				
 				expect(task.backtrace).to be_nil
 			end

@@ -265,7 +265,8 @@ module Async
 		# Access the result of the task without waiting. May be nil if the task is not completed. Does not raise exceptions.
 		def result
 			value = @promise.value
-			# For backward compatibility, return nil for stopped tasks
+			
+			# For backward compatibility, return nil for stopped tasks:
 			if @promise.cancelled?
 				nil
 			else
@@ -409,20 +410,20 @@ module Async
 		# State transition into the completed state.
 		def completed!(result)
 			# Resolve the promise with the result:
-			@promise&.resolve(result)
+			@promise.resolve(result)
 		end
 		
 		# State transition into the failed state.
 		def failed!(exception = false)
 			# Reject the promise with the exception:
-			@promise&.reject(exception)
+			@promise.reject(exception)
 		end
 		
 		def stopped!
 			# Console.info(self, status:) {"Task #{self} was stopped with #{@children&.size.inspect} children!"}
 			
 			# Cancel the promise:
-			@promise&.cancel
+			@promise.cancel
 			
 			stopped = false
 			
