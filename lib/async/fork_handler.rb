@@ -26,7 +26,7 @@ module Async
 	private_constant :ForkHandler
 	
 	# Hook into Process._fork to handle fork events automatically:
-	unless (Fiber.const_get(:SCHEDULER_PROCESS_FORK) rescue false)
+	unless RUBY_VERSION > "4"
 		::Process.singleton_class.prepend(ForkHandler)
 	end
 end

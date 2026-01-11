@@ -1,5 +1,9 @@
 # Releases
 
+## Unreleased
+
+  - Improved handling of `Process.fork` on Ruby 4+.
+
 ## v2.35.1
 
   - Fix incorrect handling of spurious wakeups in `Async::Promise#wait`, which could lead to premature (incorrect) resolution of the promise.

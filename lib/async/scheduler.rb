@@ -646,17 +646,13 @@ module Async
 			end
 		end
 		
-		# Handle fork in the child process. This method is called automatically when `Process.fork` is invoked.
+		# Handle fork in the child process. This method is called automatically when `Process.fork` is invoked on Ruby versions < 4 and cleans up the scheduler state. On Ruby 4+, the scheduler is automatically cleaned up by the Ruby runtime.
 		#
 		# The child process starts with a clean slate - no scheduler is set. Users can create a new scheduler if needed.
 		#
 		# @public Since *Async v2.35*.
 		def process_fork
-			if profiler = @profiler
-				@profiler = nil
-				profiler.stop
-			end
-			
+			@profiler = nil
 			@children = nil
 			@selector = nil
 			@timers = nil
