@@ -35,6 +35,10 @@ Please see the [project documentation](https://socketry.github.io/async/) for mo
 
 Please see the [project releases](https://socketry.github.io/async/releases/index) for all releases.
 
+### v2.35.3
+
+  - `Async::Clock` now implements `#as_json` and `#to_json` for nicer log formatting.
+
 ### v2.35.2
 
   - Improved handling of `Process.fork` on Ruby 4+.
@@ -74,16 +78,6 @@ Please see the [project releases](https://socketry.github.io/async/releases/inde
   - Add timeout support to `Async::PriorityQueue#dequeue` and `Async::PriorityQueue#pop` methods.
   - Add `closed?` method to `Async::PriorityQueue` for full queue interface compatibility.
   - Support non-blocking operations using `timeout: 0` parameter.
-
-### v2.29.0
-
-This release introduces thread-safety as a core concept of Async. Many core classes now have thread-safe guarantees, allowing them to be used safely across multiple threads.
-
-  - Thread-safe `Async::Condition` and `Async::Notification`, implemented using `Thread::Queue`.
-  - Thread-safe `Async::Queue` and `Async::LimitedQueue`, implemented using `Thread::Queue` and `Thread::LimitedQueue` respectively.
-  - `Async::Variable` is deprecated in favor of `Async::Promise`.
-  - [Introduce `Async::Promise`](https://socketry.github.io/async/releases/index#introduce-async::promise)
-  - [Introduce `Async::PriorityQueue`](https://socketry.github.io/async/releases/index#introduce-async::priorityqueue)
 
 ## See Also
 

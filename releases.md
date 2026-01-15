@@ -1,6 +1,6 @@
 # Releases
 
-## Unreleased
+## v2.35.3
 
   - `Async::Clock` now implements `#as_json` and `#to_json` for nicer log formatting.
 
