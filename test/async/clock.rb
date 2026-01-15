@@ -146,4 +146,83 @@ describe Async::Clock do
 			expect(duration).to be >= 0
 		end
 	end
+	
+	with "#as_json" do
+		it "returns a hash with started and total keys" do
+			json = clock.as_json
+			
+			expect(json).to be_a Hash
+			expect(json).to have_keys(:started, :total)
+		end
+		
+		it "includes nil started when not started" do
+			json = clock.as_json
+			
+			expect(json[:started]).to be_nil
+			expect(json[:total]).to be == 0
+		end
+		
+		it "includes started time when started" do
+			clock.start!
+			json = clock.as_json
+			
+			expect(json[:started]).to be_a Numeric
+			expect(json[:started]).to be > 0
+			expect(json[:total]).to be >= 0
+		end
+		
+		it "includes accumulated total" do
+			clock.start!
+			sleep(0.001)
+			clock.stop!
+			json = clock.as_json
+			
+			expect(json[:started]).to be_nil
+			expect(json[:total]).to be > 0
+		end
+		
+		it "includes total with initial duration" do
+			clock = subject.new(5.0)
+			json = clock.as_json
+			
+			expect(json[:total]).to be == 5.0
+		end
+	end
+	
+	with "#to_json" do
+		it "returns a JSON string" do
+			json_string = clock.to_json
+			
+			expect(json_string).to be_a String
+		end
+		
+		it "can be parsed back to a hash" do
+			clock.start!
+			sleep(0.001)
+			clock.stop!
+			
+			json_string = clock.to_json
+			parsed = JSON.parse(json_string)
+			
+			expect(parsed).to be_a Hash
+			expect(parsed).to have_keys("started", "total")
+			expect(parsed["total"]).to be > 0
+		end
+		
+		it "preserves nil started value" do
+			json_string = clock.to_json
+			parsed = JSON.parse(json_string)
+			
+			expect(parsed["started"]).to be_nil
+		end
+		
+		it "preserves started time when running" do
+			clock.start!
+			json_string = clock.to_json
+			parsed = JSON.parse(json_string)
+			
+			expect(parsed["started"]).to be_a Numeric
+			expect(parsed["started"]).to be > 0
+		end
+	end
 end

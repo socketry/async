@@ -1,5 +1,9 @@
 # Releases
 
+## Unreleased
+
+  - `Async::Clock` now implements `#as_json` and `#to_json` for nicer log formatting.
+
 ## v2.35.2
 
   - Improved handling of `Process.fork` on Ruby 4+.

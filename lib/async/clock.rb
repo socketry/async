@@ -36,6 +36,9 @@ module Async
 			@started = nil
 		end
 		
+		# @returns [Numeric | Nil] The time when the clock was started, or nil if not started.
+		attr :started
+		
 		# Start measuring a duration.
 		def start!
 			@started ||= Clock.now
@@ -69,6 +72,23 @@ module Async
 			if @started
 				@started = Clock.now
 			end
+		end
+		
+		# Convert the clock to a JSON-compatible hash.
+		#
+		# @returns [Hash] The JSON-compatible hash.
+		def as_json(...)
+			{
+				started: self.started,
+				total: self.total,
+			}
+		end
+		
+		# Convert the clock to a JSON string.
+		#
+		# @returns [String] The JSON string.
+		def to_json(...)
+			self.as_json.to_json(...)
 		end
 	end
 end
