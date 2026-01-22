@@ -870,6 +870,159 @@ describe Async::Task do
 		end
 	end
 	
+	with "#wait_all" do
+		it "will wait on all child tasks to complete" do
+			results = []
+			
+			reactor.run do |parent|
+				child1 = parent.async do |child|
+					child.yield
+					results << :child1
+				end
+				
+				child2 = parent.async do |child|
+					child.yield
+					results << :child2
+				end
+				
+				parent.wait_all
+				results << :parent
+			end
+			
+			expect(results).to be == [:child1, :child2, :parent]
+		end
+		
+		it "will wait recursively on nested child tasks" do
+			results = []
+			
+			reactor.run do |parent|
+				child = parent.async do |child|
+					grandchild = child.async do |grandchild|
+						grandchild.yield
+						results << :grandchild
+					end
+					
+					child.yield
+					results << :child
+				end
+				
+				parent.wait_all
+				results << :parent
+			end
+			
+			expect(results).to be == [:grandchild, :child, :parent]
+		end
+		
+		it "will skip transient tasks" do
+			results = []
+			
+			reactor.run do |parent|
+				child = parent.async do |child|
+					child.yield
+					results << :child
+				end
+				
+				transient = parent.async(transient: true) do
+					sleep(0.1)
+					results << :transient
+				end
+				
+				parent.wait_all
+				results << :parent
+			end
+			
+			# Transient task should not have completed
+			expect(results).to be == [:child, :parent]
+		end
+		
+		it "will handle tasks with no children" do
+			reactor.run do |parent|
+				result = parent.wait_all
+				expect(result).to be_nil
+			end
+		end
+		
+		it "will wait on multiple levels of nesting" do
+			results = []
+			
+			reactor.run do |parent|
+				child1 = parent.async do |child|
+					grandchild1 = child.async do |grandchild|
+						grandchild.yield
+						results << :grandchild1
+					end
+					child.yield
+					results << :child1
+				end
+				
+				child2 = parent.async do |child|
+					grandchild2 = child.async do |grandchild|
+						grandchild.yield
+						results << :grandchild2
+					end
+					child.yield
+					results << :child2
+				end
+				
+				parent.wait_all
+				results << :parent
+			end
+			
+			# All tasks should complete in order
+			expect(results).to be(:include?, :grandchild1)
+			expect(results).to be(:include?, :grandchild2)
+			expect(results).to be(:include?, :child1)
+			expect(results).to be(:include?, :child2)
+			expect(results.last).to be == :parent
+		end
+		
+		it "returns nil when called from within the task" do
+			reactor.run do |parent|
+				child = parent.async do |child|
+					child.yield
+				end
+				
+				result = parent.wait_all
+				expect(result).to be_nil
+			end
+		end
+		
+		it "returns the task result when called from outside" do
+			parent = reactor.async do |parent|
+				child = parent.async do |child|
+					child.yield
+				end
+				:result
+			end
+			
+			reactor.run
+			
+			result = parent.wait_all
+			expect(result).to be == :result
+		end
+		
+		it "will propagate exceptions from child tasks" do
+			failed_child = nil
+			
+			reactor.run do |parent|
+				failed_child = parent.async(finished: false) do |child|
+					child.yield
+					raise RuntimeError, "child task failed"
+				end
+				
+				# Wait for the failed child to fail first
+				reactor.run
+				
+				expect(failed_child).to be(:finished?)
+				
+				# wait_all should propagate the exception when it calls wait on the failed child
+				expect do
+					parent.wait_all
+				end.to raise_exception(RuntimeError, message: be =~ /child task failed/)
+			end
+		end
+	end
+	
 	with "#result" do
 		it "does not raise exception" do
 			task = reactor.async do |task|

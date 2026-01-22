@@ -1,5 +1,9 @@
 # Releases
 
+## Unreleased
+
+  - Introduce `Task#wait_all` which recursively waits for all children and self, excepting the current task.
+
 ## v2.35.3
 
   - `Async::Clock` now implements `#as_json` and `#to_json` for nicer log formatting.
