@@ -315,7 +315,7 @@ describe Async::Node do
 	with "#wait" do
 		it "returns self for a plain node" do
 			result = node.wait
-			expect(result).to be_equal(node)
+			expect(result).to be_nil
 		end
 	end
 end

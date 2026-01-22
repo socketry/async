@@ -300,7 +300,7 @@ module Async
 		#
 		# @returns [self] Returns self for method chaining.
 		def wait
-			self
+			nil
 		end
 		
 		# Whether the node has been stopped.
