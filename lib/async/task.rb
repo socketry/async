@@ -31,6 +31,32 @@ module Async
 		end
 	end
 	
+	# Represents a sequential unit of work, defined by a block, which is executed concurrently with other tasks. A task can be in one of the following states: `initialized`, `running`, `completed`, `failed`, `cancelled` or `stopped`.
+	#
+	# ```mermaid
+	# stateDiagram-v2
+	# [*] --> Initialized
+	# Initialized --> Running : Run
+	#
+	# Running --> Completed : Return Value
+	# Running --> Failed : Exception
+	#
+	# Completed --> [*]
+	# Failed --> [*]
+	#
+	# Running --> Stopped : Stop
+	# Stopped --> [*]
+	# Completed --> Stopped : Stop
+	# Failed --> Stopped : Stop
+	# Initialized --> Stopped : Stop
+	# ```
+	#
+	# @example Creating a task that sleeps for 1 second.
+	# 	require "async"
+	# 	Async do |task|
+	# 		sleep(1)
+	# 	end
+	#
 	# @public Since *Async v1*.
 	class Task < Node
 		# Raised when a child task is created within a task that has finished execution.
