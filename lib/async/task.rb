@@ -284,8 +284,37 @@ module Async
 			begin
 				@promise.wait
 			rescue Promise::Cancel
-				# For backward compatibility, stopped tasks return nil
+				# For backward compatibility, stopped tasks return nil:
 				return nil
+			end
+		end
+		
+		# Wait on all non-transient children to complete, recursively, then wait on the task itself, if it is not the current task.
+		#
+		# If any child task fails with an exception, that exception will be raised immediately, and remaining children may not be waited on.
+		#
+		# @example Waiting on all children.
+		# 	Async do |task|
+		# 		child = task.async do
+		# 			sleep(0.01)
+		# 		end
+		# 		task.wait_all # Will wait on the child task.
+		# 	end
+		#
+		# @raises [StandardError] If any child task failed with an exception, that exception will be raised.
+		# @returns [Object | Nil] The final expression/result of the task's block, or nil if called from within the task.
+		# @asynchronous This method is thread-safe.
+		def wait_all
+			@children&.each do |child|
+				# Skip transient tasks
+				next if child.transient?
+				
+				child.wait_all
+			end
+			
+			# Only wait on the task if we're not waiting on ourselves:
+			unless self.current?
+				return self.wait
 			end
 		end
 		

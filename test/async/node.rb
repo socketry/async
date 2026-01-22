@@ -311,4 +311,11 @@ describe Async::Node do
 			expect(node.traverse.to_a).to be == [[node, 0], [middle, 1], [child1, 2], [child2, 2]]
 		end
 	end
+	
+	with "#wait" do
+		it "returns self for a plain node" do
+			result = node.wait
+			expect(result).to be_equal(node)
+		end
+	end
 end

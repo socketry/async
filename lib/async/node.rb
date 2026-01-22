@@ -295,6 +295,14 @@ module Async
 			end
 		end
 		
+		# Wait for this node to complete. By default, nodes cannot be waited on.
+		# Subclasses like Task override this method to provide waiting functionality.
+		#
+		# @returns [self] Returns self for method chaining.
+		def wait
+			self
+		end
+		
 		# Whether the node has been stopped.
 		def stopped?
 			@children.nil?
