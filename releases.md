@@ -3,6 +3,7 @@
 ## Unreleased
 
   - Introduce `Task#wait_all` which recursively waits for all children and self, excepting the current task.
+  - Introduce `Task#join` as an alias for `Task#wait` for compatibility with `Thread#join` and similar interfaces.
 
 ## v2.35.3
 

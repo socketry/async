@@ -289,6 +289,9 @@ module Async
 			end
 		end
 		
+		# For compatibility with `Thread#join` and similar interfaces.
+		alias join wait
+		
 		# Wait on all non-transient children to complete, recursively, then wait on the task itself, if it is not the current task.
 		#
 		# If any child task fails with an exception, that exception will be raised immediately, and remaining children may not be waited on.
