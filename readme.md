@@ -35,6 +35,11 @@ Please see the [project documentation](https://socketry.github.io/async/) for mo
 
 Please see the [project releases](https://socketry.github.io/async/releases/index) for all releases.
 
+### v2.36.0
+
+  - Introduce `Task#wait_all` which recursively waits for all children and self, excepting the current task.
+  - Introduce `Task#join` as an alias for `Task#wait` for compatibility with `Thread#join` and similar interfaces.
+
 ### v2.35.3
 
   - `Async::Clock` now implements `#as_json` and `#to_json` for nicer log formatting.
@@ -71,13 +76,6 @@ Please see the [project releases](https://socketry.github.io/async/releases/inde
 ### v2.31.0
 
   - Introduce `Async::Deadline` for precise timeout management in compound operations.
-
-### v2.30.0
-
-  - Add timeout support to `Async::Queue#dequeue` and `Async::Queue#pop` methods.
-  - Add timeout support to `Async::PriorityQueue#dequeue` and `Async::PriorityQueue#pop` methods.
-  - Add `closed?` method to `Async::PriorityQueue` for full queue interface compatibility.
-  - Support non-blocking operations using `timeout: 0` parameter.
 
 ## See Also
 
