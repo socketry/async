@@ -187,6 +187,130 @@ describe Async::Promise do
 			expect(errors).to be(:all?){|error| error == test_error}
 			expect(promise.waiting?).to be == false
 		end
+		
+		it "returns immediately when already resolved with timeout" do
+			promise.resolve(:immediate)
+			
+			# Should return immediately even with timeout:
+			expect(promise.wait(timeout: 0.1)).to be == :immediate
+			expect(promise.wait(timeout: 0)).to be == :immediate
+		end
+		
+		it "raises TimeoutError with timeout: 0 if not resolved" do
+			error = nil
+			
+			expect do
+				promise.wait(timeout: 0)
+			end.to raise_exception(Async::TimeoutError, message: be =~ /not resolved/)
+		end
+		
+		it "raises TimeoutError after timeout expires" do
+			error = nil
+			start_time = Time.now
+			
+			waiter = reactor.async do
+				begin
+					promise.wait(timeout: 0.1)
+				rescue Async::TimeoutError => error
+				end
+			end
+			
+			# Waiter should be waiting:
+			expect(promise).to be(:waiting?)
+			
+			# Wait for timeout:
+			waiter.wait
+			elapsed = Time.now - start_time
+			
+			expect(error).to be_a(Async::TimeoutError)
+			expect(error.message).to be =~ /timed out/
+			expect(elapsed).to be >= 0.1
+			expect(elapsed).to be < 0.5
+			expect(promise).not.to be(:waiting?)
+		end
+		
+		it "returns value before timeout expires" do
+			result = nil
+			
+			waiter = reactor.async do
+				result = promise.wait(timeout: 1.0)
+			end
+			
+			# Waiter should be waiting:
+			expect(promise).to be(:waiting?)
+			
+			# Resolve quickly (before timeout):
+			reactor.sleep(0.05)
+			promise.resolve(:quick_result)
+			waiter.wait
+			
+			expect(result).to be == :quick_result
+			expect(promise).not.to be(:waiting?)
+		end
+		
+		it "handles timeout with multiple concurrent waiters" do
+			results = []
+			errors = []
+			
+			# Start multiple waiters with timeout:
+			waiters = 3.times.map do |i|
+				reactor.async do
+					begin
+						results << promise.wait(timeout: 0.1)
+					rescue Async::TimeoutError => error
+						errors << error
+					end
+				end
+			end
+			
+			# All should be waiting:
+			expect(promise).to be(:waiting?)
+			
+			# Wait for all to timeout:
+			waiters.each(&:wait)
+			
+			expect(results).to be(:empty?)
+			expect(errors.size).to be == 3
+			expect(errors).to be(:all?){|error| error.is_a?(Async::TimeoutError)}
+			expect(promise).not.to be(:waiting?)
+		end
+		
+		it "handles timeout where some waiters succeed and others timeout" do
+			results = []
+			errors = []
+			
+			# Start waiters with different timeouts:
+			waiters = [
+				reactor.async do
+					begin
+						results << promise.wait(timeout: 0.05)
+					rescue Async::TimeoutError => error
+						errors << error
+					end
+				end,
+				reactor.async do
+					begin
+						results << promise.wait(timeout: 0.2)
+					rescue Async::TimeoutError => error
+						errors << error
+					end
+				end
+			]
+			
+			# All should be waiting:
+			expect(promise).to be(:waiting?)
+			
+			# Resolve after first timeout but before second:
+			sleep(0.1)
+			promise.resolve(:partial_success)
+			waiters.each(&:wait)
+			
+			# First waiter should have timed out, second should have succeeded:
+			expect(errors.size).to be == 1
+			expect(errors.first).to be_a(Async::TimeoutError)
+			expect(results).to be == [:partial_success]
+			expect(promise).not.to be(:waiting?)
+		end
 	end
 	
 	with "warning suppression" do
