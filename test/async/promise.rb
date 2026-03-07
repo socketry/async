@@ -99,7 +99,7 @@ describe Async::Promise do
 			end
 			
 			# Waiter should be blocked:
-			expect(promise.waiting?).to be == true
+			expect(promise).to be(:waiting?)
 			expect(result).to be_nil
 			
 			# Resolve and wait for completion:
@@ -120,7 +120,7 @@ describe Async::Promise do
 			end
 			
 			# Waiter should be blocked:
-			expect(promise.waiting?).to be == true
+			expect(promise).to be(:waiting?)
 			expect(error).to be_nil
 			
 			# Reject and wait for completion:
@@ -148,7 +148,7 @@ describe Async::Promise do
 			end
 			
 			# All should be waiting:
-			expect(promise.waiting?).to be == true
+			expect(promise).to be(:waiting?)
 			
 			# Resolve - all waiters should get the same result:
 			promise.resolve(:shared_result)
@@ -175,7 +175,7 @@ describe Async::Promise do
 			end
 			
 			# All should be waiting:
-			expect(promise.waiting?).to be == true
+			expect(promise).to be(:waiting?)
 			
 			# Reject - all waiters should get the same error:
 			test_error = StandardError.new("shared error")
@@ -193,11 +193,11 @@ describe Async::Promise do
 		it "can suppress warnings for expected failures" do
 			promise.suppress_warnings!
 			
-			expect(promise.waiting?).to be == true
+			expect(promise).to be(:waiting?)
 			
 			# Promise should still appear to have waiters after rejection due to suppression:
 			promise.reject(StandardError.new("expected failure"))
-			expect(promise.waiting?).to be == true  # Artificial count still there
+			expect(promise).to be(:waiting?)  # Artificial count still there
 		end
 	end
 	
@@ -273,7 +273,7 @@ describe Async::Promise do
 			end
 			
 			# All should be waiting:
-			expect(promise.waiting?).to be == true
+			expect(promise).to be(:waiting?)
 			
 			# Cancel - all waiters should get the cancel exception:
 			promise.cancel(StandardError.new("shared cancellation"))

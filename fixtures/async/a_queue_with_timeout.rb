@@ -55,7 +55,7 @@ module Async
 				end
 				
 				# Add item quickly
-				reactor.sleep(0.05)
+				sleep(0.05)
 				queue.push("quick_item")
 				
 				task.wait
@@ -100,7 +100,7 @@ module Async
 				end
 				
 				# Add items quickly
-				reactor.sleep(0.05)
+				sleep(0.05)
 				queue.push("item1")
 				queue.push("item2")
 				queue.push("item3")
