@@ -31,7 +31,7 @@ Copyright, 2025, by Jahfer Husain.
 Copyright, 2025, by Mark Montroy.  
 Copyright, 2025, by Shigeru Nakajima.  
 Copyright, 2025, by Alan Wu.  
-Copyright, 2025, by Shopify Inc.  
+Copyright, 2025-2026, by Shopify Inc.  
 Copyright, 2025, by Josh Teeter.  
 Copyright, 2025, by Jatin Goyal.  
 Copyright, 2025, by Yuhi Sato.  

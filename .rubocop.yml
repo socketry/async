@@ -82,6 +82,25 @@ Layout/SpaceAroundBlockParameters:
   Enabled: true
   EnforcedStyleInsidePipes: no_space
 
+Layout/FirstArrayElementIndentation:
+  Enabled: true
+  EnforcedStyle: consistent
+
+Layout/ArrayAlignment:
+  Enabled: true
+  EnforcedStyle: with_fixed_indentation
+
+Layout/FirstArgumentIndentation:
+  Enabled: true
+  EnforcedStyle: consistent
+
+Layout/ArgumentAlignment:
+  Enabled: true
+  EnforcedStyle: with_fixed_indentation
+
+Layout/ClosingParenthesisIndentation:
+  Enabled: true
+
 Style/FrozenStringLiteralComment:
   Enabled: true
 
