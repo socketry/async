@@ -4,6 +4,9 @@
 # Copyright, 2025, by Shopify Inc.
 # Copyright, 2025-2026, by Samuel Williams.
 
+require_relative "error"
+require_relative "deadline"
+
 module Async
 	# A promise represents a value that will be available in the future.
 	# Unlike Condition, once resolved (or rejected), all future waits return immediately 
@@ -77,17 +80,23 @@ module Async
 		# Wait for the promise to be resolved and return the value.
 		# If already resolved, returns immediately. If rejected, raises the stored exception.
 		#
+		# @parameter timeout [Numeric | Nil] Maximum time to wait. If nil, waits indefinitely. If 0, raises immediately if not resolved.
 		# @returns [Object] The resolved value.
 		# @raises [Exception] The rejected or cancelled exception.
-		def wait
+		# @raises [Async::TimeoutError] If timeout expires before the promise is resolved.
+		def wait(timeout: nil)
 			@mutex.synchronize do
 				# Increment waiting count:
 				@waiting += 1
 				
 				begin
 					# Wait for resolution if not already resolved:
-					until @resolved
-						@condition.wait(@mutex)
+					unless @resolved
+						if timeout.nil?
+							wait_indefinitely
+						else
+							wait_with_timeout(timeout)
+						end
 					end
 					
 					# Return value or raise exception based on resolution type:
@@ -100,6 +109,45 @@ module Async
 				ensure
 					# Decrement waiting count when done:
 					@waiting -= 1
+				end
+			end
+		end
+		
+		# Wait indefinitely for the promise to be resolved.
+		private def wait_indefinitely
+			until @resolved
+				@condition.wait(@mutex)
+			end
+		end
+		
+		# Wait for the promise to be resolved, respecting the deadline timeout.
+		# @parameter timeout [Numeric] The timeout duration.
+		# @raises [Async::TimeoutError] If the timeout expires before resolution.
+		private def wait_with_timeout(timeout)
+			# Create deadline for timeout tracking:
+			deadline = Deadline.start(timeout)
+			
+			# Handle immediate timeout (non-blocking):
+			if deadline == Deadline::Zero && !@resolved
+				raise Async::TimeoutError, "Promise wait not resolved!"
+			end
+			
+			# Wait with deadline tracking:
+			until @resolved
+				# Get remaining time for this wait iteration:
+				remaining = deadline.remaining
+				
+				# Check if deadline has expired before waiting:
+				if remaining <= 0
+					raise Async::TimeoutError, "Promise wait timed out!"
+				end
+				
+				# Wait with remaining timeout:
+				result = @condition.wait(@mutex, remaining)
+				
+				# If wait returned nil/false, it means we timed out:
+				if !result && !@resolved
+					raise Async::TimeoutError, "Promise wait timed out!"
 				end
 			end
 		end

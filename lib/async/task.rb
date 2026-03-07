@@ -14,23 +14,13 @@ require "console"
 
 require_relative "node"
 require_relative "condition"
+require_relative "error"
 require_relative "promise"
 require_relative "stop"
 
 Fiber.attr_accessor :async_task
 
 module Async
-	# Raised if a timeout occurs on a specific Fiber. Handled gracefully by `Task`.
-	# @public Since *Async v1*.
-	class TimeoutError < StandardError
-		# Create a new timeout error.
-		#
-		# @parameter message [String] The error message.
-		def initialize(message = "execution expired")
-			super
-		end
-	end
-	
 	# Represents a sequential unit of work, defined by a block, which is executed concurrently with other tasks. A task can be in one of the following states: `initialized`, `running`, `completed`, `failed`, `cancelled` or `stopped`.
 	#
 	# ```mermaid
