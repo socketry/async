@@ -21,7 +21,7 @@ require_relative "stop"
 Fiber.attr_accessor :async_task
 
 module Async
-	# Represents a sequential unit of work, defined by a block, which is executed concurrently with other tasks. A task can be in one of the following states: `initialized`, `running`, `completed`, `failed`, `cancelled` or `stopped`.
+	# Represents a sequential unit of work, defined by a block, which is executed concurrently with other tasks. A task can be in one of the following states: `initialized`, `running`, `completed`, `failed`, or `cancelled`.
 	#
 	# ```mermaid
 	# stateDiagram-v2
@@ -34,11 +34,11 @@ module Async
 	# Completed --> [*]
 	# Failed --> [*]
 	#
-	# Running --> Stopped : Stop
-	# Stopped --> [*]
-	# Completed --> Stopped : Stop
-	# Failed --> Stopped : Stop
-	# Initialized --> Stopped : Stop
+	# Running --> Cancelled : Cancel
+	# Cancelled --> [*]
+	# Completed --> Cancelled : Cancel
+	# Failed --> Cancelled : Cancel
+	# Initialized --> Cancelled : Cancel
 	# ```
 	#
 	# @example Creating a task that sleeps for 1 second.
@@ -98,7 +98,7 @@ module Async
 				warn("finished: argument with non-false value is deprecated and will be removed.", uplevel: 1, category: :deprecated) if $VERBOSE
 			end
 			
-			@defer_stop = nil
+			@defer_cancel = nil
 			
 			# Call this after all state is initialized, as it may call `add_child` which will set the parent and make it visible to the scheduler.
 			super(parent, **options)
@@ -183,8 +183,8 @@ module Async
 			@promise.failed?
 		end
 		
-		# @returns [Boolean] Whether the task has been stopped.
-		def stopped?
+		# @returns [Boolean] Whether the task has been cancelled.
+		def cancelled?
 			@promise.cancelled?
 		end
 		
@@ -198,11 +198,11 @@ module Async
 			self.completed?
 		end
 		
-		# @attribute [Symbol] The status of the execution of the task, one of `:initialized`, `:running`, `:complete`, `:stopped` or `:failed`.
+		# @attribute [Symbol] The status of the execution of the task, one of `:initialized`, `:running`, `:complete`, `:cancelled` or `:failed`.
 		def status
 			case @promise.resolved
 			when :cancelled
-				:stopped
+				:cancelled
 			when :failed
 				:failed
 			when :completed
@@ -260,7 +260,7 @@ module Async
 			return task
 		end
 		
-		# Retrieve the current result of the task. Will cause the caller to wait until result is available. If the task resulted in an unhandled error (derived from `StandardError`), this will be raised. If the task was stopped, this will return `nil`.
+		# Retrieve the current result of the task. Will cause the caller to wait until result is available. If the task resulted in an unhandled error (derived from `StandardError`), this will be raised. If the task was cancelled, this will return `nil`.
 		#
 		# Conceptually speaking, waiting on a task should return a result, and if it throws an exception, this is certainly an exceptional case that should represent a failure in your program, not an expected outcome. In other words, you should not design your programs to expect exceptions from `#wait` as a normal flow control, and prefer to catch known exceptions within the task itself and return a result that captures the intention of the failure, e.g. a `TimeoutError` might simply return `nil` or `false` to indicate that the operation did not generate a valid result (as a timeout was an expected outcome of the internal operation in this case).
 		#
@@ -274,7 +274,7 @@ module Async
 			begin
 				@promise.wait
 			rescue Promise::Cancel
-				# For backward compatibility, stopped tasks return nil:
+				# For backward compatibility, cancelled tasks return nil:
 				return nil
 			end
 		end
@@ -315,7 +315,7 @@ module Async
 		def result
 			value = @promise.value
 			
-			# For backward compatibility, return nil for stopped tasks:
+			# For backward compatibility, return nil for cancelled tasks:
 			if @promise.cancelled?
 				nil
 			else
@@ -323,103 +323,115 @@ module Async
 			end
 		end
 		
-		# Stop the task and all of its children.
+		# Cancel the task and all of its children.
 		#
-		# If `later` is false, it means that `stop` has been invoked directly. When `later` is true, it means that `stop` is invoked by `stop_children` or some other indirect mechanism. In that case, if we encounter the "current" fiber, we can't stop it right away, as it's currently performing `#stop`. Stopping it immediately would interrupt the current stop traversal, so we need to schedule the stop to occur later.
+		# If `later` is false, it means that `cancel` has been invoked directly. When `later` is true, it means that `cancel` is invoked by `stop_children` or some other indirect mechanism. In that case, if we encounter the "current" fiber, we can't cancel it right away, as it's currently performing `#cancel`. Cancelling it immediately would interrupt the current cancel traversal, so we need to schedule the cancel to occur later.
 		#
-		# @parameter later [Boolean] Whether to stop the task later, or immediately.
-		# @parameter cause [Exception] The cause of the stop operation.
-		def stop(later = false, cause: $!)
+		# @parameter later [Boolean] Whether to cancel the task later, or immediately.
+		# @parameter cause [Exception] The cause of the cancel operation.
+		def cancel(later = false, cause: $!)
 			# If no cause is given, we generate one from the current call stack:
 			unless cause
-				cause = Stop::Cause.for("Stopping task!")
+				cause = Cancel::Cause.for("Cancelling task!")
 			end
 			
-			if self.stopped?
-				# If the task is already stopped, a `stop` state transition re-enters the same state which is a no-op. However, we will also attempt to stop any running children too. This can happen if the children did not stop correctly the first time around. Doing this should probably be considered a bug, but it's better to be safe than sorry.
-				return stopped!
+			if self.cancelled?
+				# If the task is already cancelled, a `cancel` state transition re-enters the same state which is a no-op. However, we will also attempt to cancel any running children too. This can happen if the children did not cancel correctly the first time around. Doing this should probably be considered a bug, but it's better to be safe than sorry.
+				return cancelled!
 			end
 			
-			# If the fiber is alive, we need to stop it:
+			# If the fiber is alive, we need to cancel it:
 			if @fiber&.alive?
 				# As the task is now exiting, we want to ensure the event loop continues to execute until the task finishes.
 				self.transient = false
 				
-				# If we are deferring stop...
-				if @defer_stop == false
-					# Don't stop now... but update the state so we know we need to stop later.
-					@defer_stop = cause
+				# If we are deferring cancel...
+				if @defer_cancel == false
+					# Don't cancel now... but update the state so we know we need to cancel later.
+					@defer_cancel = cause
 					return false
 				end
 				
 				if self.current?
-					# If the fiber is current, and later is `true`, we need to schedule the fiber to be stopped later, as it's currently invoking `stop`:
+					# If the fiber is current, and later is `true`, we need to schedule the fiber to be cancelled later, as it's currently invoking `cancel`:
 					if later
-						# If the fiber is the current fiber and we want to stop it later, schedule it:
-						Fiber.scheduler.push(Stop::Later.new(self, cause))
+						# If the fiber is the current fiber and we want to cancel it later, schedule it:
+						Fiber.scheduler.push(Cancel::Later.new(self, cause))
 					else
 						# Otherwise, raise the exception directly:
-						raise Stop, "Stopping current task!", cause: cause
+						raise Cancel, "Cancelling current task!", cause: cause
 					end
 				else
 					# If the fiber is not curent, we can raise the exception directly:
 					begin
-						# There is a chance that this will stop the fiber that originally called stop. If that happens, the exception handling in `#stopped` will rescue the exception and re-raise it later.
-						Fiber.scheduler.raise(@fiber, Stop, cause: cause)
+						# There is a chance that this will cancel the fiber that originally called cancel. If that happens, the exception handling in `#cancelled` will rescue the exception and re-raise it later.
+						Fiber.scheduler.raise(@fiber, Cancel, cause: cause)
 					rescue FiberError
-						# In some cases, this can cause a FiberError (it might be resumed already), so we schedule it to be stopped later:
-						Fiber.scheduler.push(Stop::Later.new(self, cause))
+						# In some cases, this can cause a FiberError (it might be resumed already), so we schedule it to be cancelled later:
+						Fiber.scheduler.push(Cancel::Later.new(self, cause))
 					end
 				end
 			else
-				# We are not running, but children might be, so transition directly into stopped state:
-				stop!
+				# We are not running, but children might be, so transition directly into cancelled state:
+				cancel!
 			end
 		end
 		
-		# Defer the handling of stop. During the execution of the given block, if a stop is requested, it will be deferred until the block exits. This is useful for ensuring graceful shutdown of servers and other long-running tasks. You should wrap the response handling code in a defer_stop block to ensure that the task is stopped when the response is complete but not before.
+		# Defer the handling of cancel. During the execution of the given block, if a cancel is requested, it will be deferred until the block exits. This is useful for ensuring graceful shutdown of servers and other long-running tasks. You should wrap the response handling code in a defer_cancel block to ensure that the task is cancelled when the response is complete but not before.
 		#
-		# You can nest calls to defer_stop, but the stop will only be deferred until the outermost block exits.
+		# You can nest calls to defer_cancel, but the cancel will only be deferred until the outermost block exits.
 		#
-		# If stop is invoked a second time, it will be immediately executed.
+		# If cancel is invoked a second time, it will be immediately executed.
 		#
 		# @yields {} The block of code to execute.
 		# @public Since *Async v1*.
-		def defer_stop
-			# Tri-state variable for controlling stop:
-			# - nil: defer_stop has not been called.
-			# - false: defer_stop has been called and we are not stopping.
-			# - true: defer_stop has been called and we will stop when exiting the block.
-			if @defer_stop.nil?
+		def defer_cancel
+			# Tri-state variable for controlling cancel:
+			# - nil: defer_cancel has not been called.
+			# - false: defer_cancel has been called and we are not cancelling.
+			# - true: defer_cancel has been called and we will cancel when exiting the block.
+			if @defer_cancel.nil?
 				begin
-					# If we are not deferring stop already, we can defer it now:
-					@defer_stop = false
+					# If we are not deferring cancel already, we can defer it now:
+					@defer_cancel = false
 					
 					yield
-				rescue Stop
-					# If we are exiting due to a stop, we shouldn't try to invoke stop again:
-					@defer_stop = nil
+				rescue Cancel
+					# If we are exiting due to a cancel, we shouldn't try to invoke cancel again:
+					@defer_cancel = nil
 					raise
 				ensure
-					defer_stop = @defer_stop
+					defer_cancel = @defer_cancel
 					
 					# We need to ensure the state is reset before we exit the block:
-					@defer_stop = nil
+					@defer_cancel = nil
 					
-					# If we were asked to stop, we should do so now:
-					if defer_stop
-						raise Stop, "Stopping current task (was deferred)!", cause: defer_stop
+					# If we were asked to cancel, we should do so now:
+					if defer_cancel
+						raise Cancel, "Cancelling current task (was deferred)!", cause: defer_cancel
 					end
 				end
 			else
-				# If we are deferring stop already, entering it again is a no-op.
+				# If we are deferring cancel already, entering it again is a no-op.
 				yield
 			end
 		end
 		
-		# @returns [Boolean] Whether stop has been deferred.
+		# Backward compatibility alias for {#defer_cancel}.
+		# @deprecated Use {#defer_cancel} instead.
+		def defer_stop(&block)
+			defer_cancel(&block)
+		end
+		
+		# @returns [Boolean] Whether cancel has been deferred.
+		def cancel_deferred?
+			!!@defer_cancel
+		end
+		
+		# Backward compatibility alias for {#cancel_deferred?}.
+		# @deprecated Use {#cancel_deferred?} instead.
 		def stop_deferred?
-			!!@defer_stop
+			cancel_deferred?
 		end
 		
 		# Lookup the {Task} for the current fiber. Raise `RuntimeError` if none is available.
@@ -468,40 +480,48 @@ module Async
 			@promise.reject(exception)
 		end
 		
-		def stopped!
-			# Console.info(self, status:) {"Task #{self} was stopped with #{@children&.size.inspect} children!"}
+		def cancelled!
+			# Console.info(self, status:) {"Task #{self} was cancelled with #{@children&.size.inspect} children!"}
 			
 			# Cancel the promise:
 			@promise.cancel
 			
-			stopped = false
+			cancelled = false
 			
 			begin
 				# We are not running, but children might be so we should stop them:
 				stop_children(true)
-			rescue Stop
-				stopped = true
-				# If we are stopping children, and one of them tries to stop the current task, we should ignore it. We will be stopped later.
+			rescue Cancel
+				cancelled = true
+				# If we are cancelling children, and one of them tries to cancel the current task, we should ignore it. We will be cancelled later.
 				retry
 			end
 			
-			if stopped
-				raise Stop, "Stopping current task!"
+			if cancelled
+				raise Cancel, "Cancelling current task!"
 			end
 		end
 		
-		def stop!
-			stopped!
+		def stopped!
+			cancelled!
+		end
+		
+		def cancel!
+			cancelled!
 			
 			finish!
+		end
+		
+		def stop!
+			cancel!
 		end
 		
 		def schedule(&block)
 			@fiber = Fiber.new(annotation: self.annotation) do
 				begin
 					completed!(yield)
-				rescue Stop
-					stopped!
+				rescue Cancel
+					cancelled!
 				rescue StandardError => error
 					failed!(error)
 				rescue Exception => exception

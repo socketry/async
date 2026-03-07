@@ -1,5 +1,9 @@
 # Releases
 
+## Unreleased
+
+  - Rename `Task#stop` to `Task#cancel` for better clarity and consistency with common concurrency terminology. The old `stop` method is still available as an alias for backward compatibility, but it is recommended to use `cancel` going forward.
+
 ## v2.37.0
 
   - Introduce `Async::Loop` for robust, time-aligned loops.
