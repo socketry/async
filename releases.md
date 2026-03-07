@@ -1,5 +1,9 @@
 # Releases
 
+## Unreleased
+
+  - Introduce `Async::Loop` for robust, time-aligned loops.
+
 ## v2.36.0
 
   - Introduce `Task#wait_all` which recursively waits for all children and self, excepting the current task.
