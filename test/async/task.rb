@@ -237,7 +237,7 @@ describe Async::Task do
 			
 			task.stop
 			
-			expect(task.status).to be == :stopped
+			expect(task).to be(:cancelled?)
 			expect(reactor.children).to be(:empty?)
 		end
 		
@@ -255,8 +255,8 @@ describe Async::Task do
 			
 			parent.stop
 			
-			expect(parent.status).to be == :stopped
-			expect(child.status).to be == :stopped
+			expect(parent).to be(:cancelled?)
+			expect(child).to be(:cancelled?)
 			
 			expect(reactor.children).to be(:empty?)
 		end
@@ -295,7 +295,7 @@ describe Async::Task do
 				end
 				
 				task.stop
-				expect(task.status).to be == :stopped
+				expect(task).to be(:cancelled?)
 			end
 			
 			it "reports failed status for failed tasks" do
@@ -379,10 +379,10 @@ describe Async::Task do
 				
 				parent.stop
 				parent.wait
-				expect(parent.status).to be == :stopped
+				expect(parent).to be(:cancelled?)
 				
 				child.wait
-				expect(child.status).to be == :stopped
+				expect(child).to be(:cancelled?)
 			end
 		end
 		

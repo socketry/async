@@ -283,10 +283,10 @@ describe Async::Node do
 			
 			expect(middle.children).to be(:transients?)
 			
-			expect(child1).not.to receive(:stop)
-			expect(child2).to receive(:stop)
+			expect(child1).not.to receive(:cancel)
+			expect(child2).to receive(:cancel)
 			
-			node.stop
+			node.cancel
 		end
 	end
 	

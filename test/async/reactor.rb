@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 # Released under the MIT License.
-# Copyright, 2017-2025, by Samuel Williams.
+# Copyright, 2017-2026, by Samuel Williams.
 # Copyright, 2017, by Devin Christensen.
 
 require "async"
@@ -267,8 +267,8 @@ describe Async::Reactor do
 	end
 	
 	with "#to_s" do
-		it "shows stopped" do
-			expect(reactor.to_s).to be =~ /stopped/
+		it "shows cancelled" do
+			expect(reactor.to_s).to be =~ /cancelled/
 		end
 	end
 	

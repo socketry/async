@@ -38,7 +38,7 @@ Async do |task|
 	task.print_hierarchy($stderr)
 	
 	# Kill the subtask
-	subtask.stop
+	subtask.cancel
 end
 ~~~
 
@@ -69,9 +69,9 @@ end
 
 You can use this approach to embed the reactor in another event loop. For some integrations, you may want to specify the maximum time to wait to {ruby Async::Scheduler#run_once}.
 
-### Stopping a Scheduler
+### Cancelling a Scheduler
 
-{ruby Async::Scheduler#stop} will stop the current scheduler and all children tasks.
+{ruby Async::Scheduler#cancel} will cancel the current scheduler and all children tasks.
 
 ### Fiber Scheduler Integration
 

@@ -2,7 +2,7 @@
 
 # Released under the MIT License.
 # Copyright, 2017, by Kent Gruber.
-# Copyright, 2017-2025, by Samuel Williams.
+# Copyright, 2017-2026, by Samuel Williams.
 
 require "sus/fixtures/async"
 require "async/condition"
@@ -49,7 +49,7 @@ describe Async::Condition do
 		consumer.wait
 		producer.wait
 		
-		expect(producer.status).to be == :stopped
+		expect(producer).to be(:cancelled?)
 		expect(consumer.status).to be == :completed
 	end
 	

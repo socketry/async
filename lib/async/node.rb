@@ -280,18 +280,24 @@ module Async
 			return @children.nil?
 		end
 		
-		# Attempt to stop the current node immediately, including all non-transient children. Invokes {#stop_children} to stop all children.
+		# Attempt to cancel the current node immediately, including all non-transient children. Invokes {#stop_children} to cancel all children.
 		#
-		# @parameter later [Boolean] Whether to defer stopping until some point in the future.
-		def stop(later = false)
+		# @parameter later [Boolean] Whether to defer cancelling until some point in the future.
+		def cancel(later = false)
 			# The implementation of this method may defer calling `stop_children`.
 			stop_children(later)
+		end
+		
+		# Backward compatibility alias for {#cancel}.
+		# @deprecated Use {#cancel} instead.
+		def stop(...)
+			cancel(...)
 		end
 		
 		# Attempt to stop all non-transient children.
 		private def stop_children(later = false)
 			@children&.each do |child|
-				child.stop(later) unless child.transient?
+				child.cancel(later) unless child.transient?
 			end
 		end
 		
@@ -301,9 +307,15 @@ module Async
 			nil
 		end
 		
-		# Whether the node has been stopped.
-		def stopped?
+		# Whether the node has been cancelled.
+		def cancelled?
 			@children.nil?
+		end
+		
+		# Backward compatibility alias for {#cancelled?}.
+		# @deprecated Use {#cancelled?} instead.
+		def stopped?
+			cancelled?
 		end
 		
 		# Print the hierarchy of the task tree from the given node.

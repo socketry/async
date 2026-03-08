@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 # Released under the MIT License.
-# Copyright, 2019-2025, by Samuel Williams.
+# Copyright, 2019-2026, by Samuel Williams.
 
 require_relative "list"
 require_relative "task"
@@ -88,14 +88,20 @@ module Async
 			end
 		end
 		
-		# Stop all tasks held by the barrier.
+		# Cancel all tasks held by the barrier.
 		# @asynchronous May wait for tasks to finish executing.
-		def stop
+		def cancel
 			@tasks.each do |waiting|
-				waiting.task.stop
+				waiting.task.cancel
 			end
 			
 			@finished.close
+		end
+		
+		# Backward compatibility alias for {#cancel}.
+		# @deprecated Use {#cancel} instead.
+		def stop
+			cancel
 		end
 	end
 end

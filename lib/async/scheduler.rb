@@ -179,7 +179,7 @@ module Async
 		
 		# @returns [String] A description of the scheduler.
 		def to_s
-			"\#<#{self.description} #{@children&.size || 0} children (#{stopped? ? 'stopped' : 'running'})>"
+			"\#<#{self.description} #{@children&.size || 0} children (#{cancelled? ? 'cancelled' : 'running'})>"
 		end
 		
 		# Interrupt the event loop and cause it to exit.
@@ -511,13 +511,18 @@ module Async
 			return false
 		end
 		
-		# Stop all children, including transient children.
+		# Cancel all children, including transient children.
 		#
 		# @public Since *Async v1*.
-		def stop
+		def cancel
 			@children&.each do |child|
-				child.stop
+				child.cancel
 			end
+		end
+		
+		# Backward compatibility alias for cancel.
+		def stop
+			cancel
 		end
 		
 		private def run_loop(&block)
