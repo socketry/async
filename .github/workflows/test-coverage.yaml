@@ -17,9 +17,6 @@ jobs:
       matrix:
         include:
           - os: ubuntu
-            ruby: "3.2"
-            io_event_selector: EPoll
-          - os: ubuntu
             ruby: "3.3"
             io_event_selector: EPoll
           - os: ubuntu
