@@ -1,9 +1,9 @@
 # Releases
 
-## Unreleased
+## v2.38.0
 
   - Rename `Task#stop` to `Task#cancel` for better clarity and consistency with common concurrency terminology. The old `stop` method is still available as an alias for backward compatibility, but it is recommended to use `cancel` going forward.
-  - Forward arguments from `Task#wait` -> `Promise#wait`, so `task.wait(timeout: N)` is supported.
+  - Forward arguments from `Task#wait` -\> `Promise#wait`, so `task.wait(timeout: N)` is supported.
 
 ## v2.37.0
 

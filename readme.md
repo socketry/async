@@ -35,9 +35,15 @@ Please see the [project documentation](https://socketry.github.io/async/) for mo
 
 Please see the [project releases](https://socketry.github.io/async/releases/index) for all releases.
 
+### v2.38.0
+
+  - Rename `Task#stop` to `Task#cancel` for better clarity and consistency with common concurrency terminology. The old `stop` method is still available as an alias for backward compatibility, but it is recommended to use `cancel` going forward.
+  - Forward arguments from `Task#wait` -\> `Promise#wait`, so `task.wait(timeout: N)` is supported.
+
 ### v2.37.0
 
   - Introduce `Async::Loop` for robust, time-aligned loops.
+  - Add support for `Async::Promise#wait(timeout: N)`.
 
 ### v2.36.0
 
@@ -72,10 +78,6 @@ Please see the [project releases](https://socketry.github.io/async/releases/inde
 ### v2.32.1
 
   - Fix typo in documentation.
-
-### v2.32.0
-
-  - Introduce `Queue#waiting_count` and `PriorityQueue#waiting_count`. Generally for statistics/testing purposes only.
 
 ## See Also
 
