@@ -35,6 +35,10 @@ Please see the [project documentation](https://socketry.github.io/async/) for mo
 
 Please see the [project releases](https://socketry.github.io/async/releases/index) for all releases.
 
+### v2.37.0
+
+  - Introduce `Async::Loop` for robust, time-aligned loops.
+
 ### v2.36.0
 
   - Introduce `Task#wait_all` which recursively waits for all children and self, excepting the current task.
@@ -72,10 +76,6 @@ Please see the [project releases](https://socketry.github.io/async/releases/inde
 ### v2.32.0
 
   - Introduce `Queue#waiting_count` and `PriorityQueue#waiting_count`. Generally for statistics/testing purposes only.
-
-### v2.31.0
-
-  - Introduce `Async::Deadline` for precise timeout management in compound operations.
 
 ## See Also
 

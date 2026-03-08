@@ -1,6 +1,6 @@
 # Releases
 
-## Unreleased
+## v2.37.0
 
   - Introduce `Async::Loop` for robust, time-aligned loops.
 
