@@ -14,9 +14,16 @@ describe Async::Idler do
 	
 	it "can schedule tasks up to the desired load" do
 		expect(Fiber.scheduler.load).to be < 0.1
+		slept = Async::Promise.new
+		
+		mock(idler) do |mock|
+			mock.after(:sleep) do
+				slept.resolve(Fiber.scheduler.load)
+			end
+		end
 		
 		# Generate the load:
-		Async do
+		task = Async do
 			while true
 				idler.async do
 					while true
@@ -26,12 +33,9 @@ describe Async::Idler do
 			end
 		end
 		
-		# This test must be longer than the idle calculation window (1s)...
-		sleep 2.0
-		
-		# Verify that the load is within the desired range:
-		# Allow generous tolerance for scheduling variations on slow CI
-		expect(Fiber.scheduler.load).to be_within(0.35).of(0.5)
+		expect(slept.wait).to be >= 0.5
+	ensure
+		task.stop
 	end
 	
 	it_behaves_like Async::ChainableAsync
