@@ -264,14 +264,15 @@ module Async
 		#
 		# Conceptually speaking, waiting on a task should return a result, and if it throws an exception, this is certainly an exceptional case that should represent a failure in your program, not an expected outcome. In other words, you should not design your programs to expect exceptions from `#wait` as a normal flow control, and prefer to catch known exceptions within the task itself and return a result that captures the intention of the failure, e.g. a `TimeoutError` might simply return `nil` or `false` to indicate that the operation did not generate a valid result (as a timeout was an expected outcome of the internal operation in this case).
 		#
+		# @parameter timeout [Numeric] The maximum number of seconds to wait for the result before raising a `TimeoutError`, if specified.
 		# @raises [RuntimeError] If the task's fiber is the current fiber.
 		# @returns [Object] The final expression/result of the task's block.
 		# @asynchronous This method is thread-safe.
-		def wait
+		def wait(...)
 			raise "Cannot wait on own fiber!" if Fiber.current.equal?(@fiber)
 			
 			# Wait for the task to complete:
-			@promise.wait
+			@promise.wait(...)
 		end
 		
 		# For compatibility with `Thread#join` and similar interfaces.

@@ -868,6 +868,46 @@ describe Async::Task do
 			expect(task.wait).to be == error
 			expect(task.result).to be == error
 		end
+		
+		it "raises TimeoutError if timeout expires before task completes" do
+			reactor.run do
+				slow_task = reactor.async do
+					sleep(10)
+					:done
+				end
+				
+				expect do
+					slow_task.wait(timeout: 0.001)
+				end.to raise_exception(Async::TimeoutError)
+				
+				slow_task.cancel
+			end
+		end
+		
+		it "returns the result if the task completes within the timeout" do
+			reactor.run do
+				fast_task = reactor.async do
+					:done
+				end
+				
+				expect(fast_task.wait(timeout: 10)).to be == :done
+			end
+		end
+		
+		it "raises TimeoutError immediately if timeout is zero and task is not complete" do
+			reactor.run do
+				slow_task = reactor.async do
+					sleep(10)
+					:done
+				end
+				
+				expect do
+					slow_task.wait(timeout: 0)
+				end.to raise_exception(Async::TimeoutError)
+				
+				slow_task.cancel
+			end
+		end
 	end
 	
 	with "#wait_all" do
