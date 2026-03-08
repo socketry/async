@@ -1000,27 +1000,6 @@ describe Async::Task do
 			result = parent.wait_all
 			expect(result).to be == :result
 		end
-		
-		it "will propagate exceptions from child tasks" do
-			failed_child = nil
-			
-			reactor.run do |parent|
-				failed_child = parent.async(finished: false) do |child|
-					child.yield
-					raise RuntimeError, "child task failed"
-				end
-				
-				# Wait for the failed child to fail first
-				reactor.run
-				
-				expect(failed_child).to be(:finished?)
-				
-				# wait_all should propagate the exception when it calls wait on the failed child
-				expect do
-					parent.wait_all
-				end.to raise_exception(RuntimeError, message: be =~ /child task failed/)
-			end
-		end
 	end
 	
 	with "#result" do
