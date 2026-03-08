@@ -270,13 +270,8 @@ module Async
 		def wait
 			raise "Cannot wait on own fiber!" if Fiber.current.equal?(@fiber)
 			
-			# Wait for the task to complete - Promise handles all the complexity:
-			begin
-				@promise.wait
-			rescue Promise::Cancel
-				# For backward compatibility, cancelled tasks return nil:
-				return nil
-			end
+			# Wait for the task to complete:
+			@promise.wait
 		end
 		
 		# For compatibility with `Thread#join` and similar interfaces.
@@ -483,8 +478,8 @@ module Async
 		def cancelled!
 			# Console.info(self, status:) {"Task #{self} was cancelled with #{@children&.size.inspect} children!"}
 			
-			# Cancel the promise:
-			@promise.cancel
+			# Cancel the promise, specify nil here so that no exception is raised when waiting on the promise:
+			@promise.cancel(nil)
 			
 			cancelled = false
 			

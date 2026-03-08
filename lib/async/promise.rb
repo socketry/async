@@ -6,6 +6,7 @@
 
 require_relative "error"
 require_relative "deadline"
+require_relative "cancel"
 
 module Async
 	# A promise represents a value that will be available in the future.
@@ -77,42 +78,6 @@ module Async
 			@mutex.synchronize{@resolved ? @value : nil}
 		end
 		
-		# Wait for the promise to be resolved and return the value.
-		# If already resolved, returns immediately. If rejected, raises the stored exception.
-		#
-		# @parameter timeout [Numeric | Nil] Maximum time to wait. If nil, waits indefinitely. If 0, raises immediately if not resolved.
-		# @returns [Object] The resolved value.
-		# @raises [Exception] The rejected or cancelled exception.
-		# @raises [Async::TimeoutError] If timeout expires before the promise is resolved.
-		def wait(timeout: nil)
-			@mutex.synchronize do
-				# Increment waiting count:
-				@waiting += 1
-				
-				begin
-					# Wait for resolution if not already resolved:
-					unless @resolved
-						if timeout.nil?
-							wait_indefinitely
-						else
-							wait_with_timeout(timeout)
-						end
-					end
-					
-					# Return value or raise exception based on resolution type:
-					if @resolved == :completed
-						return @value
-					else
-						# Both :failed and :cancelled store exceptions in @value
-						raise @value
-					end
-				ensure
-					# Decrement waiting count when done:
-					@waiting -= 1
-				end
-			end
-		end
-		
 		# Wait indefinitely for the promise to be resolved.
 		private def wait_indefinitely
 			until @resolved
@@ -122,14 +87,14 @@ module Async
 		
 		# Wait for the promise to be resolved, respecting the deadline timeout.
 		# @parameter timeout [Numeric] The timeout duration.
-		# @raises [Async::TimeoutError] If the timeout expires before resolution.
+		# @returns [Boolean] True if resolved, false if timeout expires.
 		private def wait_with_timeout(timeout)
 			# Create deadline for timeout tracking:
 			deadline = Deadline.start(timeout)
 			
 			# Handle immediate timeout (non-blocking):
 			if deadline == Deadline::Zero && !@resolved
-				raise Async::TimeoutError, "Promise wait not resolved!"
+				return false
 			end
 			
 			# Wait with deadline tracking:
@@ -139,10 +104,66 @@ module Async
 				
 				# Check if deadline has expired before waiting:
 				if remaining <= 0
-					raise Async::TimeoutError, "Promise wait timed out!"
+					return false
 				end
 				
 				@condition.wait(@mutex, remaining)
+			end
+			
+			return true
+		end
+		
+		# Wait for the promise to be resolved (without raising exceptions).
+		#
+		# If already resolved, returns immediately. Otherwise, waits until resolution or timeout.
+		#
+		# @parameter timeout [Numeric | Nil] Maximum time to wait. If nil, waits indefinitely. If 0, returns immediately if not resolved.
+		# @returns [Boolean] True if the promise is resolved, false if timeout expires
+		def wait?(timeout: nil)
+			unless @resolved
+				@mutex.synchronize do
+					# Increment waiting count:
+					@waiting += 1
+					
+					begin
+						# Wait for resolution if not already resolved:
+						unless @resolved
+							if timeout.nil?
+								wait_indefinitely
+							else
+								unless wait_with_timeout(timeout)
+									# We don't want to race on @resolved after exiting the mutex:
+									return nil
+								end
+							end
+						end
+					ensure
+						# Decrement waiting count when done:
+						@waiting -= 1
+					end
+				end
+			end
+			
+			return @resolved
+		end
+		
+		# Wait for the promise to be resolved and return the value.
+		#
+		# If already resolved, returns immediately. If rejected, raises the stored exception.
+		#
+		# @returns [Object] The resolved value.
+		# @raises [Exception] The rejected or cancelled exception.
+		# @raises [Async::TimeoutError] If timeout expires before the promise is resolved.
+		def wait(...)
+			resolved = wait?(...)
+			
+			if resolved.nil?
+				raise TimeoutError, "Timeout while waiting for promise!"
+			elsif resolved == :completed
+				return @value
+			elsif @value
+				# If we aren't completed, we should have an exception or cancel reason stored:
+				raise @value
 			end
 		end
 		
@@ -155,8 +176,8 @@ module Async
 			@mutex.synchronize do
 				return if @resolved
 				
-				@value = value
 				@resolved = :completed
+				@value = value
 				
 				# Wake up all waiting fibers:
 				@condition.broadcast
@@ -174,8 +195,8 @@ module Async
 			@mutex.synchronize do
 				return if @resolved
 				
-				@value = exception
 				@resolved = :failed
+				@value = exception
 				
 				# Wake up all waiting fibers:
 				@condition.broadcast
@@ -184,20 +205,16 @@ module Async
 			return nil
 		end
 		
-		# Exception used to indicate cancellation.
-		class Cancel < Exception
-		end
-		
 		# Cancel the promise, indicating cancellation.
 		# All current and future waiters will receive nil.
 		# Can only be called on pending promises - no-op if already resolved.
-		def cancel(exception = Cancel.new("Promise was cancelled!"))
+		def cancel(exception = Cancel.new("Promise cancelled!"))
 			@mutex.synchronize do
 				# No-op if already in any final state
 				return if @resolved
 				
-				@value = exception
 				@resolved = :cancelled
+				@value = exception
 				
 				# Wake up all waiting fibers:
 				@condition.broadcast

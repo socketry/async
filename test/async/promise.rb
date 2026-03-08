@@ -201,7 +201,7 @@ describe Async::Promise do
 			
 			expect do
 				promise.wait(timeout: 0)
-			end.to raise_exception(Async::TimeoutError, message: be =~ /not resolved/)
+			end.to raise_exception(Async::TimeoutError, message: be =~ /Timeout/i)
 		end
 		
 		it "raises TimeoutError after timeout expires" do
@@ -223,7 +223,7 @@ describe Async::Promise do
 			elapsed = Time.now - start_time
 			
 			expect(error).to be_a(Async::TimeoutError)
-			expect(error.message).to be =~ /timed out/
+			expect(error.message).to be =~ /Timeout/i
 			expect(elapsed).to be >= 0.1
 			expect(elapsed).to be < 0.5
 			expect(promise).not.to be(:waiting?)
@@ -333,11 +333,11 @@ describe Async::Promise do
 			expect(promise.cancelled?).to be == true
 			expect(promise.completed?).to be == false
 			expect(promise.failed?).to be == false
-			expect(promise.value).to be_a(Async::Promise::Cancel)
+			expect(promise.value).to be_a(Async::Cancel)
 			
 			expect do
 				promise.wait
-			end.to raise_exception(Async::Promise::Cancel, message: be =~ /cancelled/)
+			end.to raise_exception(Async::Cancel, message: be =~ /cancelled/)
 		end
 		
 		it "can be cancelled with custom exception" do
@@ -368,7 +368,7 @@ describe Async::Promise do
 			expect(promise.cancelled?).to be == true
 			expect do
 				promise.wait
-			end.to raise_exception(Async::Promise::Cancel)
+			end.to raise_exception(Async::Cancel)
 		end
 		
 		it "ignores reject after cancel" do
@@ -378,7 +378,7 @@ describe Async::Promise do
 			expect(promise.cancelled?).to be == true
 			expect do
 				promise.wait
-			end.to raise_exception(Async::Promise::Cancel)
+			end.to raise_exception(Async::Cancel)
 		end
 		
 		it "handles multiple concurrent waiters with cancellation" do
@@ -524,7 +524,7 @@ describe Async::Promise do
 		end
 		
 		it "handles Cancel exceptions (absorbed, not re-raised)" do
-			cancel_exception = Async::Promise::Cancel.new("user cancelled")
+			cancel_exception = Async::Cancel.new("user cancelled")
 			
 			result = promise.fulfill do
 				raise cancel_exception
@@ -538,14 +538,14 @@ describe Async::Promise do
 			# But promise.wait will raise the cancel exception:
 			expect do
 				promise.wait
-			end.to raise_exception(Async::Promise::Cancel, message: be =~ /user cancelled/)
+			end.to raise_exception(Async::Cancel, message: be =~ /user cancelled/)
 		end
 		
 		it "handles custom Cancel exceptions" do
 			custom_cancel = StandardError.new("custom stop")
 			
 			result = promise.fulfill do
-				raise Async::Promise::Cancel.new("wrapper").tap{|c| c.instance_variable_set(:@cause, custom_cancel)}
+				raise Async::Cancel.new("wrapper").tap{|c| c.instance_variable_set(:@cause, custom_cancel)}
 			end
 			
 			expect(result).to be_nil
@@ -646,7 +646,7 @@ describe Async::Promise do
 			promise3 = Async::Promise.new
 			
 			# Cancel exception should be caught specifically:
-			promise1.fulfill{raise Async::Promise::Cancel.new}
+			promise1.fulfill{raise Async::Cancel.new}
 			expect(promise1.cancelled?).to be == true
 			
 			# StandardError should be caught by rescue =>:
@@ -736,7 +736,7 @@ describe Async::Promise do
 			expect(promise.value).to be == original_value
 			expect do
 				promise.wait
-			end.to raise_exception(Async::Promise::Cancel)
+			end.to raise_exception(Async::Cancel)
 		end
 		
 		it "reject after cancel is ignored" do
@@ -749,7 +749,7 @@ describe Async::Promise do
 			expect(promise.value).to be == original_value
 			expect do
 				promise.wait
-			end.to raise_exception(Async::Promise::Cancel)
+			end.to raise_exception(Async::Cancel)
 		end
 		
 		it "fulfill after cancel raises already resolved error" do
