@@ -2,6 +2,7 @@
 
 # Released under the MIT License.
 # Copyright, 2019-2026, by Samuel Williams.
+# Copyright, 2026, by Tavian Barnes.
 
 require_relative "list"
 require_relative "task"

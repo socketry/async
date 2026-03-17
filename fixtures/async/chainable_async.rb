@@ -2,6 +2,7 @@
 
 # Released under the MIT License.
 # Copyright, 2019-2025, by Samuel Williams.
+# Copyright, 2026, by Tavian Barnes.
 
 module Async
 	ChainableAsync = Sus::Shared("chainable async") do
