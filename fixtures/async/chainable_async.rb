@@ -9,7 +9,9 @@ module Async
 		let(:chainable) {subject.new(parent: parent)}
 		
 		it "should chain async to parent" do
-			expect(parent).to receive(:async).and_return(nil)
+			expect(parent).to receive(:async).and_return {|*arguments, **options, &block|
+				Async(*arguments, **options, &block)
+			}
 			
 			chainable.async do
 				# Nothing.

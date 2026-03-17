@@ -18,6 +18,7 @@ module Async
 		def initialize(parent: nil)
 			@tasks = List.new
 			@finished = Queue.new
+			@cond = Condition.new
 			
 			@parent = parent
 		end
@@ -47,13 +48,21 @@ module Async
 			
 			waiting = nil
 			
-			parent.async(*arguments, **options) do |task, *arguments|
-				waiting = TaskNode.new(task)
-				@tasks.append(waiting)
+			task = parent.async(*arguments, **options) do |task, *arguments|
+				node = TaskNode.new(task)
+				@tasks.append(node)
+
+				waiting = node
+				@cond.signal
+
 				block.call(task, *arguments)
 			ensure
-				@finished.signal(waiting) unless @finished.closed?
+				@finished.signal(node) unless @finished.closed?
 			end
+
+			@cond.wait while waiting.nil?
+
+			task
 		end
 		
 		# Whether there are any tasks being held by the barrier.
