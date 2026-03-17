@@ -1,6 +1,6 @@
 # Releases
 
-## Unreleased
+## v2.38.1
 
   - Fix `Barrier#async` when `parent.async` yields before the child block executes. Previously, `Barrier#wait` could return early and miss tracking the task entirely, because the task had not yet appended itself to the barrier's task list.
 

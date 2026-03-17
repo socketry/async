@@ -35,6 +35,10 @@ Please see the [project documentation](https://socketry.github.io/async/) for mo
 
 Please see the [project releases](https://socketry.github.io/async/releases/index) for all releases.
 
+### v2.38.1
+
+  - Fix `Barrier#async` when `parent.async` yields before the child block executes. Previously, `Barrier#wait` could return early and miss tracking the task entirely, because the task had not yet appended itself to the barrier's task list.
+
 ### v2.38.0
 
   - Rename `Task#stop` to `Task#cancel` for better clarity and consistency with common concurrency terminology. The old `stop` method is still available as an alias for backward compatibility, but it is recommended to use `cancel` going forward.
@@ -74,10 +78,6 @@ Please see the [project releases](https://socketry.github.io/async/releases/inde
 ### v2.33.0
 
   - Introduce `Async::Promise.fulfill` for optional promise resolution.
-
-### v2.32.1
-
-  - Fix typo in documentation.
 
 ## See Also
 
