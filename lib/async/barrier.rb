@@ -18,6 +18,7 @@ module Async
 		def initialize(parent: nil)
 			@tasks = List.new
 			@finished = Queue.new
+			@condition = Condition.new
 			
 			@parent = parent
 		end
@@ -42,18 +43,32 @@ module Async
 		
 		# Execute a child task and add it to the barrier.
 		# @asynchronous Executes the given block concurrently.
+		# @returns [Task] The task which was created to execute the block.
 		def async(*arguments, parent: (@parent or Task.current), **options, &block)
 			raise "Barrier is stopped!" if @finished.closed?
 			
 			waiting = nil
 			
-			parent.async(*arguments, **options) do |task, *arguments|
-				waiting = TaskNode.new(task)
-				@tasks.append(waiting)
+			task = parent.async(*arguments, **options) do |task, *arguments|
+				# Create a new list node for the task and add it to the list of waiting tasks:
+				node = TaskNode.new(task)
+				@tasks.append(node)
+				
+				# Signal the outer async block that we have added the task to the list of waiting tasks, and that it can now wait for it to finish:
+				waiting = node
+				@condition.signal
+				
+				# Invoke the block, which may raise an error. If it does, we will still signal that the task has finished:
 				block.call(task, *arguments)
 			ensure
-				@finished.signal(waiting) unless @finished.closed?
+				# Signal that the task has finished, which will unblock the waiting task:
+				@finished.signal(node) unless @finished.closed?
 			end
+			
+			# `parent.async` may yield before the child block executes, so we wait here until the child has appended itself to `@tasks`, ensuring `wait` cannot return early and miss tracking it:
+			@condition.wait while waiting.nil?
+			
+			return task
 		end
 		
 		# Whether there are any tasks being held by the barrier.
