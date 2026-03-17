@@ -133,7 +133,7 @@ describe Async::Barrier do
 				barrier.stop
 			end
 		end
-
+		
 		it "waits even if the child task yields immediately" do
 			class Yielder
 				def async(*arguments, **options, &block)
@@ -143,15 +143,15 @@ describe Async::Barrier do
 					end
 				end
 			end
-
+			
 			parent = Yielder.new
-
+			
 			3.times do |i|
-				barrier.async(parent:) {i}
+				barrier.async(parent:){i}
 			end
-
+			
 			expect(barrier.size).to be == 3
-
+			
 			results = []
 			barrier.wait do |task|
 				results << task.wait
