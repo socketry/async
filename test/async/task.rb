@@ -85,6 +85,17 @@ describe Async::Task do
 			expect(was_current).to be == true
 			expect(task).not.to be(:current?)
 		end
+		
+		it "clears async_task on fiber after task finishes" do
+			fiber = nil
+			
+			task = reactor.async do |task|
+				fiber = Fiber.current
+			end
+			
+			# After the task completes, the fiber should no longer reference the task:
+			expect(fiber.async_task).to be_nil
+		end
 	end
 	
 	with "#async" do

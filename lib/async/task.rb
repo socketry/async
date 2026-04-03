@@ -456,6 +456,9 @@ module Async
 		
 		# Finish the current task, moving any children to the parent.
 		def finish!
+			# Break the cycle:
+			@fiber&.async_task = nil
+			
 			# Don't hold references to the fiber or block after the task has finished:
 			@fiber = nil
 			@block = nil # If some how we went directly from initialized to finished.
