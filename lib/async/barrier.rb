@@ -81,12 +81,17 @@ module Async
 		# Wait for all tasks to complete by invoking {Task#wait} on each waiting task, which may raise an error. As long as the task has completed, it will be removed from the barrier.
 		#
 		# @yields {|task| ...} If a block is given, the unwaited task is yielded. You must invoke {Task#wait} yourself. In addition, you may `break` if you have captured enough results.
+		# @returns [Integer | Nil] The number of tasks which were waited for, or `nil` if there were no tasks to wait for.
 		#
 		# @asynchronous Will wait for tasks to finish executing.
 		def wait
-			while !@tasks.empty?
+			return nil if @tasks.empty?
+			count = 0
+			
+			while true
 				# Wait for a task to finish (we get the task node):
-				return unless waiting = @finished.wait
+				break unless waiting = @finished.wait
+				count += 1
 				
 				# Remove the task as it is now finishing:
 				@tasks.remove?(waiting)
@@ -101,7 +106,11 @@ module Async
 					# Wait for it to either complete or raise an error:
 					task.wait
 				end
+				
+				break if @tasks.empty?
 			end
+			
+			return count
 		end
 		
 		# Cancel all tasks held by the barrier.

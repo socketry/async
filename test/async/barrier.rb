@@ -135,6 +135,18 @@ describe Async::Barrier do
 			end
 		end
 		
+		it "returns nil when there are no tasks" do
+			expect(barrier.wait).to be_nil
+		end
+		
+		it "returns the number of tasks waited for" do
+			3.times do
+				barrier.async{}
+			end
+			
+			expect(barrier.wait).to be == 3
+		end
+		
 		it "waits even if the child task yields immediately" do
 			class Yielder
 				def async(*arguments, **options, &block)
