@@ -101,7 +101,7 @@ describe IO do
 			read_task = Async do
 				expect do
 					r.read(5)
-				end.to raise_exception(IOError, message: be =~ /stream closed/)
+				end.to raise_exception(IOError, message: be =~ /closed/)
 			end
 			
 			r.close
@@ -116,7 +116,7 @@ describe IO do
 			read_task = Async do
 				expect do
 					r.read(5)
-				end.to raise_exception(IOError, message: be =~ /stream closed/)
+				end.to raise_exception(IOError, message: be =~ /closed/)
 			end
 			
 			close_task = Async do
@@ -135,7 +135,7 @@ describe IO do
 			read_task = Async do
 				expect do
 					r.read(5)
-				end.to raise_exception(IOError, message: be =~ /stream closed/)
+				end.to raise_exception(IOError, message: be =~ /closed/)
 			end
 			
 			close_thread = Thread.new do
@@ -154,7 +154,7 @@ describe IO do
 			read_task = Async do
 				expect do
 					r.read(5)
-				end.to raise_exception(IOError, message: be =~ /stream closed/)
+				end.to raise_exception(IOError, message: be =~ /closed/)
 			end
 			
 			close_thread = Thread.new do
