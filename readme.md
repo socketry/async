@@ -35,6 +35,10 @@ Please see the [project documentation](https://socketry.github.io/async/) for mo
 
 Please see the [project releases](https://socketry.github.io/async/releases/index) for all releases.
 
+### v2.39.0
+
+  - `Async::Barrier#wait` now returns the number of tasks that were waited for, or `nil` if there were no tasks to wait for. This provides better feedback about the operation, and allows you to know how many tasks were involved in the wait.
+
 ### v2.38.1
 
   - Fix `Barrier#async` when `parent.async` yields before the child block executes. Previously, `Barrier#wait` could return early and miss tracking the task entirely, because the task had not yet appended itself to the barrier's task list.
@@ -74,10 +78,6 @@ Please see the [project releases](https://socketry.github.io/async/releases/inde
 ### v2.34.0
 
   - [`Kernel::Barrier` Convenience Interface](https://socketry.github.io/async/releases/index#kernel::barrier-convenience-interface)
-
-### v2.33.0
-
-  - Introduce `Async::Promise.fulfill` for optional promise resolution.
 
 ## See Also
 
