@@ -9,7 +9,7 @@ source "https://rubygems.org"
 
 gemspec
 
-gem "io-event", git: "https://github.com/socketry/io-event.git", branch: "io-event-select-closed"
+gem "io-event", git: "https://github.com/socketry/io-event.git"
 
 # In order to capture both code paths in coverage, we need to optionally load this gem:
 if ENV["FIBER_PROFILER_CAPTURE"] == "true"
