@@ -76,3 +76,10 @@ describe IO with #close it can interrupt reading thread when closing from a fibe
 		test/io.rb:178 IO#read
 		test/io.rb:178 block (5 levels) in <top (required)>
 ```
+
+Analysis:
+
+- `read_thread` has no fiber scheduler (`thread->scheduler == Qnil`), so `rb_fiber_scheduler_fiber_interrupt` is *not* called. The fallback (`rb_threadptr_pending_interrupt_enque` + `rb_threadptr_interrupt`) fires correctly. That part is intentional.
+- The `⚠` is a sus warning, not an assertion failure. The test sets `report_on_exception = false` inside the thread but there is a race: if `r.close` delivers the IOError before that line executes, Ruby prints the exception.
+- More structurally: `close_task.wait` blocks until `rb_thread_io_close_wait` returns. That function calls `rb_mutex_sleep(wakeup_mutex, Qnil)`, waiting for `read_thread` to clear its blocking operation and signal the mutex. If `read_thread` doesn't properly wake and signal (e.g. due to GVL contention or scheduler interaction), the close task hangs and the test never reaches the `expect { read_thread.join }` assertion.
+- This failure may therefore be a separate liveness issue in the close/wait handshake rather than the stale-interrupt problem in Failures 1–3, but both are triggered by the same `rb_thread_io_close_interrupt` / `rb_thread_io_close_wait` mechanism.
