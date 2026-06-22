@@ -32,7 +32,7 @@ module Async
 			!self.empty?
 		end
 		
-		# @returns [Integer] Number of fibers waiting on this condition
+		# @returns [Integer] Number of fibers waiting on this condition.
 		def waiting_count
 			@ready.num_waiting
 		end
