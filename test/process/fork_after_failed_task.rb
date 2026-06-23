@@ -5,6 +5,7 @@
 
 require "sus/fixtures/async"
 require "async"
+require_relative "fork_diagnostics"
 
 describe "fork after failed task" do
 	after do
@@ -34,6 +35,8 @@ describe "fork after failed task" do
 		r, w = IO.pipe
 		
 		Async do
+			ForkDiagnostics.before_fork("fork_after_failed_task.rb block form")
+			
 			pid = Process.fork do
 				w.write("hello")
 			end

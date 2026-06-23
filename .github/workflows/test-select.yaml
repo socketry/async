@@ -32,6 +32,13 @@ jobs:
                 timeout 30s bundle exec sus test/process/fork_after_failed_task.rb
                 echo "::endgroup::"
               done
+          - name: failed task then fork diagnostics
+            command: |
+              for i in $(seq 1 50); do
+                echo "::group::failed task then fork diagnostics iteration $i"
+                FORK_DIAGNOSTICS=1 timeout 30s bundle exec sus test/process/fork_after_failed_task.rb
+                echo "::endgroup::"
+              done
           - name: fork diagnostics
             command: |
               for i in $(seq 1 20); do
