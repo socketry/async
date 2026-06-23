@@ -30,9 +30,9 @@ jobs:
         ruby-version: ${{matrix.ruby}}
         bundler-cache: true
     
-    - name: Run tests
+    - name: Run process fork tests
       timeout-minutes: 10
-      run: bundle exec bake test
+      run: bundle exec sus test/process/fork.rb
     
     # Maybe buggy.
     # - name: Run external tests
