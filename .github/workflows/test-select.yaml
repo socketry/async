@@ -19,11 +19,26 @@ jobs:
       matrix:
         include:
           - name: fork diagnostics
-            command: FORK_DIAGNOSTICS=1 timeout 30s bundle exec sus test/process/fork.rb
+            command: |
+              for i in $(seq 1 20); do
+                echo "::group::fork diagnostics iteration $i"
+                FORK_DIAGNOSTICS=1 timeout 30s bundle exec sus test/process/fork.rb
+                echo "::endgroup::"
+              done
           - name: stop then fork diagnostics
-            command: FORK_DIAGNOSTICS=1 timeout 30s bundle exec sus test/process/task_suite_then_fork.rb
+            command: |
+              for i in $(seq 1 20); do
+                echo "::group::stop then fork diagnostics iteration $i"
+                FORK_DIAGNOSTICS=1 timeout 30s bundle exec sus test/process/task_suite_then_fork.rb
+                echo "::endgroup::"
+              done
           - name: stop then fork diagnostics gc
-            command: FORK_DIAGNOSTICS=1 GC_BEFORE_FORK=1 timeout 30s bundle exec sus test/process/task_suite_then_fork.rb
+            command: |
+              for i in $(seq 1 20); do
+                echo "::group::stop then fork diagnostics gc iteration $i"
+                FORK_DIAGNOSTICS=1 GC_BEFORE_FORK=1 timeout 30s bundle exec sus test/process/task_suite_then_fork.rb
+                echo "::endgroup::"
+              done
     
     steps:
     - uses: actions/checkout@v3
