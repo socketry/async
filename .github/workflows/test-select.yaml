@@ -20,6 +20,8 @@ jobs:
         include:
           - name: fork only
             command: bundle exec sus test/process/fork.rb
+          - name: combined failed task then fork
+            command: bundle exec sus test/process/fork_after_failed_task.rb
           - name: task only
             command: bundle exec sus test/async/task.rb
           - name: task then fork
