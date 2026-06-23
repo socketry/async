@@ -18,10 +18,12 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - name: combined copy loop
-            command: for i in $(seq 1 50); do echo "::group::combined copy iteration $i"; timeout 30s bundle exec sus test/process/task_suite_then_fork.rb; echo "::endgroup::"; done
-          - name: task then fork loop
-            command: for i in $(seq 1 50); do echo "::group::task then fork iteration $i"; timeout 30s bundle exec sus test/async/task.rb test/process/fork.rb; echo "::endgroup::"; done
+          - name: fork diagnostics
+            command: FORK_DIAGNOSTICS=1 timeout 30s bundle exec sus test/process/fork.rb
+          - name: stop then fork diagnostics
+            command: FORK_DIAGNOSTICS=1 timeout 30s bundle exec sus test/process/task_suite_then_fork.rb
+          - name: stop then fork diagnostics gc
+            command: FORK_DIAGNOSTICS=1 GC_BEFORE_FORK=1 timeout 30s bundle exec sus test/process/task_suite_then_fork.rb
     
     steps:
     - uses: actions/checkout@v3

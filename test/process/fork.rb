@@ -6,6 +6,7 @@
 
 require "sus/fixtures/async"
 require "async"
+require_relative "fork_diagnostics"
 
 describe Process do
 	describe ".fork" do
@@ -13,6 +14,8 @@ describe Process do
 			r, w = IO.pipe
 			
 			Async do
+				ForkDiagnostics.before_fork("fork.rb block form")
+				
 				pid = Process.fork do
 					# Child process:
 					w.write("hello")
@@ -33,6 +36,8 @@ describe Process do
 			r, w = IO.pipe
 			
 			Async do
+				ForkDiagnostics.before_fork("fork.rb non-block form")
+				
 				unless pid = Process.fork
 					# Child process:
 					w.write("hello")

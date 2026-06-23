@@ -13,6 +13,7 @@ require "async/queue"
 require "sus/fixtures/console"
 
 require "sus/fixtures/time/quantum"
+require_relative "fork_diagnostics"
 
 describe Async::Task do
 	let(:reactor) {Async::Reactor.new}
@@ -1318,6 +1319,8 @@ describe Process do
 			r, w = IO.pipe
 			
 			Async do
+				ForkDiagnostics.before_fork("task_suite_then_fork.rb block form")
+				
 				pid = Process.fork do
 					w.write("hello")
 				end
@@ -1336,6 +1339,8 @@ describe Process do
 			r, w = IO.pipe
 			
 			Async do
+				ForkDiagnostics.before_fork("task_suite_then_fork.rb non-block form")
+				
 				unless pid = Process.fork
 					w.write("hello")
 					
