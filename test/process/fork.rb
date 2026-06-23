@@ -22,6 +22,9 @@ describe Process do
 				w.close
 				expect(r.read).to be == "hello"
 			ensure
+				Fiber.blocking do
+					$stderr.puts "Waiting for child process #{pid} to exit... (#{$!})"
+				end
 				Process.waitpid(pid) if pid
 			end
 		end
