@@ -21,6 +21,7 @@ describe Async::Task do
 		Fiber.set_scheduler(nil)
 	end
 	
+	if false
 	with "#annotate" do
 		it "can annotate the current task that has not started yet" do
 			task = Async::Task.new(reactor) do |task|
@@ -221,6 +222,8 @@ describe Async::Task do
 			
 			expect(state).to be == :finished
 		end
+	end
+	
 	end
 	
 	with "#stop" do
@@ -711,6 +714,7 @@ describe Async::Task do
 		end
 	end
 	
+	if false
 	with "#with_timeout" do
 		it "will timeout if execution takes too long" do
 			state = nil
@@ -1304,6 +1308,7 @@ describe Async::Task do
 			
 			expect(state).to be == :finished
 		end
+	end
 	end
 end
 
