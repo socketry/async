@@ -11,28 +11,42 @@ env:
 
 jobs:
   test:
-    name: ${{matrix.ruby}} on ${{matrix.os}} / IO_EVENT_SELECTOR=Select
-    runs-on: ${{matrix.os}}-latest
+    name: ${{matrix.name}} on ubuntu / IO_EVENT_SELECTOR=Select
+    runs-on: ubuntu-latest
     
     strategy:
+      fail-fast: false
       matrix:
-        os:
-          - ubuntu
-          - macos
-        
-        ruby:
-          - head
+        include:
+          - name: fork only
+            command: bundle exec sus test/process/fork.rb
+          - name: task only
+            command: bundle exec sus test/async/task.rb
+          - name: task then fork
+            command: bundle exec sus test/async/task.rb test/process/fork.rb
+          - name: async dir
+            command: bundle exec sus test/async
+          - name: async dir then fork
+            command: bundle exec sus test/async test/process/fork.rb
+          - name: kernel dir then fork
+            command: bundle exec sus test/kernel test/kernel.rb test/process/fork.rb
+          - name: sorted task through fork
+            command: files=$(find test -type f -name '*.rb' | sort | awk '$0 >= "test/async/task.rb" && $0 <= "test/process/fork.rb" {print}'); bundle exec sus $files
+          - name: sorted prefix through fork
+            command: files=$(find test -type f -name '*.rb' | sort | awk '$0 <= "test/process/fork.rb" {print}'); bundle exec sus $files
+          - name: full suite
+            command: bundle exec bake test
     
     steps:
     - uses: actions/checkout@v3
     - uses: ruby/setup-ruby@v1
       with:
-        ruby-version: ${{matrix.ruby}}
+        ruby-version: head
         bundler-cache: true
     
-    - name: Run process fork tests
-      timeout-minutes: 10
-      run: bundle exec sus test/process/fork.rb
+    - name: Run selected tests
+      timeout-minutes: 5
+      run: ${{matrix.command}}
     
     # Maybe buggy.
     # - name: Run external tests
