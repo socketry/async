@@ -18,26 +18,16 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - name: fork only
-            command: bundle exec sus test/process/fork.rb
-          - name: combined failed task then fork
-            command: bundle exec sus test/process/fork_after_failed_task.rb
-          - name: task only
-            command: bundle exec sus test/async/task.rb
-          - name: task then fork
+          - name: combined copy 1
+            command: bundle exec sus test/process/task_suite_then_fork.rb
+          - name: combined copy 2
+            command: bundle exec sus test/process/task_suite_then_fork.rb
+          - name: combined copy 3
+            command: bundle exec sus test/process/task_suite_then_fork.rb
+          - name: task then fork control 1
             command: bundle exec sus test/async/task.rb test/process/fork.rb
-          - name: async dir
-            command: bundle exec sus test/async
-          - name: async dir then fork
-            command: bundle exec sus test/async test/process/fork.rb
-          - name: kernel dir then fork
-            command: bundle exec sus test/kernel test/kernel.rb test/process/fork.rb
-          - name: sorted task through fork
-            command: files=$(find test -type f -name '*.rb' | sort | awk '$0 >= "test/async/task.rb" && $0 <= "test/process/fork.rb" {print}'); bundle exec sus $files
-          - name: sorted prefix through fork
-            command: files=$(find test -type f -name '*.rb' | sort | awk '$0 <= "test/process/fork.rb" {print}'); bundle exec sus $files
-          - name: full suite
-            command: bundle exec bake test
+          - name: task then fork control 2
+            command: bundle exec sus test/async/task.rb test/process/fork.rb
     
     steps:
     - uses: actions/checkout@v3
