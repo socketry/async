@@ -27,6 +27,7 @@ module ForkDiagnostics
 		$stderr.puts "--- #{label} ---" if label
 		
 		dump_threads
+		dump_fibers
 		dump_ios
 		dump_file_descriptors
 	end
@@ -40,6 +41,45 @@ module ForkDiagnostics
 			
 			$stderr.puts "  thread[#{index}] object_id=#{thread.object_id} current=#{thread == Thread.current} status=#{thread.status.inspect} alive=#{thread.alive?} report_on_exception=#{thread.report_on_exception} backtrace=#{backtrace.inspect}"
 		end
+	end
+	
+	def self.dump_fibers
+		fibers = []
+		ObjectSpace.each_object(Fiber) do |fiber|
+			fibers << fiber
+		end
+		
+		$stderr.puts "ObjectSpace.each_object(Fiber) count=#{fibers.size}"
+		
+		backtrace_limit = Integer(ENV.fetch("FORK_DIAGNOSTICS_FIBER_BACKTRACE_LIMIT", "8"))
+		
+		fibers.sort_by(&:object_id).each_with_index do |fiber, index|
+			current = fiber == Fiber.current
+			alive = safe {fiber.alive?}
+			blocking = fiber.respond_to?(:blocking?) ? safe {fiber.blocking?} : nil
+			async_task = fiber.respond_to?(:async_task) ? describe_task(safe {fiber.async_task}) : nil
+			backtrace = safe {fiber.backtrace}
+			
+			$stderr.puts "  fiber[#{index}] object_id=#{fiber.object_id} current=#{current} alive=#{alive.inspect} blocking=#{blocking.inspect} async_task=#{async_task.inspect}"
+			
+			if backtrace.is_a?(Array) && !backtrace.empty?
+				backtrace.first(backtrace_limit).each do |frame|
+					$stderr.puts "    #{frame}"
+				end
+			else
+				$stderr.puts "    backtrace=#{backtrace.inspect}"
+			end
+		end
+	end
+	
+	def self.describe_task(task)
+		return nil unless task
+		return task if task.is_a?(String)
+		
+		status = task.respond_to?(:status) ? safe {task.status} : nil
+		parent = task.respond_to?(:parent) ? safe {task.parent&.object_id} : nil
+		
+		"#{task.class}(object_id=#{task.object_id}, status=#{status.inspect}, parent=#{parent.inspect})"
 	end
 	
 	def self.dump_ios
