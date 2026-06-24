@@ -1,5 +1,9 @@
 # Releases
 
+## Unreleased
+
+  - Introduce `Async::Condition#waiting_count`. This allows you to see how many tasks are currently waiting on the condition, which can be useful for debugging and monitoring purposes.
+
 ## v2.39.0
 
   - `Async::Barrier#wait` now returns the number of tasks that were waited for, or `nil` if there were no tasks to wait for. This provides better feedback about the operation, and allows you to know how many tasks were involved in the wait.

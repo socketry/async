@@ -58,6 +58,31 @@ module Async
 			expect(order).to be == [0, 1, 2, 3, 4]
 		end
 		
+		it "counts waiting fibers" do
+			expect(condition.waiting_count).to be == 0
+			
+			task1 = reactor.async do
+				condition.wait
+			end
+			task2 = reactor.async do
+				condition.wait
+			end
+			
+			expect(condition.waiting_count).to be == 2
+			
+			task3 = reactor.async do
+				condition.wait
+			end
+			
+			expect(condition.waiting_count).to be == 3
+			
+			condition.signal
+			task1.wait
+			task2.wait
+			task3.wait
+			expect(condition.waiting_count).to be == 0
+		end
+		
 		with "timeout" do
 			let(:ready) {Async::Variable.new(condition)}
 			let(:waiting) {Async::Variable.new(subject.new)}

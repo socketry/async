@@ -32,6 +32,11 @@ module Async
 			!self.empty?
 		end
 		
+		# @returns [Integer] Number of fibers waiting on this condition.
+		def waiting_count
+			@ready.num_waiting
+		end
+		
 		# Signal to a given task that it should resume operations.
 		# @parameter value [Object | Nil] The value to return to the waiting fibers.
 		def signal(value = nil)
