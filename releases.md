@@ -1,6 +1,6 @@
 # Releases
 
-## Unreleased
+## v2.40.0
 
   - Introduce `Async::Condition#waiting_count`. This allows you to see how many tasks are currently waiting on the condition, which can be useful for debugging and monitoring purposes.
 
