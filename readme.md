@@ -35,6 +35,10 @@ Please see the [project documentation](https://socketry.github.io/async/) for mo
 
 Please see the [project releases](https://socketry.github.io/async/releases/index) for all releases.
 
+### v2.41.0
+
+  - **Fixed**: Protect initial task from Interrupt exceptions.
+
 ### v2.40.0
 
   - Introduce `Async::Condition#waiting_count`. This allows you to see how many tasks are currently waiting on the condition, which can be useful for debugging and monitoring purposes.
@@ -74,10 +78,6 @@ Please see the [project releases](https://socketry.github.io/async/releases/inde
 ### v2.35.1
 
   - Fix incorrect handling of spurious wakeups in `Async::Promise#wait`, which could lead to premature (incorrect) resolution of the promise.
-
-### v2.35.0
-
-  - `Process.fork` is now properly handled by the Async fiber scheduler, ensuring that the scheduler state is correctly reset in the child process after a fork. This prevents issues where the child process inherits the scheduler state from the parent, which could lead to unexpected behavior.
 
 ## See Also
 

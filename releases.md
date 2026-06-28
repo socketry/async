@@ -1,6 +1,6 @@
 # Releases
 
-## Unreleased
+## v2.41.0
 
   - **Fixed**: Protect initial task from Interrupt exceptions.
 
