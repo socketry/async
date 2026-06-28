@@ -88,5 +88,21 @@ describe Kernel do
 			
 			expect(interrupted).to be == false
 		end
+		
+		it "does not retry initial task startup after an interrupt" do
+			attempts = 0
+			
+			expect do
+				Sync do
+					attempts += 1
+					
+					raise "Initial task startup retried." if attempts > 1
+					
+					raise Interrupt
+				end
+			end.to raise_exception(Interrupt)
+			
+			expect(attempts).to be == 1
+		end
 	end
 end

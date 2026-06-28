@@ -525,12 +525,25 @@ module Async
 			cancel
 		end
 		
-		private def run_loop(&block)
+		# Run the event loop, until the scheduler is interrupted or finished.
+		#
+		# @parameter initial [Proc | Nil] The initial block to execute before the first loop iteration.
+		# @yields {...} The block to execute on each loop iteration.
+		# @raises {Interrupt} If the scheduler is interrupted.
+		private def run_loop(initial = nil, &block)
 			interrupt = nil
 			
 			begin
 				# In theory, we could use Exception here to be a little bit safer, but we've only shown the case for SignalException to be a problem, so let's not over-engineer this.
 				Thread.handle_interrupt(::SignalException => :never) do
+					if initial
+						begin
+							initial.call
+						ensure
+							initial = nil
+						end
+					end
+					
 					until self.interrupted?
 						# If we are finished, we need to exit:
 						break unless yield
@@ -570,9 +583,15 @@ module Async
 			begin
 				@profiler&.start
 				
-				initial_task = self.async(...) if block_given?
+				initial_task = nil
 				
-				self.run_loop do
+				if block_given?
+					initial = proc do
+						initial_task = self.async(...)
+					end
+				end
+				
+				self.run_loop(initial) do
 					run_once
 				end
 				

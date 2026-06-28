@@ -32,8 +32,7 @@ module Kernel
 			
 			begin
 				# Use finished: false to suppress warnings since we're handling exceptions explicitly
-				task = reactor.async(annotation: annotation, finished: false, &block)
-				reactor.run
+				task = reactor.run(annotation: annotation, finished: false, &block)
 				return task.wait
 			ensure
 				Fiber.set_scheduler(nil)
