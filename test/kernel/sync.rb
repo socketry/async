@@ -70,5 +70,23 @@ describe Kernel do
 				end
 			end.to raise_exception(StandardError, message: be =~ /brain/)
 		end
+		
+		it "handles interrupts during initial task startup using the scheduler" do
+			interrupted = false
+			
+			expect do
+				Sync do |task|
+					begin
+						Thread.current.raise Interrupt
+						task.async{}
+					rescue Interrupt
+						interrupted = true
+						raise
+					end
+				end
+			end.to raise_exception(Interrupt)
+			
+			expect(interrupted).to be == false
+		end
 	end
 end
