@@ -57,16 +57,19 @@ describe Async::Semaphore do
 		it "allows tasks to execute concurrently" do
 			semaphore = Async::Semaphore.new(3)
 			order = []
+			concurrent = nil
 			
 			3.times.map do |i|
 				semaphore.async do |task|
 					order << i
 					sleep(0.01)
+					concurrent ||= order.dup
 					order << i
 				end
 			end.collect(&:wait)
 			
-			expect(order).to be == [0, 1, 2, 0, 1, 2]
+			expect(concurrent).to be == [0, 1, 2]
+			expect(order.sort).to be == [0, 0, 1, 1, 2, 2]
 		end
 	end
 	
