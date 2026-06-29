@@ -1,5 +1,9 @@
 # Releases
 
+## Unreleased
+
+  - Install a compatibility SIGINT handler on affected CRuby versions when SIGINT is still using the default handler, so `Thread.handle_interrupt` can defer interrupts.
+
 ## v2.41.0
 
   - **Fixed**: Protect initial task from Interrupt exceptions.
