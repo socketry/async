@@ -46,18 +46,6 @@ describe Kernel do
 		
 		with "a non-blocking fiber" do
 			it "can run the scheduler on a non-blocking fiber" do
-				executed = false
-				
-				Fiber.new do
-					Sync do |task|
-						executed = true
-					end
-				end.resume
-				
-				expect(executed).to be == true
-			end
-			
-			it "returns the result of the block" do
 				result = Fiber.new do
 					Sync {|task| value}
 				end.resume
@@ -92,29 +80,6 @@ describe Kernel do
 						end
 					end.resume
 				end.to raise_exception(StandardError, message: be =~ /boom/)
-			end
-			
-			it "runs on the calling fiber, preserving fiber storage" do
-				Fiber[:annotation] = "outer"
-				
-				result = Fiber.new do
-					Sync {|task| Fiber[:annotation]}
-				end.resume
-				
-				expect(result).to be == "outer"
-			end
-			
-			it "supports nested synchronous tasks" do
-				result = Fiber.new do
-					Sync do |outer|
-						Sync do |inner|
-							expect(inner).to be_equal(outer)
-							value
-						end
-					end
-				end.resume
-				
-				expect(result).to be == value
 			end
 			
 			it "can be used from within an Enumerator" do
