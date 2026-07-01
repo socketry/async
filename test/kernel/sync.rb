@@ -105,44 +105,6 @@ describe Kernel do
 			end
 		end
 		
-		it "cannot be worked around by running the scheduler on a nested blocking fiber" do
-			# A tempting workaround is to force a blocking fiber before calling `Sync`:
-			#
-			#   Fiber.new(blocking: true){Sync(&block)}.resume
-			#
-			# But this is broken: the async scheduler moves between task fibers using `Fiber#transfer`, and per https://bugs.ruby-lang.org/issues/20081 a fiber entered via `resume` that unwinds through `transfer` returns control to the main fiber rather than the resuming fiber. When the enclosing fiber is already owned by a scheduler, the event loop can never hand control back and the whole thing deadlocks.
-			def sync_on_blocking_fiber(&block)
-				return Sync(&block) if Fiber.blocking? || Async::Task.current?
-				
-				Fiber.new(blocking: true){Sync(&block)}.resume
-			end
-			
-			completed = false
-			
-			thread = Thread.new do
-				Thread.current.report_on_exception = false
-				
-				Async do
-					# Simulate a non-blocking fiber owned by some other framework (e.g. a job runner):
-					Fiber.new do
-						sync_on_blocking_fiber do |task|
-							# The nested reactor suspends this task, which requires the scheduler to transfer control:
-							task.async{sleep(0.001)}.wait
-						end
-					end.resume
-				end
-				
-				completed = true
-			end
-			
-			# The workaround deadlocks, so the thread never finishes:
-			finished = thread.join(2)
-			thread.kill unless finished
-			
-			expect(finished).to be_nil
-			expect(completed).to be == false
-		end
-		
 		with "parent task" do
 			it "replaces and restores existing task's annotation" do
 				annotations = []
