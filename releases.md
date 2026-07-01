@@ -3,7 +3,6 @@
 ## v2.42.0
 
   - `Sync` and `Async` can now be invoked from a non-blocking fiber that has no scheduler (e.g. inside an `Enumerator` or a bare `Fiber.new`). Previously this raised `RuntimeError: Running scheduler on non-blocking fiber!`. The reactor is now run within `Fiber.blocking`, so the scheduler always runs on a blocking fiber.
-  - When a task finishes, it now explicitly transfers control back to the scheduler (`Fiber.scheduler&.transfer`). This ensures the event loop regains control even when it is running on a fiber that is not the thread's root fiber (e.g. a fiber owned by another transfer-based scheduler), rather than relying on fiber termination returning control to the correct fiber.
 
 ## v2.41.0
 

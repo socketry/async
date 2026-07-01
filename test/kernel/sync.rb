@@ -59,7 +59,7 @@ describe Kernel do
 			
 			it "returns the result of the block" do
 				result = Fiber.new do
-					Sync{|task| value}
+					Sync {|task| value}
 				end.resume
 				
 				expect(result).to be == value
@@ -98,7 +98,7 @@ describe Kernel do
 				Fiber[:annotation] = "outer"
 				
 				result = Fiber.new do
-					Sync{|task| Fiber[:annotation]}
+					Sync {|task| Fiber[:annotation]}
 				end.resume
 				
 				expect(result).to be == "outer"
@@ -131,48 +131,12 @@ describe Kernel do
 			it "cannot yield to the enumerator from within the block" do
 				# Yielding to the enumerator's consumer from inside `Sync` happens on the task fiber, which is not resumable, so it fails cleanly rather than hanging:
 				enumerator = Enumerator.new do |yielder|
-					Sync{yielder << value}
+					Sync {yielder << value}
 				end
 				
 				expect do
 					enumerator.next
 				end.to raise_exception(FiberError)
-			end
-			
-			it "returns control to the scheduler when the loop fiber is entered via transfer" do
-				# The reactor loop fiber may be entered via `Fiber#transfer` (e.g. owned
-				# by another transfer-based scheduler), which places it off the resume
-				# chain. When a task terminates, control must return to the loop fiber so
-				# the reactor can finish - not to the resume-chain root. Without this,
-				# the reactor is abandoned and the scenario deadlocks, so we run it in a
-				# separate thread with a timeout:
-				completed = nil
-				
-				thread = Thread.new do
-					driver = worker = nil
-					
-					worker = Fiber.new do
-						completed = Sync do |task|
-							task.async{sleep(0.001)}.wait
-							value
-						end
-						
-						driver.transfer
-					end
-					
-					driver = Fiber.new do
-						# Enter the loop fiber via transfer, so it is off the resume chain:
-						worker.transfer
-					end
-					
-					driver.resume
-				end
-				
-				finished = thread.join(2)
-				thread.kill unless finished
-				
-				expect(finished).not.to be_nil
-				expect(completed).to be == value
 			end
 		end
 		

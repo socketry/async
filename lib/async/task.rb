@@ -532,11 +532,6 @@ module Async
 					# Console.info(self) {"Task ensure $! = #{$!} with #{@children&.size.inspect} children!"}
 					finish!
 				end
-				
-				# Transfer control back to the scheduler (which may not be the root
-				# fiber). This is skipped when a critical exception propagates out of
-				# the block above, so that it is not swallowed by the transfer.
-				Fiber.scheduler&.transfer
 			end
 			
 			@fiber.async_task = self
