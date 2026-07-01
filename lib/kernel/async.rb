@@ -27,13 +27,15 @@ module Kernel
 		elsif scheduler = Fiber.scheduler
 			::Async::Task.run(scheduler, ...)
 		else
-			# This calls Fiber.set_scheduler(self):
-			reactor = ::Async::Reactor.new
-			
-			begin
-				return reactor.run(...)
-			ensure
-				Fiber.set_scheduler(nil)
+			Fiber.blocking do
+				# This calls Fiber.set_scheduler(self):
+				reactor = ::Async::Reactor.new
+				
+				begin
+					return reactor.run(...)
+				ensure
+					Fiber.set_scheduler(nil)
+				end
 			end
 		end
 	end
