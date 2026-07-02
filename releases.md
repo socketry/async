@@ -1,5 +1,9 @@
 # Releases
 
+## Unreleased
+
+  - `Sync` and `Async` can now be invoked from a non-blocking fiber that has no scheduler (e.g. inside an `Enumerator` or a bare `Fiber.new`). Previously this raised `RuntimeError: Running scheduler on non-blocking fiber!`. The reactor is now run within `Fiber.blocking`, so the scheduler always runs on a blocking fiber.
+
 ## v2.41.0
 
   - **Fixed**: Protect initial task from Interrupt exceptions.

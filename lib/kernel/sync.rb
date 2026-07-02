@@ -27,15 +27,16 @@ module Kernel
 		elsif scheduler = Fiber.scheduler
 			::Async::Task.run(scheduler, &block).wait
 		else
-			# This calls Fiber.set_scheduler(self):
-			reactor = Async::Reactor.new
-			
-			begin
-				# Use finished: false to suppress warnings since we're handling exceptions explicitly
-				task = reactor.run(annotation: annotation, finished: false, &block)
-				return task.wait
-			ensure
-				Fiber.set_scheduler(nil)
+			Fiber.blocking do
+				# This calls Fiber.set_scheduler(self):
+				reactor = Async::Reactor.new
+				
+				begin
+					# Use finished: false to suppress warnings since we're handling exceptions explicitly
+					return reactor.run(annotation: annotation, finished: false, &block).wait
+				ensure
+					Fiber.set_scheduler(nil)
+				end
 			end
 		end
 	end
