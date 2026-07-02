@@ -295,7 +295,26 @@ module Async
 			# On some platforms, hostnames may contain a device-specific suffix (e.g. %en0). We need to strip this before resolving.
 			# See <https://github.com/socketry/async/issues/180> for more details.
 			hostname = hostname.split("%", 2).first
-			::Resolv.getaddresses(hostname)
+			
+			return [hostname] if ::Resolv::AddressRegex =~ hostname
+			
+			::Resolv::DefaultResolver.instance_variable_get(:@resolvers).each do |resolver|
+				addresses = []
+				
+				if resolver.is_a?(::Resolv::DNS)
+					[::Resolv::DNS::Resource::IN::AAAA, ::Resolv::DNS::Resource::IN::A].each do |type|
+						resolver.each_resource(hostname, type) {|resource| addresses << resource.address.to_s}
+					end
+				else
+					resolver.each_address(hostname) {|address| addresses << address.to_s}
+					ipv6, ipv4 = addresses.partition {|address| address.include?(":")}
+					addresses = ipv6 + ipv4
+				end
+				
+				return addresses unless addresses.empty?
+			end
+			
+			return []
 		end
 		
 		# Wait for the specified IO to become ready for the specified events.

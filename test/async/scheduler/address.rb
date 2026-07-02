@@ -34,4 +34,17 @@ describe Async::Scheduler do
 			expect(address.ipv6?).to be == true
 		end
 	end
+
+	with "#address_resolve" do
+		it "orders IPv6 addresses before IPv4 addresses" do
+			addresses = Fiber.scheduler.address_resolve("localhost")
+			
+			ipv4_index = addresses.index {|address| !address.include?(":")}
+			ipv6_index = addresses.index {|address| address.include?(":")}
+			
+			if ipv4_index && ipv6_index
+				expect(ipv6_index).to be < ipv4_index
+			end
+		end
+	end
 end
