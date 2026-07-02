@@ -35,6 +35,10 @@ Please see the [project documentation](https://socketry.github.io/async/) for mo
 
 Please see the [project releases](https://socketry.github.io/async/releases/index) for all releases.
 
+### v2.42.0
+
+  - `Sync` and `Async` can now be invoked from a non-blocking fiber that has no scheduler (e.g. inside an `Enumerator` or a bare `Fiber.new`). Previously this raised `RuntimeError: Running scheduler on non-blocking fiber!`. The reactor is now run within `Fiber.blocking`, so the scheduler always runs on a blocking fiber.
+
 ### v2.41.0
 
   - **Fixed**: Protect initial task from Interrupt exceptions.
@@ -74,10 +78,6 @@ Please see the [project releases](https://socketry.github.io/async/releases/inde
 
   - Improved handling of `Process.fork` on Ruby 4+.
   - Improve `@promise` state handling in `Task#initialize`, preventing incomplete instances being visible to the scheduler.
-
-### v2.35.1
-
-  - Fix incorrect handling of spurious wakeups in `Async::Promise#wait`, which could lead to premature (incorrect) resolution of the promise.
 
 ## See Also
 
