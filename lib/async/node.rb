@@ -283,9 +283,10 @@ module Async
 		# Attempt to cancel the current node immediately, including all non-transient children. Invokes {#stop_children} to cancel all children.
 		#
 		# @parameter later [Boolean] Whether to defer cancelling until some point in the future.
-		def cancel(later = false)
+		# @parameter cause [Exception | Nil] The cause of the cancel operation.
+		def cancel(later = false, cause: $!)
 			# The implementation of this method may defer calling `stop_children`.
-			stop_children(later)
+			stop_children(later, cause: cause)
 		end
 		
 		# Backward compatibility alias for {#cancel}.
@@ -295,9 +296,9 @@ module Async
 		end
 		
 		# Attempt to stop all non-transient children.
-		private def stop_children(later = false)
+		private def stop_children(later = false, cause:)
 			@children&.each do |child|
-				child.cancel(later) unless child.transient?
+				child.cancel(later, cause: cause) unless child.transient?
 			end
 		end
 		

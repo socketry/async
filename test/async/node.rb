@@ -288,6 +288,17 @@ describe Async::Node do
 			
 			node.cancel
 		end
+		
+		it "forwards the cause to child tasks" do
+			cause = RuntimeError.new("boom")
+			
+			middle = Async::Node.new(node, annotation: "middle")
+			child = Async::Node.new(middle, annotation: "child")
+			
+			expect(child).to receive(:cancel).with(false, cause: cause)
+			
+			middle.cancel(cause: cause)
+		end
 	end
 	
 	with "#terminate" do

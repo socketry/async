@@ -17,7 +17,7 @@ describe Async::Task do
 			Traces.trace("parent") do
 				parent_context = Traces.trace_context
 				
-				Async do
+				Async(annotation: "child") do
 					child_context = Traces.trace_context
 				end
 			end

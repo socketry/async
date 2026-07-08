@@ -333,7 +333,7 @@ module Async
 			
 			if self.cancelled?
 				# If the task is already cancelled, a `cancel` state transition re-enters the same state which is a no-op. However, we will also attempt to cancel any running children too. This can happen if the children did not cancel correctly the first time around. Doing this should probably be considered a bug, but it's better to be safe than sorry.
-				return cancelled!
+				return cancelled!(cause: cause)
 			end
 			
 			# If the fiber is alive, we need to cancel it:
@@ -369,7 +369,7 @@ module Async
 				end
 			else
 				# We are not running, but children might be, so transition directly into cancelled state:
-				cancel!
+				cancel!(cause: cause)
 			end
 		end
 		
@@ -479,7 +479,7 @@ module Async
 			@promise.reject(exception)
 		end
 		
-		def cancelled!
+		def cancelled!(cause: $!)
 			# Console.info(self, status:) {"Task #{self} was cancelled with #{@children&.size.inspect} children!"}
 			
 			# Cancel the promise, specify nil here so that no exception is raised when waiting on the promise:
@@ -489,15 +489,16 @@ module Async
 			
 			begin
 				# We are not running, but children might be so we should stop them:
-				stop_children(true)
-			rescue Cancel
+				stop_children(true, cause: cause)
+			rescue Cancel => exception
 				cancelled = true
+				cause ||= exception.cause || exception
 				# If we are cancelling children, and one of them tries to cancel the current task, we should ignore it. We will be cancelled later.
 				retry
 			end
 			
 			if cancelled
-				raise Cancel, "Cancelling current task!"
+				raise Cancel, "Cancelling current task!", cause: cause
 			end
 		end
 		
@@ -505,8 +506,8 @@ module Async
 			cancelled!
 		end
 		
-		def cancel!
-			cancelled!
+		def cancel!(cause: $!)
+			cancelled!(cause: cause)
 			
 			finish!
 		end
@@ -519,8 +520,8 @@ module Async
 			@fiber = Fiber.new(annotation: self.annotation) do
 				begin
 					completed!(yield)
-				rescue Cancel
-					cancelled!
+				rescue Cancel => exception
+					cancelled!(cause: exception.cause || exception)
 				rescue StandardError => error
 					failed!(error)
 				rescue Exception => exception

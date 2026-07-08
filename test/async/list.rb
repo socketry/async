@@ -67,6 +67,12 @@ describe Async::List do
 			expect(list.each.map(&:value)).to be(:empty?)
 		end
 		
+		it "returns nil when removing an item that is not in the list" do
+			item = Item.new(1)
+
+			expect(list.remove?(item)).to be_nil
+		end
+
 		it "can't remove an item twice" do
 			item = Item.new(1)
 			
