@@ -514,15 +514,19 @@ module Async
 		# Cancel all children, including transient children.
 		#
 		# @public Since *Async v1*.
-		def cancel
+		def cancel(later = false, cause: $!)
+			if @children and !cause
+				cause = Cancel::Cause.for("Cancelling task!")
+			end
+			
 			@children&.each do |child|
-				child.cancel
+				child.cancel(later, cause: cause)
 			end
 		end
 		
 		# Backward compatibility alias for cancel.
-		def stop
-			cancel
+		def stop(...)
+			cancel(...)
 		end
 		
 		# Run the event loop, until the scheduler is interrupted or finished.

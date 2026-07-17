@@ -4,15 +4,38 @@
 # Copyright, 2025, by Samuel Williams.
 # Copyright, 2025, by Shopify Inc.
 
-require "async/limited_queue"
+require "async/queue"
 
 require "sus/fixtures/async"
 require "async/a_queue"
+
+limited_queue_new = Async::LimitedQueue.method(:new)
+
+require "async/limited_queue"
 
 describe Async::LimitedQueue do
 	include Sus::Fixtures::Async::ReactorContext
 	
 	it_behaves_like Async::AQueue
+	
+	it "warns when constructed through async/queue" do
+		verbose = $VERBOSE
+		$VERBOSE = true
+		
+		warning = nil
+		Async::LimitedQueue.define_singleton_method(:warn) do |*arguments, **options|
+			warning = arguments.first
+		end
+		
+		queue = limited_queue_new.call(1)
+		
+		expect(queue.limit).to be == 1
+		expect(warning).to be =~ /require 'async\/limited_queue'/
+	ensure
+		singleton_class = class << Async::LimitedQueue; self; end
+		singleton_class.remove_method(:warn) if singleton_class.instance_methods(false).include?(:warn)
+		$VERBOSE = verbose
+	end
 	
 	let(:queue) {subject.new}
 	
@@ -108,4 +131,3 @@ describe Async::LimitedQueue do
 		end
 	end
 end
-

@@ -98,7 +98,9 @@ module Async
 			end
 			
 			# Wait with deadline tracking:
-			until @resolved
+			loop do
+				break if @resolved
+				
 				# Get remaining time for this wait iteration:
 				remaining = deadline.remaining
 				

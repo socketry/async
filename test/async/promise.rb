@@ -52,6 +52,17 @@ describe Async::Promise do
 		end
 	end
 	
+	with "#wait" do
+		it "waits until a pending promise resolves before timeout" do
+			reactor.async do
+				sleep(0.001)
+				promise.resolve(:done)
+			end
+			
+			expect(promise.wait(timeout: 1)).to be == :done
+		end
+	end
+	
 	with "#reject" do
 		it "can be rejected with an exception" do
 			error = StandardError.new("test error")
