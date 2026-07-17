@@ -73,56 +73,56 @@ describe Async::Scheduler do
 	with "#load" do
 		it "normalizes load over a one second window" do
 			scheduler = Async::Scheduler.new
-
+			
 			scheduler.instance_variable_set(:@busy_time, 2.0)
 			scheduler.instance_variable_set(:@idle_time, 2.0)
-
+			
 			expect(scheduler.load).to be == 0.5
 		ensure
 			scheduler&.close
 		end
 	end
-
+	
 	with "#close" do
 		it "runs the event loop until terminated" do
 			scheduler = Async::Scheduler.new
 			Async::Node.new(scheduler)
-
+			
 			terminations = 0
 			scheduler.define_singleton_method(:terminate) do
 				terminations += 1
 				terminations > 1
 			end
-
+			
 			runs = 0
 			scheduler.define_singleton_method(:run_once!) do
 				runs += 1
 			end
-
+			
 			scheduler.close
-
+			
 			expect(runs).to be == 1
 		end
 	end
-
+	
 	if Async::Scheduler.method_defined?(:io_read)
 		with "#io_read" do
 			it "raises IO timeout errors when reads time out" do
 				skip_unless_constant_defined(:TimeoutError, IO)
-
+				
 				scheduler = Async::Scheduler.new
-
+				
 				io = Object.new
-				io.define_singleton_method(:timeout) {0}
-
+				io.define_singleton_method(:timeout){0}
+				
 				selector = Object.new
 				selector.define_singleton_method(:io_read) do |fiber, io, buffer, length, offset|
 					scheduler.instance_variable_get(:@timers).fire
 				end
-				selector.define_singleton_method(:close) {}
-
+				selector.define_singleton_method(:close){}
+				
 				scheduler.instance_variable_set(:@selector, selector)
-
+				
 				expect do
 					scheduler.io_read(io, IO::Buffer.new(1024), 1024)
 				end.to raise_exception(::IO::TimeoutError)
@@ -131,7 +131,7 @@ describe Async::Scheduler do
 			end
 		end
 	end
-
+	
 	with "#cancel" do
 		it "shares the generated cancellation cause with child tasks" do
 			cause = Async::Cancel::Cause.new("Cancelling task!")

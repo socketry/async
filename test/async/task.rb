@@ -123,15 +123,15 @@ describe Async::Task do
 				def warn(...)
 				end
 			end
-
+			
 			task = task_class.new(reactor, finished: true) do
 			end
-
+			
 			expect(task.status).to be == :initialized
 		ensure
 			$VERBOSE = verbose
 		end
-
+		
 		it "can pass in arguments" do
 			reactor.async do |task|
 				task.async(:arg) do |task, arg|
@@ -709,50 +709,50 @@ describe Async::Task do
 		it "defers cancellation if the target fiber cannot be raised into directly" do
 			cause = RuntimeError.new("boom")
 			cancelled = []
-
+			
 			task = reactor.async do |task|
 				task.yield
 			end
-
+			
 			reactor.define_singleton_method(:raise) do |fiber, exception, cause:|
 				Kernel.raise FiberError
 			end
-
+			
 			reactor.define_singleton_method(:push) do |operation|
 				cancelled << operation
 			end
-
+			
 			task.cancel(cause: cause)
-
+			
 			expect(cancelled.size).to be == 1
 			expect(cancelled.first).to be_a(Async::Cancel::Later)
-
+			
 			singleton_class = class << reactor; self; end
 			singleton_class.remove_method(:raise)
 			singleton_class.remove_method(:push)
-
+			
 			cancelled.first.transfer
 			reactor.run
-
+			
 			expect(task).to be(:cancelled?)
 		end
-
+		
 		it "stops initialized tasks through deprecated aliases" do
 			task = Async::Task.new(nil) do
 			end
-
+			
 			task.__send__(:stop!)
-
+			
 			expect(task).to be(:cancelled?)
-
+			
 			task = Async::Task.new(nil) do
 			end
-
+			
 			task.__send__(:stopped!)
-
+			
 			expect(task).to be(:cancelled?)
 		end
-
+		
 		it "shares the generated cancellation cause with nested children" do
 			cause = Async::Cancel::Cause.new("Cancelling task!")
 			ready = Async::Queue.new

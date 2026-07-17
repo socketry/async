@@ -21,14 +21,14 @@ describe Async::LimitedQueue do
 	it "warns when constructed through async/queue" do
 		verbose = $VERBOSE
 		$VERBOSE = true
-
+		
 		warning = nil
 		Async::LimitedQueue.define_singleton_method(:warn) do |*arguments, **options|
 			warning = arguments.first
 		end
-
+		
 		queue = limited_queue_new.call(1)
-
+		
 		expect(queue.limit).to be == 1
 		expect(warning).to be =~ /require 'async\/limited_queue'/
 	ensure
@@ -36,7 +36,7 @@ describe Async::LimitedQueue do
 		singleton_class.remove_method(:warn) if singleton_class.instance_methods(false).include?(:warn)
 		$VERBOSE = verbose
 	end
-
+	
 	let(:queue) {subject.new}
 	
 	with "#limit"	do
