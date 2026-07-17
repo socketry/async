@@ -333,7 +333,7 @@ module Async
 			
 			if self.cancelled?
 				# If the task is already cancelled, a `cancel` state transition re-enters the same state which is a no-op. However, we will also attempt to cancel any running children too. This can happen if the children did not cancel correctly the first time around. Doing this should probably be considered a bug, but it's better to be safe than sorry.
-				return cancelled!(cause: cause)
+				return cancelled!(cause)
 			end
 			
 			# If the fiber is alive, we need to cancel it:
@@ -369,7 +369,7 @@ module Async
 				end
 			else
 				# We are not running, but children might be, so transition directly into cancelled state:
-				cancel!(cause: cause)
+				cancel!(cause)
 			end
 		end
 		
@@ -479,7 +479,7 @@ module Async
 			@promise.reject(exception)
 		end
 		
-		def cancelled!(cause: $!)
+		def cancelled!(cause = $!)
 			# Console.info(self, status:) {"Task #{self} was cancelled with #{@children&.size.inspect} children!"}
 			
 			# Cancel the promise, specify nil here so that no exception is raised when waiting on the promise:
@@ -506,8 +506,8 @@ module Async
 			cancelled!
 		end
 		
-		def cancel!(cause: $!)
-			cancelled!(cause: cause)
+		def cancel!(cause = $!)
+			cancelled!(cause)
 			
 			finish!
 		end
@@ -521,7 +521,7 @@ module Async
 				begin
 					completed!(yield)
 				rescue Cancel => exception
-					cancelled!(cause: exception.cause || exception)
+					cancelled!(exception.cause || exception)
 				rescue StandardError => error
 					failed!(error)
 				rescue Exception => exception
