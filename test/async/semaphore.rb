@@ -2,6 +2,7 @@
 
 # Released under the MIT License.
 # Copyright, 2018-2025, by Samuel Williams.
+# Copyright, 2026, by Shopify Inc.
 
 require "async/semaphore"
 require "async/barrier"

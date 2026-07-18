@@ -5,6 +5,7 @@
 # Copyright, 2023, by Math Ieu.
 # Copyright, 2023, by Emil Tin.
 # Copyright, 2025-2026, by Shopify Inc.
+# Copyright, 2026, by Kyle Tate.
 
 require "async"
 require "async/clock"

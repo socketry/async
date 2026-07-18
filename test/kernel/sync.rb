@@ -4,6 +4,7 @@
 # Copyright, 2019-2025, by Samuel Williams.
 # Copyright, 2020, by Brian Morearty.
 # Copyright, 2024, by Patrik Wenger.
+# Copyright, 2026, by Shopify Inc.
 
 require "kernel/async"
 require "kernel/sync"

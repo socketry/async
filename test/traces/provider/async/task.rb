@@ -2,6 +2,7 @@
 
 # Released under the MIT License.
 # Copyright, 2025, by Samuel Williams.
+# Copyright, 2026, by Kyle Tate.
 
 require "traces"
 return unless Traces.enabled?

@@ -3,6 +3,7 @@
 # Released under the MIT License.
 # Copyright, 2017-2025, by Samuel Williams.
 # Copyright, 2017, by Kent Gruber.
+# Copyright, 2026, by Robert Mosolgo.
 
 require "fiber"
 require_relative "list"

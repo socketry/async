@@ -5,6 +5,7 @@
 # Copyright, 2020, by Jun Jiang.
 # Copyright, 2021, by Julien Portalier.
 # Copyright, 2025-2026, by Shopify Inc.
+# Copyright, 2026, by Kyle Tate.
 
 require_relative "clock"
 require_relative "task"

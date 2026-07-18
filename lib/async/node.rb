@@ -5,6 +5,7 @@
 # Copyright, 2017, by Kent Gruber.
 # Copyright, 2022, by Shannon Skipper.
 # Copyright, 2025-2026, by Shopify Inc.
+# Copyright, 2026, by Kyle Tate.
 
 require "fiber/annotation"
 

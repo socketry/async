@@ -36,6 +36,8 @@ Copyright, 2025, by Josh Teeter.
 Copyright, 2025, by Jatin Goyal.  
 Copyright, 2025, by Yuhi Sato.  
 Copyright, 2026, by Tavian Barnes.  
+Copyright, 2026, by Robert Mosolgo.  
+Copyright, 2026, by Kyle Tate.  
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

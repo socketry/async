@@ -4,6 +4,7 @@
 # Copyright, 2017-2026, by Samuel Williams.
 # Copyright, 2022, by Shannon Skipper.
 # Copyright, 2026, by Shopify Inc.
+# Copyright, 2026, by Kyle Tate.
 
 require "async/node"
 

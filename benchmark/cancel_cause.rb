@@ -2,8 +2,7 @@
 # frozen_string_literal: true
 
 # Released under the MIT License.
-# Copyright, 2026, by Shopify Inc.
-# Copyright, 2026, by Samuel Williams.
+# Copyright, 2026, by Kyle Tate.
 
 require "async"
 

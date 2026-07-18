@@ -4,7 +4,7 @@
 # Copyright, 2019-2025, by Samuel Williams.
 # Copyright, 2020, by Brian Morearty.
 # Copyright, 2024, by Patrik Wenger.
-# Copyright, 2025, by Shopify Inc.
+# Copyright, 2025-2026, by Shopify Inc.
 
 require_relative "../async/reactor"
 

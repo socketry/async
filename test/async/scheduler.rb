@@ -2,6 +2,7 @@
 
 # Released under the MIT License.
 # Copyright, 2020-2025, by Samuel Williams.
+# Copyright, 2026, by Kyle Tate.
 
 require "sus/fixtures/async"
 require "async/reactor"
