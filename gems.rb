@@ -30,6 +30,8 @@ group :test do
 	gem "sus", "~> 0.31"
 	gem "covered"
 	gem "decode"
+	gem "metrics", "~> 0.12"
+	gem "traces", "~> 0.18"
 	
 	gem "rubocop"
 	gem "rubocop-md"
