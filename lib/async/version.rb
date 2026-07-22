@@ -5,5 +5,5 @@
 
 # @namespace
 module Async
-	VERSION = "2.42.0"
+	VERSION = "2.43.0"
 end

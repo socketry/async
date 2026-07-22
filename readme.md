@@ -35,6 +35,10 @@ Please see the [project documentation](https://socketry.github.io/async/) for mo
 
 Please see the [project releases](https://socketry.github.io/async/releases/index) for all releases.
 
+### v2.43.0
+
+  - Propagate cancellation causes through task trees so child tasks observe the original cancellation cause.
+
 ### v2.42.0
 
   - `Sync` and `Async` can now be invoked from a non-blocking fiber that has no scheduler (e.g. inside an `Enumerator` or a bare `Fiber.new`). Previously this raised `RuntimeError: Running scheduler on non-blocking fiber!`. The reactor is now run within `Fiber.blocking`, so the scheduler always runs on a blocking fiber.
@@ -73,11 +77,6 @@ Please see the [project releases](https://socketry.github.io/async/releases/inde
 ### v2.35.3
 
   - `Async::Clock` now implements `#as_json` and `#to_json` for nicer log formatting.
-
-### v2.35.2
-
-  - Improved handling of `Process.fork` on Ruby 4+.
-  - Improve `@promise` state handling in `Task#initialize`, preventing incomplete instances being visible to the scheduler.
 
 ## See Also
 
