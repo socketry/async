@@ -1,6 +1,6 @@
 # Releases
 
-## Unreleased
+## v2.44.0
 
   - Fixed scheduler cleanup after forking while other fibers are blocked.
 
