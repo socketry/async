@@ -685,6 +685,7 @@ module Async
 			@children = nil
 			@selector = nil
 			@timers = nil
+			@blocked = 0
 			
 			# Close the scheduler:
 			Fiber.set_scheduler(nil)
