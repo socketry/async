@@ -44,5 +44,28 @@ describe Process do
 				Process.waitpid(pid) if pid
 			end
 		end
+		
+		it "can fork while another fiber is blocked" do
+			r, w = IO.pipe
+			queue = Thread::Queue.new
+			
+			Async do |task|
+				blocked_task = task.async do
+					queue.pop
+				end
+				
+				pid = Process.fork do
+					# Child process:
+					w.write("hello")
+				end
+				
+				# Parent process:
+				w.close
+				expect(r.read).to be == "hello"
+			ensure
+				blocked_task&.stop
+				Process.waitpid(pid) if pid
+			end
+		end
 	end
 end

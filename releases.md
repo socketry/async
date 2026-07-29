@@ -1,5 +1,9 @@
 # Releases
 
+## Unreleased
+
+  - Fixed scheduler cleanup after forking while other fibers are blocked.
+
 ## v2.43.0
 
   - Propagate cancellation causes through task trees so child tasks observe the original cancellation cause.
