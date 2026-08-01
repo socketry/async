@@ -16,9 +16,11 @@ Gem::Specification.new do |spec|
 	spec.homepage = "https://github.com/socketry/async"
 	
 	spec.metadata = {
+		"bug_tracker_uri"		=> "https://github.com/socketry/async/issues",
+		"changelog_uri" 		=> "https://github.com/socketry/async/blob/main/releases.md",	
 		"documentation_uri" => "https://socketry.github.io/async/",
-		"funding_uri" => "https://github.com/sponsors/ioquatix/",
-		"source_code_uri" => "https://github.com/socketry/async.git",
+		"funding_uri" 			=> "https://github.com/sponsors/ioquatix/",
+		"source_code_uri" 	=> "https://github.com/socketry/async.git",
 	}
 	
 	spec.files = Dir.glob(["{context,lib}/**/*", "*.md"], File::FNM_DOTMATCH, base: __dir__)
