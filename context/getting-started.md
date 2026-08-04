@@ -74,6 +74,42 @@ end
 puts "The number was: #{task.wait}"
 ```
 
+### Comparing `Async` and `Sync`
+
+If you are familiar with JavaScript's `async`/`await`, `Async{...}` is similar to calling an asynchronous function: it starts the work and returns a promise-like {ruby Async::Task} that you can wait on later.
+
+```ruby
+task = Async do
+	bar
+end
+
+task.wait # Returns the value of bar.
+```
+
+This is similar to JavaScript code that keeps the promise:
+
+```javascript
+const promise = bar();
+
+await promise; // Returns the value of bar.
+```
+
+`Sync{...}` is similar to immediately awaiting that work: it runs the block in an event loop and returns the block's value directly.
+
+```ruby
+result = Sync do
+	bar
+end
+```
+
+This is similar to:
+
+```javascript
+const result = await bar();
+```
+
+The main difference is that JavaScript starts with an event loop already available, while Ruby code needs one to be provided by a fiber scheduler. `Sync{...}` is the usual way to create or reuse that event loop when the caller wants a direct return value instead of a task.
+
 ## Creating a Fiber Scheduler
 
 The first (top level) async block will also create an instance of {ruby Async::Reactor} which is a subclass of {ruby Async::Scheduler} to handle the event loop. You can also do this directly using {ruby Fiber.set_scheduler}:
