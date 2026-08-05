@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 # Released under the MIT License.
-# Copyright, 2019-2024, by Samuel Williams.
+# Copyright, 2019-2026, by Samuel Williams.
 # Copyright, 2024, by Patrik Wenger.
 # Copyright, 2026, by Shopify Inc.
 

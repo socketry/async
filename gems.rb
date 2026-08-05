@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 # Released under the MIT License.
-# Copyright, 2017-2025, by Samuel Williams.
+# Copyright, 2017-2026, by Samuel Williams.
 # Copyright, 2017, by Kent Gruber.
 # Copyright, 2024, by Patrik Wenger.
 
@@ -23,13 +23,14 @@ group :maintenance, optional: true do
 	
 	gem "agent-context"
 	
+	gem "decode"
+	
 	gem "utopia-project"
 end
 
 group :test do
 	gem "sus", "~> 0.31"
 	gem "covered"
-	gem "decode"
 	gem "metrics", "~> 0.12"
 	gem "traces", "~> 0.18"
 	
