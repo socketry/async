@@ -269,6 +269,46 @@ describe Async::Scheduler do
 	end
 	
 	with "#block" do
+		it "ignores stale wake-ups from previous blocking operations" do
+			input, output = IO.pipe
+			duration = nil
+			
+			Sync do |parent|
+				queue = Thread::Queue.new
+				
+				child = parent.async do |task|
+					begin
+						task.with_timeout(0.02) do
+							queue.pop
+						end
+					rescue Async::TimeoutError
+						# Expected - the item was pushed after the timeout already expired.
+					end
+					
+					# The deferred wake-up from `queue.push` must not spuriously interrupt a subsequent IO operation:
+					duration = Async::Clock.measure do
+						input.wait_readable(0.02)
+					end
+				end
+				
+				producer = parent.async do
+					sleep(0.01)
+					queue.push(:wakeup)
+				end
+				
+				# Prevent the event loop from running until both the producer's sleep and the child's timeout are overdue, so that the wake-up from `queue.push` is still pending when the timeout fires:
+				Fiber.blocking{sleep(0.03)}
+				
+				child.wait
+				producer.wait
+			end
+			
+			expect(duration).to be >= 0.02
+		ensure
+			input&.close
+			output&.close
+		end
+		
 		it "can block and unblock the scheduler after closing" do
 			scheduler = Async::Scheduler.new
 			

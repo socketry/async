@@ -17,6 +17,8 @@ require "io/event"
 require "console"
 require "resolv"
 
+Fiber.attr_accessor :async_blocked
+
 module Async
 	begin
 		require "fiber/profiler"
@@ -224,6 +226,34 @@ module Async
 			@selector.resume(fiber, *arguments)
 		end
 		
+		# Represents a deferred wake-up from {unblock}, for a fiber that was blocked in {block} or {kernel_sleep}.
+		#
+		# {unblock} defers the wake-up by pushing it onto the selector's ready queue. By the time it is delivered, the fiber may have been resumed by other means (e.g. a timeout), and may even be waiting in a completely different operation, which the stale wake-up would incorrectly interrupt. To prevent that, the wake-up is validated at delivery time: it is only delivered if the fiber is currently blocked in {block} or {kernel_sleep}, otherwise it is discarded. In particular, this means a stale wake-up can never interrupt an IO operation (e.g. {io_wait}), as those do not register as blocked operations.
+		#
+		# It may be delivered to a different operation than the one it was intended for, but that is safe: every user of {block} must (and does) re-check its wait condition after waking up, as blocking operations may resume spuriously, and `Kernel#sleep` is always permitted to return early (e.g. `Thread#wakeup`). Note that the blocker cannot be used to match the wake-up to a specific operation, as it is informational only - the blocker passed to {unblock} is not guaranteed to be the same value that was passed to {block}.
+		#
+		# Validation happens on the event loop, using the fiber's `async_blocked` attribute, which is only mutated by the fiber itself (on the event loop thread), so no synchronization is required, and the result cannot go stale between validation and delivery.
+		class Unblock
+			# Create a new deferred wake-up.
+			#
+			# @parameter fiber [Fiber] The fiber to unblock.
+			def initialize(fiber)
+				@fiber = fiber
+			end
+			
+			# @returns [Boolean] Whether the wake-up should still be delivered: the fiber must still be blocked in {block} or {kernel_sleep}. Invoked by the selector on the event loop fiber, immediately before `transfer`.
+			def alive?
+				@fiber.alive? and @fiber.async_blocked
+			end
+			
+			# Transfer control to the blocked fiber.
+			def transfer(*arguments)
+				@fiber.transfer(*arguments)
+			end
+		end
+		
+		private_constant :Unblock
+		
 		# Invoked when a fiber tries to perform a blocking operation which cannot continue. A corresponding call {unblock} must be performed to allow this fiber to continue.
 		#
 		# @public Since *Async v2*.
@@ -243,11 +273,15 @@ module Async
 				end
 			end
 			
+			# Record that the fiber is blocked, so that {unblock} may wake it up (see {Unblock}):
+			fiber.async_blocked = true
+			
 			begin
 				@blocked += 1
 				@selector.transfer
 			ensure
 				@blocked -= 1
+				fiber.async_blocked = false
 			end
 		ensure
 			timer&.cancel!
@@ -263,9 +297,17 @@ module Async
 		def unblock(blocker, fiber)
 			# Fiber.blocking{$stderr.puts "unblock(#{blocker}, #{fiber})"}
 			
-			# This operation is protected by the GVL:
+			# This method may be called from any thread, so it must not read or write any mutable state, other than pushing to the selector's ready queue, which is protected by the GVL:
 			if selector = @selector
-				selector.push(fiber)
+				if fiber.is_a?(Fiber)
+					# The wake-up is deferred until the event loop runs, and is validated at that point, in case the fiber was resumed by other means in the interim (see {Unblock}):
+					operation = Unblock.new(fiber)
+				else
+					# e.g. {FiberInterrupt}, which must be delivered unconditionally:
+					operation = fiber
+				end
+				
+				selector.push(operation)
 				selector.wakeup
 			end
 		end
@@ -279,10 +321,19 @@ module Async
 		def kernel_sleep(duration = nil)
 			# Fiber.blocking{$stderr.puts "kernel_sleep(#{duration}, #{Fiber.current})"}
 			
+			# A sleeping fiber may be legitimately woken up by {unblock}: for example, `Mutex#sleep` (and thus `ConditionVariable#wait`) sleeps via this method, and is woken up by `Mutex#unlock` / `ConditionVariable#signal` via {unblock}. Therefore, sleeping must be registered as a blocked operation (see {Unblock}):
 			if duration
 				self.block(nil, duration)
 			else
-				self.transfer
+				fiber = Fiber.current
+				
+				fiber.async_blocked = true
+				
+				begin
+					self.transfer
+				ensure
+					fiber.async_blocked = false
+				end
 			end
 		end
 		
