@@ -309,10 +309,12 @@ module Async
 		# @parameter timeout [Float | Nil] The maximum time to wait, or if nil, indefinitely.
 		def io_wait(io, events, timeout = nil)
 			fiber = Fiber.current
+			expired = false
 			
 			if timeout
 				# If an explicit timeout is specified, we expect that the user will handle it themselves:
 				timer = @timers.after(timeout) do
+					expired = true
 					fiber.transfer
 				end
 			elsif timeout = io.timeout
@@ -322,7 +324,11 @@ module Async
 				end
 			end
 			
-			return @selector.io_wait(fiber, io, events)
+			until result = @selector.io_wait(fiber, io, events)
+				return nil if expired
+			end
+			
+			return result
 		ensure
 			timer&.cancel!
 		end
@@ -415,7 +421,14 @@ module Async
 		# @returns [Process::Status] A process status instance.
 		# @asynchronous May be non-blocking..
 		def process_wait(pid, flags)
-			return @selector.process_wait(Fiber.current, pid, flags)
+			fiber = Fiber.current
+			
+			while true
+				status = @selector.process_wait(fiber, pid, flags)
+				
+				# `false` indicates the wake-up was spurious, e.g. a stale {unblock}
+				return status unless status == false
+			end
 		end
 		
 		# Wait for the specified IOs to become ready for the specified events.
