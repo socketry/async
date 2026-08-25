@@ -269,6 +269,32 @@ describe Async::Scheduler do
 	end
 	
 	with "#process_wait" do
+		it "retries spurious nil results from blocking waits" do
+			status = Object.new
+			results = [nil, status]
+			selector = Object.new
+			
+			selector.define_singleton_method(:process_wait) do |fiber, pid, flags|
+				results.shift
+			end
+			
+			scheduler = Async::Scheduler.new(selector: selector)
+			
+			expect(scheduler.process_wait(123, 0)).to be_equal(status)
+		end
+		
+		it "returns nil from non-blocking waits" do
+			selector = Object.new
+			
+			selector.define_singleton_method(:process_wait) do |fiber, pid, flags|
+				nil
+			end
+			
+			scheduler = Async::Scheduler.new(selector: selector)
+			
+			expect(scheduler.process_wait(123, Process::WNOHANG)).to be_nil
+		end
+		
 		it "ignores stale wake-ups from previous blocking operations" do
 			input, output = IO.pipe
 			pid = Process.spawn(RbConfig.ruby, "-e", "STDIN.read", in: input)
