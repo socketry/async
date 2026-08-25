@@ -426,12 +426,8 @@ module Async
 			while true
 				status = @selector.process_wait(fiber, pid, flags)
 				
-				# Native selectors return `false` after a spurious wake-up. Thread-backed waits may return `nil`, but `nil` is also the expected result for a non-blocking wait:
-				if status.nil?
-					return nil unless (flags & ::Process::WNOHANG).zero?
-				elsif status != false
-					return status
-				end
+				# `false` indicates the wake-up was spurious, e.g. a stale {unblock}:
+				return status unless status == false
 			end
 		end
 		
