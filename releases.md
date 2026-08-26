@@ -1,5 +1,10 @@
 # Releases
 
+## Unreleased
+
+  - Fixed scheduler I/O and process waits returning prematurely after stale or interrupted wake-ups. I/O waits now preserve their original timeout, while blocking process waits retry and non-blocking `Process::WNOHANG` waits still return `nil`.
+  - Require `io-event` v1.21 or later for consistent interrupted process wait handling across selector backends.
+
 ## v2.44.0
 
   - Fixed scheduler cleanup after forking while other fibers are blocked.
