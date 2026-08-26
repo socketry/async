@@ -268,7 +268,78 @@ describe Async::Scheduler do
 		end
 	end
 	
+	with "#process_wait" do
+		it "retries interrupted process waits" do
+			status = Object.new
+			results = [false, status]
+			selector = Object.new
+			
+			selector.define_singleton_method(:process_wait) do |fiber, pid, flags|
+				results.shift
+			end
+			
+			scheduler = Async::Scheduler.new(selector: selector)
+			
+			expect(scheduler.process_wait(123, 0)).to be_equal(status)
+		end
+		
+		it "returns nil from non-blocking waits" do
+			selector = Object.new
+			
+			selector.define_singleton_method(:process_wait) do |fiber, pid, flags|
+				nil
+			end
+			
+			scheduler = Async::Scheduler.new(selector: selector)
+			
+			expect(scheduler.process_wait(123, Process::WNOHANG)).to be_nil
+		end
+		
+	end
+	
 	with "#block" do
+		it "ignores stale wake-ups from previous blocking operations" do
+			input, output = IO.pipe
+			duration = nil
+			result = nil
+			
+			Sync do |parent|
+				queue = Thread::Queue.new
+				
+				child = parent.async do |task|
+					begin
+						task.with_timeout(0.02) do
+							queue.pop
+						end
+					rescue Async::TimeoutError
+						# Expected - the item was pushed after the timeout already expired.
+					end
+					
+					# The deferred wake-up from `queue.push` must not spuriously interrupt a subsequent IO operation:
+					duration = Async::Clock.measure do
+						result = input.wait_readable(0.02)
+					end
+				end
+				
+				producer = parent.async do
+					sleep(0.01)
+					queue.push(:wakeup)
+				end
+				
+				# Prevent the event loop from running until both the producer's sleep and the child's timeout are overdue, so that the wake-up from `queue.push` is still pending when the timeout fires:
+				Fiber.blocking{sleep(0.03)}
+				
+				child.wait
+				producer.wait
+			end
+			
+			expect(result).to be_nil
+			expect(duration).to be >= 0.02
+		ensure
+			input&.close
+			output&.close
+		end
+		
 		it "can block and unblock the scheduler after closing" do
 			scheduler = Async::Scheduler.new
 			

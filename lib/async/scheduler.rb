@@ -309,10 +309,12 @@ module Async
 		# @parameter timeout [Float | Nil] The maximum time to wait, or if nil, indefinitely.
 		def io_wait(io, events, timeout = nil)
 			fiber = Fiber.current
+			expired = false
 			
 			if timeout
 				# If an explicit timeout is specified, we expect that the user will handle it themselves:
 				timer = @timers.after(timeout) do
+					expired = true
 					fiber.transfer
 				end
 			elsif timeout = io.timeout
@@ -322,7 +324,13 @@ module Async
 				end
 			end
 			
-			return @selector.io_wait(fiber, io, events)
+			# A selector wait may return a falsy result when the fiber is resumed without the requested IO becoming ready. For example, a deferred unblock from a previous blocking operation may arrive after the fiber has moved on to this wait. Retry these stale or spurious wake-ups without resetting the original timer.
+			until result = @selector.io_wait(fiber, io, events)
+				# If the original timer resumed the fiber, the falsy result represents the timeout rather than a spurious wake-up:
+				return nil if expired
+			end
+			
+			return result
 		ensure
 			timer&.cancel!
 		end
@@ -415,7 +423,14 @@ module Async
 		# @returns [Process::Status] A process status instance.
 		# @asynchronous May be non-blocking..
 		def process_wait(pid, flags)
-			return @selector.process_wait(Fiber.current, pid, flags)
+			fiber = Fiber.current
+			
+			# A native process wait may be interrupted before the child exits. io-event reports this as `false` and leaves the retry policy to the scheduler. Retry only `false`, since `nil` is a legitimate result for `Process::WNOHANG`.
+			while true
+				status = @selector.process_wait(fiber, pid, flags)
+				
+				return status unless status == false
+			end
 		end
 		
 		# Wait for the specified IOs to become ready for the specified events.
