@@ -35,6 +35,10 @@ Please see the [project documentation](https://socketry.github.io/async/) for mo
 
 Please see the [project releases](https://socketry.github.io/async/releases/index) for all releases.
 
+### v2.45.0
+
+  - Fixed scheduler I/O and process waits returning prematurely after stale or interrupted wake-ups. I/O waits now preserve their original timeout, while blocking process waits retry and non-blocking `Process::WNOHANG` waits still return `nil`.
+
 ### v2.44.0
 
   - Fixed scheduler cleanup after forking while other fibers are blocked.
@@ -72,11 +76,6 @@ Please see the [project releases](https://socketry.github.io/async/releases/inde
 
   - Introduce `Async::Loop` for robust, time-aligned loops.
   - Add support for `Async::Promise#wait(timeout: N)`.
-
-### v2.36.0
-
-  - Introduce `Task#wait_all` which recursively waits for all children and self, excepting the current task.
-  - Introduce `Task#join` as an alias for `Task#wait` for compatibility with `Thread#join` and similar interfaces.
 
 ## See Also
 
