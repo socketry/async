@@ -301,6 +301,7 @@ describe Async::Scheduler do
 		it "ignores stale wake-ups from previous blocking operations" do
 			input, output = IO.pipe
 			duration = nil
+			result = nil
 			
 			Sync do |parent|
 				queue = Thread::Queue.new
@@ -316,7 +317,7 @@ describe Async::Scheduler do
 					
 					# The deferred wake-up from `queue.push` must not spuriously interrupt a subsequent IO operation:
 					duration = Async::Clock.measure do
-						input.wait_readable(0.02)
+						result = input.wait_readable(0.02)
 					end
 				end
 				
@@ -332,6 +333,7 @@ describe Async::Scheduler do
 				producer.wait
 			end
 			
+			expect(result).to be_nil
 			expect(duration).to be >= 0.02
 		ensure
 			input&.close
