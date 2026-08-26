@@ -39,7 +39,7 @@ jobs:
         cache-version: uring
     
     - name: Backends
-      run: bundle exec ruby -r"io/event" -e "puts IO::Event::Selector.constants"
+      run: bundle exec ruby -e 'require "io/event"; puts IO::Event::Selector.constants'
     
     - name: Run tests
       timeout-minutes: 10
