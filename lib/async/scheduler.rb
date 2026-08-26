@@ -324,9 +324,7 @@ module Async
 				end
 			end
 			
-			# A selector wait may return a falsy result when the fiber is resumed without the requested IO becoming ready.
-			# For example, a deferred unblock from a previous blocking operation may arrive after the fiber has moved on to this wait.
-			# Retry these stale or spurious wake-ups without resetting the original timer.
+			# A selector wait may return a falsy result when the fiber is resumed without the requested IO becoming ready. For example, a deferred unblock from a previous blocking operation may arrive after the fiber has moved on to this wait. Retry these stale or spurious wake-ups without resetting the original timer.
 			until result = @selector.io_wait(fiber, io, events)
 				# If the original timer resumed the fiber, the falsy result represents the timeout rather than a spurious wake-up:
 				return nil if expired
@@ -427,9 +425,7 @@ module Async
 		def process_wait(pid, flags)
 			fiber = Fiber.current
 			
-			# A native process wait may be interrupted before the child exits.
-			# io-event reports this as `false` and leaves the retry policy to the scheduler.
-			# Retry only `false`, since `nil` is a legitimate result for `Process::WNOHANG`.
+			# A native process wait may be interrupted before the child exits. io-event reports this as `false` and leaves the retry policy to the scheduler. Retry only `false`, since `nil` is a legitimate result for `Process::WNOHANG`.
 			while true
 				status = @selector.process_wait(fiber, pid, flags)
 				
