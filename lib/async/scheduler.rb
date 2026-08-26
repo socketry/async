@@ -426,7 +426,7 @@ module Async
 			while true
 				status = @selector.process_wait(fiber, pid, flags)
 				
-				# `false` indicates the wake-up was spurious, e.g. a stale {unblock}:
+				# `false` indicates the process wait was interrupted before completion:
 				return status unless status == false
 			end
 		end

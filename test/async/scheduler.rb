@@ -269,7 +269,7 @@ describe Async::Scheduler do
 	end
 	
 	with "#process_wait" do
-		it "retries spurious false results from blocking waits" do
+		it "retries interrupted process waits" do
 			status = Object.new
 			results = [false, status]
 			selector = Object.new
