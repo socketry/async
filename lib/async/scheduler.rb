@@ -336,16 +336,16 @@ module Async
 		end
 		
 		if ::IO::Event::Support.buffer?
-			# Read from the specified IO into the buffer.
+			# Read at most the specified number of bytes from the IO into the buffer.
 			#
 			# @public Since *Async v2* and Ruby with `IO::Buffer` support.
 			# @asynchronous May be non-blocking.
 			#
 			# @parameter io [IO] The IO object to read from.
 			# @parameter buffer [IO::Buffer] The buffer to read into.
-			# @parameter length [Integer] The minimum number of bytes to read.
 			# @parameter offset [Integer] The offset within the buffer to read into.
-			def io_read(io, buffer, length, offset = 0)
+			# @parameter length [Integer] The maximum number of bytes to read.
+			def io_read(io, buffer, offset, length)
 				fiber = Fiber.current
 				
 				if timeout = io.timeout
@@ -354,22 +354,22 @@ module Async
 					end
 				end
 				
-				@selector.io_read(fiber, io, buffer, length, offset)
+				@selector.io_read(fiber, io, buffer, offset, length)
 			ensure
 				timer&.cancel!
 			end
 			
 			if RUBY_ENGINE != "ruby" || RUBY_VERSION >= "3.3.1"
-				# Write the specified buffer to the IO.
+				# Write at most the specified number of bytes from the buffer to the IO.
 				#
 				# @public Since *Async v2* and *Ruby v3.3.1* with `IO::Buffer` support.
 				# @asynchronous May be non-blocking.
 				#
 				# @parameter io [IO] The IO object to write to.
 				# @parameter buffer [IO::Buffer] The buffer to write from.
-				# @parameter length [Integer] The minimum number of bytes to write.
 				# @parameter offset [Integer] The offset within the buffer to write from.
-				def io_write(io, buffer, length, offset = 0)
+				# @parameter length [Integer] The maximum number of bytes to write.
+				def io_write(io, buffer, offset, length)
 					fiber = Fiber.current
 					
 					if timeout = io.timeout
@@ -378,7 +378,7 @@ module Async
 						end
 					end
 					
-					@selector.io_write(fiber, io, buffer, length, offset)
+					@selector.io_write(fiber, io, buffer, offset, length)
 				ensure
 					timer&.cancel!
 				end
