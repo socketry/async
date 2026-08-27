@@ -125,7 +125,11 @@ describe Async::Scheduler do
 				scheduler.instance_variable_set(:@selector, selector)
 				
 				expect do
-					scheduler.io_read(io, IO::Buffer.new(1024), 1024)
+					if defined?(IO::Buffer::VERSION) && IO::Buffer::VERSION >= 3
+						scheduler.io_read(io, IO::Buffer.new(1024), 0, 1024)
+					else
+						scheduler.io_read(io, IO::Buffer.new(1024), 1024, 0)
+					end
 				end.to raise_exception(::IO::TimeoutError)
 			ensure
 				scheduler&.close
