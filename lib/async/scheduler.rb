@@ -307,6 +307,7 @@ module Async
 		# @parameter io [IO] The IO object to wait on.
 		# @parameter events [Integer] The events to wait for, e.g. `IO::READABLE`, `IO::WRITABLE`, etc.
 		# @parameter timeout [Float | Nil] The maximum time to wait, or if nil, indefinitely.
+		# @returns [Integer | false] The subset of events that are ready, or `false` if the timeout expires.
 		def io_wait(io, events, timeout = nil)
 			fiber = Fiber.current
 			expired = false
