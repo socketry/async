@@ -1,5 +1,9 @@
 # Releases
 
+## Unreleased
+
+  - Fixed `Scheduler#io_wait` returning `nil` instead of `false` when an explicit timeout expired. Native callers such as `Socket#connect` with `connect_timeout:` distinguish a timeout by checking for `false`, so the `nil` caused `TypeError: no implicit conversion from nil to integer` instead of the intended `IO::TimeoutError`.
+
 ## v2.45.0
 
   - Fixed scheduler I/O and process waits returning prematurely after stale or interrupted wake-ups. I/O waits now preserve their original timeout, while blocking process waits retry and non-blocking `Process::WNOHANG` waits still return `nil`.
