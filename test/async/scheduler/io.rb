@@ -24,6 +24,18 @@ describe Async::Scheduler do
 			s2.close
 		end
 		
+		it "returns false from io_wait when an explicit timeout expires" do
+			s1, s2 = Socket.pair :UNIX, :STREAM, 0
+			
+			# Native callers (e.g. `wait_connectable` in `Socket#connect` with `connect_timeout:`) distinguish a timeout from a readiness mask by checking for `false`, matching the non-scheduler `rb_io_wait`:
+			result = reactor.io_wait(s1, IO::READABLE, 0.001)
+			
+			expect(result).to be == false
+		ensure
+			s1.close
+			s2.close
+		end
+		
 		it "can read a single character" do
 			s1, s2 = Socket.pair :UNIX, :STREAM, 0
 			

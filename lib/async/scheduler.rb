@@ -326,8 +326,8 @@ module Async
 			
 			# A selector wait may return a falsy result when the fiber is resumed without the requested IO becoming ready. For example, a deferred unblock from a previous blocking operation may arrive after the fiber has moved on to this wait. Retry these stale or spurious wake-ups without resetting the original timer.
 			until result = @selector.io_wait(fiber, io, events)
-				# If the original timer resumed the fiber, the falsy result represents the timeout rather than a spurious wake-up:
-				return nil if expired
+				# If the original timer resumed the fiber, the false result represents the timeout rather than a spurious wake-up:
+				return false if expired
 			end
 			
 			return result
