@@ -35,6 +35,10 @@ Please see the [project documentation](https://socketry.github.io/async/) for mo
 
 Please see the [project releases](https://socketry.github.io/async/releases/index) for all releases.
 
+### v2.45.1
+
+  - Fixed `Scheduler#io_wait` returning `nil` instead of `false` when an explicit timeout expired. Native callers such as `Socket#connect` with `connect_timeout:` distinguish a timeout by checking for `false`, so the `nil` caused `TypeError: no implicit conversion from nil to integer` instead of the intended `IO::TimeoutError`.
+
 ### v2.45.0
 
   - Fixed scheduler I/O and process waits returning prematurely after stale or interrupted wake-ups. I/O waits now preserve their original timeout, while blocking process waits retry and non-blocking `Process::WNOHANG` waits still return `nil`.
@@ -71,11 +75,6 @@ Please see the [project releases](https://socketry.github.io/async/releases/inde
 
   - Rename `Task#stop` to `Task#cancel` for better clarity and consistency with common concurrency terminology. The old `stop` method is still available as an alias for backward compatibility, but it is recommended to use `cancel` going forward.
   - Forward arguments from `Task#wait` -\> `Promise#wait`, so `task.wait(timeout: N)` is supported.
-
-### v2.37.0
-
-  - Introduce `Async::Loop` for robust, time-aligned loops.
-  - Add support for `Async::Promise#wait(timeout: N)`.
 
 ## See Also
 
