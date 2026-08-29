@@ -332,6 +332,13 @@ module Async
 				cause = Cancel::Cause.for("Cancelling task!")
 			end
 			
+			# If the task belongs to another scheduler, hand cancellation off to that scheduler so all task state and tree mutations happen on the owning thread. This must not depend on @fiber, which is cleared before the task is removed from the tree by #finish!:
+			scheduler = self.reactor
+			if scheduler.respond_to?(:unblock) && !Fiber.scheduler.equal?(scheduler)
+				scheduler.unblock(nil, Cancel::Later.new(self, cause))
+				return
+			end
+			
 			if self.cancelled?
 				# If the task is already cancelled, a `cancel` state transition re-enters the same state which is a no-op. However, we will also attempt to cancel any running children too. This can happen if the children did not cancel correctly the first time around. Doing this should probably be considered a bug, but it's better to be safe than sorry.
 				return cancelled!(cause)
