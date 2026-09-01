@@ -6,21 +6,31 @@
 # Copyright, 2026, by Robert Mosolgo.
 
 require "fiber"
+require_relative "error"
 require_relative "list"
 
 module Async
 	# A synchronization primitive, which allows fibers to wait until a particular condition is (edge) triggered.
 	# @public Since *Async v1*.
 	class Condition
+		Entry = Struct.new(:value)
+		private_constant :Entry
+		
 		# Create a new condition.
 		def initialize
 			@ready = ::Thread::Queue.new
 		end
 		
-		# Queue up the current fiber and wait on yielding the task.
+		# Queue up the current fiber and wait until the condition is signalled.
+		# @parameter timeout [Numeric | Nil] The maximum time to wait, or `nil` to wait indefinitely.
 		# @returns [Object]
-		def wait
-			@ready.pop
+		# @raises [Async::TimeoutError] If the timeout expires before the condition is signalled.
+		def wait(timeout: nil)
+			if entry = @ready.pop(timeout: timeout)
+				return entry.value
+			else
+				raise TimeoutError, "Timeout while waiting for condition!"
+			end
 		end
 		
 		# @returns [Boolean] If there are no fibers waiting on this condition.
@@ -44,9 +54,10 @@ module Async
 			return if empty?
 			
 			ready = self.exchange
+			entry = Entry.new(value)
 			
 			ready.num_waiting.times do
-				ready.push(value)
+				ready.push(entry)
 			end
 			
 			ready.close

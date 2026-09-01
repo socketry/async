@@ -26,8 +26,10 @@ module Async
 			end
 			
 			def transfer
+				entry = Entry.new(value)
+				
 				ready.num_waiting.times do
-					ready.push(value)
+					ready.push(entry)
 				end
 				
 				ready.close

@@ -1,5 +1,9 @@
 # Releases
 
+## Unreleased
+
+  - Added `Async::Condition#wait(timeout:)`, inherited by `Async::Notification`, which raises `Async::TimeoutError` if the condition is not signalled before the timeout expires.
+
 ## v2.45.1
 
   - Fixed `Scheduler#io_wait` returning `nil` instead of `false` when an explicit timeout expired. Native callers such as `Socket#connect` with `connect_timeout:` distinguish a timeout by checking for `false`, so the `nil` caused `TypeError: no implicit conversion from nil to integer` instead of the intended `IO::TimeoutError`.

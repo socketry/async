@@ -84,6 +84,25 @@ module Async
 			expect(condition.waiting_count).to be == 0
 		end
 		
+		it "can timeout while waiting" do
+			expect do
+				condition.wait(timeout: 0.01)
+			end.to raise_exception(Async::TimeoutError)
+			
+			expect(condition.waiting_count).to be == 0
+		end
+		
+		it "can receive nil before the timeout" do
+			task = reactor.async do
+				condition.wait(timeout: 1)
+			end
+			
+			expect(condition.waiting_count).to be == 1
+			condition.signal
+			
+			expect(task.wait).to be_nil
+		end
+		
 		with "timeout" do
 			let(:ready) {Async::Variable.new(condition)}
 			let(:waiting) {Async::Variable.new(subject.new)}
