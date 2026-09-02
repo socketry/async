@@ -72,13 +72,80 @@ describe Async::Scheduler do
 	end
 	
 	with "#load" do
-		it "normalizes load over a one second window" do
+		it "returns the load over the last update window" do
 			scheduler = Async::Scheduler.new
 			
-			scheduler.instance_variable_set(:@busy_time, 2.0)
-			scheduler.instance_variable_set(:@idle_time, 2.0)
+			scheduler.send(:update_load_average, 30.0, 60.0)
 			
 			expect(scheduler.load).to be == 0.5
+		ensure
+			scheduler&.close
+		end
+		
+		it "blends the current window into the last completed window" do
+			scheduler = Async::Scheduler.new
+			
+			# Complete a fully loaded window:
+			scheduler.send(:update_load_average, 1.0, 1.0)
+			expect(scheduler.load).to be == 1.0
+			
+			# Half of the next window elapses fully idle:
+			scheduler.send(:update_load_average, 0.0, 0.5)
+			expect(scheduler.load).to be == 0.5
+		ensure
+			scheduler&.close
+		end
+		
+		it "reflects a partial window before the first update" do
+			scheduler = Async::Scheduler.new
+			
+			scheduler.send(:update_load_average, 0.25, 0.5)
+			
+			expect(scheduler.load).to be == 0.25
+		ensure
+			scheduler&.close
+		end
+		
+		it "does not change based on how often it is read" do
+			scheduler = Async::Scheduler.new
+			scheduler.send(:update_load_average, 30.0, 60.0)
+			
+			load = scheduler.load
+			3.times do
+				expect(scheduler.load).to be == load
+			end
+		ensure
+			scheduler&.close
+		end
+	end
+	
+	with "#load_averages" do
+		it "batches updates over one second" do
+			scheduler = Async::Scheduler.new
+			scheduler.send(:update_load_average, 0.25, 0.5)
+			
+			expect(scheduler.load_averages).to be == [0.0, 0.0, 0.0]
+			
+			scheduler.send(:update_load_average, 0.5, 0.5)
+			
+			expected = Async::Scheduler::LOAD_AVERAGE_PERIODS.map do |period|
+				0.75 * (1.0 - Math.exp(-1.0 / period))
+			end
+			
+			expect(scheduler.load_averages).to be == expected
+		ensure
+			scheduler&.close
+		end
+		
+		it "tracks one, five, and fifteen minute exponentially weighted averages" do
+			scheduler = Async::Scheduler.new
+			scheduler.send(:update_load_average, 60.0, 60.0)
+			
+			expected = Async::Scheduler::LOAD_AVERAGE_PERIODS.map do |period|
+				1.0 - Math.exp(-60.0 / period)
+			end
+			
+			expect(scheduler.load_averages).to be == expected
 		ensure
 			scheduler&.close
 		end
