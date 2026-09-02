@@ -32,6 +32,13 @@ module Async
 			value == "true" ? true : nil
 		end
 		
+		# The periods over which exponentially weighted load averages are computed, in seconds.
+		LOAD_AVERAGE_PERIODS = [60.0, 5 * 60.0, 15 * 60.0].freeze
+		
+		# How much run loop time to accumulate before updating the load averages.
+		LOAD_AVERAGE_UPDATE_INTERVAL = 1.0
+		private_constant :LOAD_AVERAGE_UPDATE_INTERVAL
+		
 		# Raised when an operation is attempted on a closed scheduler.
 		class ClosedError < RuntimeError
 			# Create a new error.
@@ -85,8 +92,10 @@ module Async
 			
 			@blocked = 0
 			
-			@busy_time = 0.0
-			@idle_time = 0.0
+			@load = 0.0
+			@load_average = Array.new(LOAD_AVERAGE_PERIODS.size, 0.0).freeze
+			@load_busy_time = 0.0
+			@load_total_time = 0.0
 			
 			@timers = ::IO::Event::Timers.new
 			
@@ -105,22 +114,42 @@ module Async
 		#
 		# @returns [Float] The load of the scheduler. 0.0 means no load, 1.0 means fully loaded or over-loaded.
 		def load
-			total_time = @busy_time + @idle_time
+			# Weight the last completed window by the portion of the update interval that the current window has not yet covered:
+			remaining = LOAD_AVERAGE_UPDATE_INTERVAL - @load_total_time
 			
-			# If the total time is zero, then the load is zero:
-			return 0.0 if total_time.zero?
-			
-			# We normalize to a 1 second window:
-			if total_time > 1.0
-				ratio = 1.0 / total_time
-				@busy_time *= ratio
-				@idle_time *= ratio
-				
-				# We don't need to divide here as we've already normalised it to a 1s window:
-				return @busy_time
+			if remaining > 0.0
+				return (@load * remaining + @load_busy_time) / LOAD_AVERAGE_UPDATE_INTERVAL
 			else
-				return @busy_time / total_time
+				return @load_busy_time / @load_total_time
 			end
+		end
+		
+		# The scheduler load averaged over one, five, and fifteen minutes.
+		#
+		# @public Since *Async v2.46*.
+		# @returns [Array(Float)] The scheduler load averages.
+		def load_averages
+			return @load_average
+		end
+		
+		private def update_load_average(busy_duration, total_duration)
+			return if total_duration <= 0.0
+			
+			@load_busy_time += busy_duration
+			@load_total_time += total_duration
+			return if @load_total_time < LOAD_AVERAGE_UPDATE_INTERVAL
+			
+			total_time = @load_total_time
+			load = @load_busy_time / total_time
+			@load = load
+			
+			@load_average = LOAD_AVERAGE_PERIODS.map.with_index do |period, index|
+				decay = Math.exp(-total_time / period)
+				@load_average[index] * decay + load * (1.0 - decay)
+			end.freeze
+			
+			@load_busy_time = 0.0
+			@load_total_time = 0.0
 		end
 		
 		# Invoked when the fiber scheduler is being closed.
@@ -483,8 +512,7 @@ module Async
 			idle_duration = @selector.idle_duration
 			busy_duration = total_duration - idle_duration
 			
-			@busy_time += busy_duration
-			@idle_time += idle_duration
+			update_load_average(busy_duration, total_duration)
 			
 			# The reactor still has work to do:
 			return true

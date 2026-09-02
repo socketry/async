@@ -1,5 +1,10 @@
 # Releases
 
+## Unreleased
+
+  - Added `Async::Scheduler#load_averages`, which returns one, five, and fifteen minute exponentially weighted moving averages of the scheduler load, suitable for monitoring and autoscaling signals.
+  - `Async::Scheduler#load` now reports the load over a sliding one-second window and no longer mutates internal state, so reading it has no side effects.
+
 ## v2.45.1
 
   - Fixed `Scheduler#io_wait` returning `nil` instead of `false` when an explicit timeout expired. Native callers such as `Socket#connect` with `connect_timeout:` distinguish a timeout by checking for `false`, so the `nil` caused `TypeError: no implicit conversion from nil to integer` instead of the intended `IO::TimeoutError`.
