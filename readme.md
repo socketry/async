@@ -35,6 +35,10 @@ Please see the [project documentation](https://socketry.github.io/async/) for mo
 
 Please see the [project releases](https://socketry.github.io/async/releases/index) for all releases.
 
+### v2.46.0
+
+  - Fixed `Thread#kill` raising a `TypeError` while shutting down a thread with an active `Async::Reactor`.
+
 ### v2.45.1
 
   - Fixed `Scheduler#io_wait` returning `nil` instead of `false` when an explicit timeout expired. Native callers such as `Socket#connect` with `connect_timeout:` distinguish a timeout by checking for `false`, so the `nil` caused `TypeError: no implicit conversion from nil to integer` instead of the intended `IO::TimeoutError`.
@@ -70,11 +74,6 @@ Please see the [project releases](https://socketry.github.io/async/releases/inde
 ### v2.38.1
 
   - Fix `Barrier#async` when `parent.async` yields before the child block executes. Previously, `Barrier#wait` could return early and miss tracking the task entirely, because the task had not yet appended itself to the barrier's task list.
-
-### v2.38.0
-
-  - Rename `Task#stop` to `Task#cancel` for better clarity and consistency with common concurrency terminology. The old `stop` method is still available as an alias for backward compatibility, but it is recommended to use `cancel` going forward.
-  - Forward arguments from `Task#wait` -\> `Promise#wait`, so `task.wait(timeout: N)` is supported.
 
 ## See Also
 
