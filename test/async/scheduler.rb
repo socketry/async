@@ -85,6 +85,33 @@ describe Async::Scheduler do
 	end
 	
 	with "#close" do
+		it "can close when the owning thread is killed" do
+			ready = Thread::Queue.new
+			
+			thread = Thread.new do
+				reactor = Async::Reactor.new
+				
+				reactor.async do
+					reactor.async do
+						sleep
+					end
+				end
+				
+				ready << true
+				reactor.run
+			end
+			thread.report_on_exception = false
+			
+			ready.pop
+			thread.kill
+			
+			expect do
+				thread.join
+			end.not.to raise_exception
+			
+			expect(thread).not.to be(:alive?)
+		end
+		
 		it "runs the event loop until terminated" do
 			scheduler = Async::Scheduler.new
 			Async::Node.new(scheduler)

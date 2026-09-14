@@ -327,6 +327,9 @@ module Async
 		# @parameter later [Boolean] Whether to cancel the task later, or immediately.
 		# @parameter cause [Exception] The cause of the cancel operation.
 		def cancel(later = false, cause: $!)
+			# On affected Ruby versions, `Thread#kill` exposes the internal `TAG_FATAL` value through `$!`, which is not a valid exception cause:
+			cause = nil unless cause.is_a?(::Exception)
+			
 			# If no cause is given, we generate one from the current call stack:
 			unless cause
 				cause = Cancel::Cause.for("Cancelling task!")
