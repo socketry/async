@@ -707,6 +707,114 @@ describe Async::Task do
 			expect(error.cause).to be == cause
 		end
 		
+		it "can cancel a task owned by another thread's scheduler" do
+			ready = Thread::Queue.new
+			cause = RuntimeError.new("boom")
+			cancel_error = nil
+			victim_finished = false
+			
+			owner = Thread.new do
+				Async do |parent|
+					victim = parent.async do
+						begin
+							sleep
+						rescue Async::Cancel => error
+							cancel_error = error
+							raise
+						ensure
+							victim_finished = true
+						end
+					end
+					
+					ready << victim
+					victim.wait
+				end
+			end
+			
+			victim = ready.pop
+			
+			canceller = Thread.new do
+				Async do
+					victim.cancel(cause: cause)
+					victim.wait
+				end
+			end
+			
+			expect(canceller.join(1)).to be == canceller
+			expect(owner.join(1)).to be == owner
+			expect(victim).to be(:cancelled?)
+			expect(victim_finished).to be == true
+			expect(cancel_error&.cause).to be == cause
+		ensure
+			canceller&.kill
+			owner&.kill
+			canceller&.join
+			owner&.join
+		end
+		
+		it "does not finalize a task from another thread while its owner is finishing it" do
+			ready = Thread::Queue.new
+			owner_finishing = Thread::Queue.new
+			owner_error = nil
+			owner_thread = nil
+			
+			owner = Thread.new do
+				owner_thread = Thread.current
+				
+				begin
+					Async do |parent|
+						parent.async do |victim|
+							pause_during_consume = Module.new do
+								define_method(:finished?) do
+									if Thread.current.equal?(owner_thread) && @fiber.nil? && !defined?(@paused_during_consume)
+										@paused_during_consume = true
+										owner_finishing << true
+										Thread.stop
+									end
+									
+									super()
+								end
+							end
+							
+							victim.singleton_class.prepend(pause_during_consume)
+							ready << victim
+							Thread.stop
+							
+							:completed
+						end
+					end
+				rescue Exception => error
+					owner_error = error
+				end
+			end
+			
+			victim = ready.pop
+			Thread.pass until owner.stop?
+			owner.run
+			
+			owner_finishing.pop
+			Thread.pass until owner.stop?
+			
+			canceller = Thread.new do
+				Async do
+					victim.cancel
+				end
+			end
+			
+			expect(canceller.join(1)).to be == canceller
+			owner.run
+			
+			expect(owner.join(1)).to be == owner
+			expect(owner_error).to be_nil
+			expect(victim.status).to be == :completed
+		ensure
+			owner&.run if owner&.alive? && owner&.stop?
+			canceller&.kill
+			owner&.kill
+			canceller&.join
+			owner&.join
+		end
+		
 		it "defers cancellation if the target fiber cannot be raised into directly" do
 			cause = RuntimeError.new("boom")
 			cancelled = []
