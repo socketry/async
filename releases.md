@@ -1,5 +1,9 @@
 # Releases
 
+## Unreleased
+
+  - Add `Async::Task#wait_cancel_deferred`, which waits until a cancel has been deferred by the task or its nearest ancestor within `defer_cancel`. This lets work that never finishes on its own, such as a streaming response, learn that it has been asked to finish.
+
 ## v2.46.0
 
   - Fixed `Thread#kill` raising a `TypeError` while shutting down a thread with an active `Async::Reactor`.

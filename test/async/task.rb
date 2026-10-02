@@ -1389,6 +1389,56 @@ describe Async::Task do
 		end
 	end
 	
+	with "#wait_cancel_deferred" do
+		it "can wait for a deferred cancel from a child task" do
+			cause = nil
+			
+			parent_task = reactor.async do |task|
+				task.defer_cancel do
+					task.async do |child_task|
+						cause = child_task.wait_cancel_deferred
+					end.wait
+				end
+			end
+			
+			reactor.run_once(0)
+			
+			parent_task.cancel
+			expect(parent_task).to be(:running?)
+			
+			while parent_task.running?
+				reactor.run_once(0)
+			end
+			
+			expect(cause).to be_a(Async::Cancel::Cause)
+			expect(parent_task).to be(:cancelled?)
+		end
+		
+		it "returns immediately if cancel was already deferred" do
+			condition = Async::Notification.new
+			cause = nil
+			
+			child_task = reactor.async do |task|
+				task.defer_cancel do
+					condition.wait
+					cause = task.wait_cancel_deferred
+				end
+			end
+			
+			reactor.run_once(0)
+			
+			child_task.cancel
+			condition.signal
+			
+			while child_task.running?
+				reactor.run_once(0)
+			end
+			
+			expect(cause).to be_a(Async::Cancel::Cause)
+			expect(child_task).to be(:cancelled?)
+		end
+	end
+	
 	with "failing task" do
 		include Sus::Fixtures::Console::CapturedLogger
 		
