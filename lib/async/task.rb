@@ -100,6 +100,7 @@ module Async
 			end
 			
 			@defer_cancel = nil
+			@cancel_deferred = nil
 			
 			# Call this after all state is initialized, as it may call `add_child` which will set the parent and make it visible to the scheduler.
 			super(parent, **options)
@@ -351,6 +352,7 @@ module Async
 				if @defer_cancel == false
 					# Don't cancel now... but update the state so we know we need to cancel later.
 					@defer_cancel = cause
+					@cancel_deferred&.resolve(cause)
 					return false
 				end
 				
@@ -407,6 +409,7 @@ module Async
 					
 					# We need to ensure the state is reset before we exit the block:
 					@defer_cancel = nil
+					@cancel_deferred = nil
 					
 					# If we were asked to cancel, we should do so now:
 					if defer_cancel
@@ -434,6 +437,34 @@ module Async
 		# @deprecated Use {#cancel_deferred?} instead.
 		def stop_deferred?
 			cancel_deferred?
+		end
+		
+		# Wait until a cancel has been deferred, either by this task or by the nearest ancestor task deferring cancel. This allows work running within a {defer_cancel} block, including child tasks, to learn that it has been asked to finish.
+		#
+		# If no task is deferring cancel, this waits indefinitely, as any cancel will be delivered directly.
+		#
+		# @returns [Exception] The cause of the deferred cancel.
+		def wait_cancel_deferred
+			node = self
+			
+			while node.is_a?(Task)
+				if promise = node.cancel_deferred_promise
+					return promise.wait
+				end
+				
+				node = node.parent
+			end
+			
+			Promise.new.wait
+		end
+		
+		# @returns [Promise | Nil] A promise resolved when cancel is deferred, if this task is deferring cancel.
+		protected def cancel_deferred_promise
+			unless @defer_cancel.nil?
+				@cancel_deferred ||= Promise.new.tap do |promise|
+					promise.resolve(@defer_cancel) if @defer_cancel
+				end
+			end
 		end
 		
 		# Lookup the {Task} for the current fiber. Raise `RuntimeError` if none is available.
