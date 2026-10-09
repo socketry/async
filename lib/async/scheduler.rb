@@ -28,6 +28,7 @@ module Async
 	
 	# Handles scheduling of fibers. Implements the fiber scheduler interface.
 	class Scheduler < Node
+		# Whether the `ASYNC_SCHEDULER_WORKER_POOL` environment variable enabled the worker pool when `async/scheduler` was loaded. If so, {Scheduler.enable_worker_pool} is invoked.
 		WORKER_POOL = ENV.fetch("ASYNC_SCHEDULER_WORKER_POOL", nil).then do |value|
 			value == "true" ? true : nil
 		end
@@ -70,12 +71,57 @@ module Async
 			WorkerPool = nil
 		end
 		
+		@@worker_pool = nil
+		
+		# The factory used to create a worker pool for each scheduler that is created without an explicit `worker_pool:` argument, including those created by {Kernel::Sync}, {Kernel::Async} and {Reactor}.
+		#
+		# @public Since *Async v2.47*.
+		# @returns [Proc | Method | Nil] A callable which returns a new worker pool, or `nil` if the worker pool is disabled.
+		def self.worker_pool
+			@@worker_pool
+		end
+		
+		# Set the factory used to create a worker pool for each scheduler that is created without an explicit `worker_pool:` argument. Changes only affect schedulers created afterwards.
+		#
+		# A scheduler closes its worker pool when it is closed, so the factory must return a new worker pool each time it is called, e.g. `->{IO::Event::WorkerPool.new(maximum_worker_count: 4)}`.
+		#
+		# @public Since *Async v2.47*.
+		# @parameter factory [Proc | Method | Nil] A callable which returns a new worker pool (or `nil`), or `nil` to disable the worker pool.
+		# @raises [ArgumentError] If the factory is not callable, e.g. a worker pool instance.
+		def self.worker_pool=(factory)
+			if WorkerPool and factory.is_a?(WorkerPool)
+				raise ArgumentError, "Worker pools can't be shared between schedulers, use a callable that returns a new worker pool instead!"
+			elsif factory.nil? or factory.respond_to?(:call)
+				@@worker_pool = factory
+			else
+				raise ArgumentError, "Worker pool factory must be callable or nil: #{factory.inspect}"
+			end
+		end
+		
+		# Enable the default worker pool for each scheduler that is created without an explicit `worker_pool:` argument. Does nothing if `io-event` was built without worker pool support.
+		#
+		# @public Since *Async v2.47*.
+		def self.enable_worker_pool
+			self.worker_pool = WorkerPool&.method(:new)
+		end
+		
+		# Create a new worker pool using {worker_pool}.
+		#
+		# @public Since *Async v2.47*.
+		# @returns [IO::Event::WorkerPool | Nil] A new worker pool, or `nil` if the worker pool is disabled.
+		def self.make_worker_pool
+			@@worker_pool&.call
+		end
+		
+		enable_worker_pool if WORKER_POOL
+		
 		# Create a new scheduler.
 		#
 		# @public Since *Async v1*.
 		# @parameter parent [Node | Nil] The parent node to use for task hierarchy.
 		# @parameter selector [IO::Event::Selector] The selector to use for event handling.
-		def initialize(parent = nil, selector: nil, profiler: Profiler&.default, worker_pool: WORKER_POOL)
+		# @parameter worker_pool [IO::Event::WorkerPool | Boolean | Nil] The worker pool to use for blocking operations, `true` to create a default worker pool, or `nil` to disable it. Defaults to a new worker pool created by {Scheduler.worker_pool}.
+		def initialize(parent = nil, selector: nil, profiler: Profiler&.default, worker_pool: Scheduler.make_worker_pool)
 			super(parent)
 			
 			@selector = selector || ::IO::Event::Selector.new(Fiber.current)
