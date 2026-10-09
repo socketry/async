@@ -1,5 +1,31 @@
 # Releases
 
+## Unreleased
+
+  - Add `Async::Scheduler.enable_worker_pool` and `Async::Scheduler.worker_pool=` to enable the worker pool at runtime, for schedulers created without an explicit `worker_pool:` argument, including those created by `Sync`, `Async` and `Async::Reactor.new`. The `ASYNC_SCHEDULER_WORKER_POOL` environment variable is still supported.
+
+### Configuring the Worker Pool at Runtime
+
+The worker pool could previously only be enabled for schedulers you don't create yourself by setting `ASYNC_SCHEDULER_WORKER_POOL=true` before `async` was loaded. You can now enable it from application code:
+
+``` ruby
+require "async"
+
+Async::Scheduler.enable_worker_pool
+
+Sync do
+	# Blocking operations (e.g. `rb_nogvl`) are executed by the worker pool.
+end
+```
+
+Each scheduler creates its own worker pool, and closes it when the scheduler is closed. `enable_worker_pool` (like the environment variable) uses the `IO::Event::WorkerPool` defaults, which is a single worker. Previously, a custom worker pool such as one with a higher `maximum_worker_count` required creating the scheduler yourself with an explicit `worker_pool:` argument. Now you can set a factory which returns a new worker pool for each scheduler:
+
+``` ruby
+Async::Scheduler.worker_pool = ->{IO::Event::WorkerPool.new(maximum_worker_count: 4)}
+```
+
+Set `Async::Scheduler.worker_pool = nil` to disable the worker pool again. An explicit `worker_pool:` argument to `Async::Scheduler.new` takes precedence over these settings. Changes only affect schedulers created afterwards.
+
 ## v2.46.0
 
   - Fixed `Thread#kill` raising a `TypeError` while shutting down a thread with an active `Async::Reactor`.

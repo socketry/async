@@ -88,6 +88,34 @@ Fiber.schedule do
 end
 ```
 
+### Worker Pool
+
+Ruby 3.4 introduced the `blocking_operation_wait` fiber scheduler hook, which allows the scheduler to execute blocking operations (e.g. `rb_nogvl`) on a worker pool, rather than blocking the event loop. The worker pool is disabled by default. You can enable it using the `ASYNC_SCHEDULER_WORKER_POOL=true` environment variable, which is read when `async` is loaded, or at runtime using {ruby Async::Scheduler.enable_worker_pool}:
+
+```ruby
+require "async"
+
+Async::Scheduler.enable_worker_pool
+
+Sync do
+	# Blocking operations are executed by the worker pool.
+end
+```
+
+The setting applies to schedulers created afterwards without an explicit `worker_pool:` argument, including those created by `Sync`, `Async` and {ruby Async::Reactor}. Each scheduler creates its own worker pool and closes it when the scheduler is closed. To customize the worker pool, set {ruby Async::Scheduler.worker_pool} to a factory which returns a new worker pool for each scheduler, or `nil` to disable it:
+
+```ruby
+Async::Scheduler.worker_pool = ->{IO::Event::WorkerPool.new(maximum_worker_count: 4)}
+```
+
+An explicit `worker_pool:` argument takes precedence over these settings:
+
+```ruby
+scheduler = Async::Scheduler.new(worker_pool: true)
+```
+
+The worker pool has overhead, which can be significant compared to the work being offloaded, so you should benchmark your application with and without it.
+
 ## Design
 
 ### Optimistic vs Pessimistic Scheduling
