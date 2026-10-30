@@ -36,6 +36,8 @@ describe Kernel do
 		end
 		
 		it "can fail to execute child process" do
+			skip "JRuby does not spawn a missing command, so there is no process to wait for" if RUBY_ENGINE == "jruby"
+			
 			expect(reactor).to receive(:process_wait)
 			
 			result = ::Kernel.system("does-not-exist")

@@ -10,6 +10,8 @@ require "async"
 describe Process do
 	describe ".fork" do
 		it "can fork with block form" do
+			skip "Process.fork is not supported!" unless Process.respond_to?(:fork)
+			
 			r, w = IO.pipe
 			
 			Async do
@@ -27,6 +29,8 @@ describe Process do
 		end
 		
 		it "can fork with non-block form" do
+			skip "Process.fork is not supported!" unless Process.respond_to?(:fork)
+			
 			r, w = IO.pipe
 			
 			Async do
@@ -46,6 +50,8 @@ describe Process do
 		end
 		
 		it "can fork while another fiber is blocked" do
+			skip "Process.fork is not supported!" unless Process.respond_to?(:fork)
+			
 			r, w = IO.pipe
 			queue = Thread::Queue.new
 			
