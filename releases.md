@@ -1,5 +1,9 @@
 # Releases
 
+## Unreleased
+
+  - Add `ASYNC_SCHEDULER_PLATFORM_RESOLVER=true` (or `Scheduler.new(platform_resolver: true)`) to resolve hostnames with the platform resolver (`getaddrinfo`) on a short-lived thread instead of `Resolv`. Lookups inside the scheduler then honour the same configuration as lookups outside it, e.g. `/etc/resolver` on macOS, `nsswitch.conf`, and RFC 6724 address ordering, without blocking the event loop. At most 16 callers wait on lookups at once per scheduler; pass an integer (e.g. `platform_resolver: 4`) to change the limit. `getaddrinfo` can't be cancelled, so a lookup whose caller is stopped or times out may keep running until the system resolver gives up, as it would outside the scheduler.
+
 ## v2.46.0
 
   - Fixed `Thread#kill` raising a `TypeError` while shutting down a thread with an active `Async::Reactor`.
