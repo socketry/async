@@ -11,6 +11,7 @@ require_relative "clock"
 require_relative "task"
 require_relative "timeout"
 require_relative "fork_handler"
+require_relative "semaphore"
 
 require "io/event"
 
@@ -31,6 +32,12 @@ module Async
 		WORKER_POOL = ENV.fetch("ASYNC_SCHEDULER_WORKER_POOL", nil).then do |value|
 			value == "true" ? true : nil
 		end
+		
+		# Whether schedulers resolve hostnames with the platform resolver by default. Set `ASYNC_SCHEDULER_PLATFORM_RESOLVER=true` to enable.
+		PLATFORM_RESOLVER = ENV.fetch("ASYNC_SCHEDULER_PLATFORM_RESOLVER", nil) == "true"
+		
+		# The default maximum number of callers waiting on platform resolver lookups at once, per scheduler. Each lookup runs on its own thread.
+		PLATFORM_RESOLVER_LIMIT = 16
 		
 		# Raised when an operation is attempted on a closed scheduler.
 		class ClosedError < RuntimeError
@@ -75,7 +82,16 @@ module Async
 		# @public Since *Async v1*.
 		# @parameter parent [Node | Nil] The parent node to use for task hierarchy.
 		# @parameter selector [IO::Event::Selector] The selector to use for event handling.
-		def initialize(parent = nil, selector: nil, profiler: Profiler&.default, worker_pool: WORKER_POOL)
+		# @parameter platform_resolver [Boolean | Integer] Whether to resolve hostnames with the platform resolver (`getaddrinfo`) instead of `Resolv`. An integer enables it and sets the maximum number of callers waiting on lookups at once (default {PLATFORM_RESOLVER_LIMIT}).
+		def initialize(parent = nil, selector: nil, profiler: Profiler&.default, worker_pool: WORKER_POOL, platform_resolver: PLATFORM_RESOLVER)
+			# Validate the limit before allocating the selector or worker pool, so that an invalid argument doesn't leak them:
+			if platform_resolver
+				limit = platform_resolver == true ? PLATFORM_RESOLVER_LIMIT : Integer(platform_resolver)
+				Kernel.raise ArgumentError, "platform_resolver limit must be positive!" unless limit.positive?
+				
+				address_resolve_semaphore = Semaphore.new(limit)
+			end
+			
 			super(parent)
 			
 			@selector = selector || ::IO::Event::Selector.new(Fiber.current)
@@ -99,6 +115,9 @@ module Async
 			if @worker_pool
 				self.singleton_class.prepend(BlockingOperationWait)
 			end
+			
+			# If set, hostnames are resolved with the platform resolver, and this limits how many callers wait on lookups at once:
+			@address_resolve_semaphore = address_resolve_semaphore
 		end
 		
 		# Compute the scheduler load according to the busy and idle times that are updated by the run loop.
@@ -288,15 +307,44 @@ module Async
 		
 		# Resolve the address of the given hostname.
 		#
+		# By default this uses `Resolv`, which only reads `/etc/hosts` and `/etc/resolv.conf`. With `platform_resolver:` (or `ASYNC_SCHEDULER_PLATFORM_RESOLVER=true`), it uses the platform resolver (`getaddrinfo`) on a short-lived thread instead, which honours the same configuration as code running outside the scheduler (e.g. `/etc/resolver` on macOS, `nsswitch.conf`, RFC 6724 address ordering), without blocking the event loop. At most {PLATFORM_RESOLVER_LIMIT} callers (or the limit given to `platform_resolver:`) wait on platform lookups at once per scheduler; further callers wait for a free slot. A caller that is stopped or times out frees its slot immediately, but `getaddrinfo` can't be cancelled, so the abandoned lookup may keep running until the system resolver gives up, just as it would outside the scheduler.
+		#
 		# @public Since *Async v2*.
 		# @asynchronous May be non-blocking.
 		#
 		# @parameter hostname [String] The hostname to resolve.
+		# @returns [Array(String)] The resolved addresses.
 		def address_resolve(hostname)
 			# On some platforms, hostnames may contain a device-specific suffix (e.g. %en0). We need to strip this before resolving.
 			# See <https://github.com/socketry/async/issues/180> for more details.
 			hostname = hostname.split("%", 2).first
-			::Resolv.getaddresses(hostname)
+			
+			if semaphore = @address_resolve_semaphore
+				platform_address_resolve(hostname, semaphore)
+			else
+				::Resolv.getaddresses(hostname)
+			end
+		end
+		
+		# Resolve the given hostname with `getaddrinfo` on its own thread, holding a slot in the given semaphore while the caller waits.
+		private def platform_address_resolve(hostname, semaphore)
+			semaphore.acquire do
+				thread = ::Thread.new do
+					::Addrinfo.getaddrinfo(hostname, nil, nil, :STREAM).map(&:ip_address).uniq
+				rescue => error
+					# Return the error rather than raising it, otherwise `Thread.abort_on_exception` would re-raise it on the main thread:
+					error
+				end
+				
+				result = thread.value
+				
+				::Kernel.raise result if result.is_a?(::Exception)
+				
+				result
+			ensure
+				# If the caller is stopped or times out, don't leave the Ruby thread waiting. This interrupts the wait, but the native `getaddrinfo` call can't be cancelled and runs until the system resolver gives up:
+				thread&.kill
+			end
 		end
 		
 		# Wait for the specified IO to become ready for the specified events.
