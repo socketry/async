@@ -93,6 +93,59 @@ describe IO do
 	end
 	
 	with "#close" do
+		it "closes the descriptor" do
+			r, w = IO.pipe
+			
+			w.close
+			
+			expect(w).to be(:closed?)
+			# The reader only sees the end of the stream once the descriptor is actually closed:
+			expect(r.read).to be == ""
+		ensure
+			r&.close
+		end
+		
+		it "closes the descriptor using the scheduler" do
+			skip_unless_minimum_ruby_version("4.0")
+			skip "The selector does not support io_close!" unless scheduler.respond_to?(:io_close)
+			
+			r, w = IO.pipe
+			descriptor = w.fileno
+			
+			closed = []
+			mock(scheduler) do |mock|
+				mock.before(:io_close){|descriptor| closed << descriptor}
+			end
+			
+			w.close
+			
+			expect(closed).to be(:include?, descriptor)
+			expect(w).to be(:closed?)
+			expect(r.read).to be == ""
+		ensure
+			r&.close
+		end
+		
+		it "closes the descriptor while the scheduler is terminating" do
+			r, w = IO.pipe
+			
+			Thread.new do
+				Sync do
+					# This task is still running when the scheduler exits, so the descriptor is closed during termination, just before the selector itself is closed:
+					Async(transient: true) do
+						sleep
+					ensure
+						w.close
+					end
+				end
+			end.join
+			
+			expect(w).to be(:closed?)
+			expect(r.read).to be == ""
+		ensure
+			r&.close
+		end
+		
 		it "can interrupt reading fiber when closing" do
 			skip_unless_minimum_ruby_version("3.5")
 			

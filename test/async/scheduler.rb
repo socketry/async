@@ -164,6 +164,36 @@ describe Async::Scheduler do
 		end
 	end
 	
+	with "#io_close" do
+		it "delegates to selectors that support io_close" do
+			selector = Object.new
+			calls = []
+			selector.define_singleton_method(:io_close) do |descriptor|
+				calls << descriptor
+				true
+			end
+			scheduler = Async::Scheduler.new(selector: selector)
+			
+			expect(scheduler.io_close(10)).to be == true
+			expect(calls).to be == [10]
+		end
+		
+		it "is not defined when the selector does not support io_close" do
+			scheduler = Async::Scheduler.new(selector: Object.new)
+			
+			expect(scheduler).not.to be(:respond_to?, :io_close)
+		end
+		
+		it "lets Ruby close the descriptor after the scheduler is closed" do
+			selector = IO::Event::Selector.new(Fiber.current)
+			selector.define_singleton_method(:io_close){|descriptor| true}
+			scheduler = Async::Scheduler.new(selector: selector)
+			scheduler.close
+			
+			expect(scheduler.io_close(10)).to be == false
+		end
+	end
+	
 	with "#cancel" do
 		it "shares the generated cancellation cause with child tasks" do
 			cause = Async::Cancel::Cause.new("Cancelling task!")
