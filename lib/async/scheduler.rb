@@ -64,6 +64,22 @@ module Async
 		
 		private_constant :BlockingOperationWait
 		
+		# Implements `#io_close` if the selector supports it.
+		module IoClose
+			# Close the given file descriptor.
+			#
+			# @public Since *Async v2.47* and *Ruby v4.0*.
+			# @asynchronous May be non-blocking.
+			#
+			# @parameter descriptor [Integer] The fd to close.
+			# @returns [Boolean] Whether the selector closed the descriptor.
+			def io_close(descriptor)
+				!!@selector&.io_close(descriptor)
+			end
+		end
+		
+		private_constant :IoClose
+		
 		if ::IO::Event.const_defined?(:WorkerPool)
 			WorkerPool = ::IO::Event::WorkerPool
 		else
@@ -98,6 +114,10 @@ module Async
 			
 			if @worker_pool
 				self.singleton_class.prepend(BlockingOperationWait)
+			end
+			
+			if @selector.respond_to?(:io_close)
+				self.singleton_class.prepend(IoClose)
 			end
 		end
 		
